@@ -17,8 +17,9 @@ contract BaseBondingCurve is Ownable {
     /// @notice reserveRatio is used to define the steepness or shape of the bonding curve.
     /// It's specified in basis points, where 100 basis points equal 1 percent. For example,
     /// a reserve ratio of 5000 corresponds to a 50% reserve ratio.
-
     uint256 public reserveRatio;
+
+    uint256 public initialPrice = 1e10;
 
     event Buy(address indexed buyer, uint256 amount);
     event Sell(address indexed seller, uint256 amount);
@@ -58,7 +59,13 @@ contract BaseBondingCurve is Ownable {
 
     // Calculate buy price using the bonding curve formula
     function calculateBuyPrice(uint256 amount) public view returns (uint256) {
-        return amount * (reserveBalance + amount) / reserveBalance;
+        if (reserveBalance == 0) {
+            // Set a default or initial price when reserveBalance is zero
+            return initialPrice * amount;
+        } else {
+            // Use bonding curve formula
+            return amount * (reserveBalance + amount) / reserveBalance;
+        }
     }
 
     // Calculate sell price using the bonding curve formula

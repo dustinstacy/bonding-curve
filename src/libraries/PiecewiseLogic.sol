@@ -19,9 +19,9 @@ library PiecewiseLogic {
         return 0;
     }
 
-    function evaluateFunction(int256[] memory curve, uint256 a, uint256 b) internal pure returns (int256) {
+    function evaluateFunction(int256[] memory curve, uint256 a, uint256 b) internal pure returns (int256 sum) {
         uint256 i = 0;
-        int256 sum = 0;
+        sum = 0;
 
         // Require to be within the curve limit
         require(a + b <= uint256(curve[curve.length - 1]), "Error: Function not in curve limit");
