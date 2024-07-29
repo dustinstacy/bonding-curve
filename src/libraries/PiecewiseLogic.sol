@@ -19,12 +19,12 @@ library PiecewiseLogic {
         return 0;
     }
 
-    function evaluateFunction(int256[] memory curve, uint256 a, uint256 b) internal pure returns (int256 sum) {
+    function evaluateFunction(int256[] memory curve, uint256 start, uint256 n) internal pure returns (int256 sum) {
         uint256 i = 0;
         sum = 0;
 
         // Require to be within the curve limit
-        require(a + b <= uint256(curve[curve.length - 1]), "Error: Function not in curve limit");
+        require(start + n <= uint256(curve[curve.length - 1]), "Error: Function not in curve limit");
 
         // Loop invariant: i should always point to the start of a piecewise piece (the length)
         while (i < curve.length) {
@@ -34,26 +34,30 @@ library PiecewiseLogic {
             // Index of the next piece's end
             uint256 nextIndex = i + l + 2;
 
-            if (a > end) {
+            if (start > end) {
                 // move on to the next piece
                 i = nextIndex;
                 continue;
             }
 
-            sum += evaluatePiece(curve, i, a, (a + b > end) ? end - a : b);
+            sum += evaluatePiece(curve, i, start, (start + n > end) ? end - start : n);
 
-            if (a + b <= end) {
+            if (start + n <= end) {
                 // Entire calculation is within this piece
                 return sum;
             } else {
-                b -= end - a + 1; // Remove the curve cost we've already bound from b
-                a = end; // Move a up to the end
+                n -= end - start + 1; // Remove the curve cost we've already bound from b
+                start = end; // Move a up to the end
                 i = nextIndex; // Move index up
             }
         }
     }
 
-    function evaluatePiece(int256[] memory curve, uint256 index, uint256 a, uint256 b) internal pure returns (int256) {
+    function evaluatePiece(int256[] memory curve, uint256 index, uint256 start, uint256 n)
+        internal
+        pure
+        returns (int256)
+    {
         int256 sum = 0;
         uint256 len = uint256(curve[index]);
         uint256 base = index + 1;
@@ -61,7 +65,7 @@ library PiecewiseLogic {
 
         // iterate between index+1 and the end of this piece
         for (uint256 i = base; i < end; i++) {
-            sum += curve[i] * int256(sumOfPowers(a + b, i - base) - sumOfPowers(a - 1, i - base));
+            sum += curve[i] * int256(sumOfPowers(start + n, i - base) - sumOfPowers(start - 1, i - base));
         }
 
         require(sum >= 0, "Error: Cost must be greater than zero");

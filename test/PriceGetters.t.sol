@@ -14,7 +14,7 @@ contract PriceGettersTest is Test {
     int256 private constant ETH_USD_PRICE = 3265;
 
     function setUp() public {
-        pg = new PriceGetters(5000);
+        pg = new PriceGetters{value: 0.1 ether}(1000, 0.001 ether);
         ethUSDPriceFeed = new MockV3Aggregator(DECIMALS, ETH_USD_PRICE);
     }
 
@@ -28,9 +28,10 @@ contract PriceGettersTest is Test {
         }
     }
 
-    function test_CalculateBuyPrice() public view {
-        uint256 amount = 10;
-        uint256 buyPrice = pg.calculateBuyPrice(amount);
-        console.log("Buy price: ", buyPrice);
+    function test_calculateBuyPrice() public view {
+        for (uint256 i = 0; i < 10; i++) {
+            uint256 price = pg.calculateBuyPrice(i);
+            console.log("Amount: ", i, "Price: ", price);
+        }
     }
 }

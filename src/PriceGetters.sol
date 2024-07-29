@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.24;
 
-import "src/libraries/PiecewiseLogic.sol";
+import {PiecewiseLogic} from "src/libraries/PiecewiseLogic.sol";
 
 contract PriceGetters {
     /// @notice  reserveBalance keeps track of the total amount of Ether
@@ -15,8 +15,20 @@ contract PriceGetters {
     /// a reserve ratio of 5000 corresponds to a 50% reserve ratio.
     uint256 public reserveRatio;
 
-    constructor(uint256 _reserveRatio) {
+    /// @notice tokenSupply keeps track of the total amount of tokens in circulation.
+    uint256 public tokenSupply;
+
+    /// @notice initPrice is the initial price of the token.
+    uint256 public initPrice;
+
+    /// @notice rftCurve is the piecewise curve that defines the price of the token.
+    int256[] public rftCurve;
+
+    constructor(uint256 _reserveRatio, uint256 _initPrice) payable {
+        reserveBalance = msg.value;
         reserveRatio = _reserveRatio;
+        initPrice = _initPrice;
+        // rftCurve = _rftCurve;
     }
 
     function getPrice(uint256 supply, uint256 amount, uint256 scalingFactor) public pure returns (uint256) {
@@ -28,19 +40,23 @@ contract PriceGetters {
         return summation * 1 ether / (scalingFactor * 1e5); // scaling factor controls curve steepness
     }
 
-    function costOfN(int256[] memory curve, uint256 start, uint256 nth, uint256 initCost)
-        public
-        pure
-        returns (uint256)
-    {
-        int256 res = PiecewiseLogic.evaluateFunction(curve, start, nth);
-        require(res >= 0, "Error: Cost cannot be negative");
-        uint256 cost = uint256(res) * initCost;
-        return cost;
+    // Calculate buy price based on bonding curve formula
+    function calculateBuyPrice(uint256 amount) public view returns (uint256) {
+        if (tokenSupply == 0) {
+            // Special case for initial token purchase
+            return reserveBalance * reserveRatio / 1e4; // Initial price
+        } else {
+            // General case for buying tokens
+            uint256 newTokenSupply = tokenSupply + amount;
+            uint256 price = reserveBalance * ((newTokenSupply * 1e4) ** reserveRatio) / (tokenSupply * 1e4);
+            return price;
+        }
     }
 
-    // Calculate buy price using the bonding curve formula
-    function calculateBuyPrice(uint256 amount) public view returns (uint256) {
-        return amount * (reserveBalance + amount) / reserveBalance;
+    function costOfN(int256[] memory curve, uint256 start, uint256 n) public view returns (uint256) {
+        int256 res = PiecewiseLogic.evaluateFunction(curve, start, n);
+        require(res >= 0, "Error: Cost cannot be negative");
+        uint256 cost = uint256(res) * initPrice;
+        return cost;
     }
 }
