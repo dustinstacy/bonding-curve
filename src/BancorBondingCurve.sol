@@ -2,9 +2,8 @@
 pragma solidity ^0.8.24;
 
 import {Power} from "src/libraries/Power.sol";
-import {IBancorBondingCurve} from "src/interfaces/IBancorBondingCurve.sol";
 
-abstract contract BancorBondingCurve is IBancorBondingCurve {
+abstract contract BancorBondingCurve {
     /*
         reserve ratio, represented in ppm, 1-1000000
         1/3 corresponds to y= multiple * x^2
@@ -19,11 +18,11 @@ abstract contract BancorBondingCurve is IBancorBondingCurve {
         reserveRatio = _reserveRatio;
     }
 
-    function getContinuousMintReward(uint256 _reserveTokenAmount) public view override returns (uint256) {
+    function getContinuousMintReward(uint256 _reserveTokenAmount) public view returns (uint256) {
         return _calculatePurchaseReturn(continuousSupply(), reserveBalance(), reserveRatio, _reserveTokenAmount);
     }
 
-    function getContinuousBurnRefund(uint256 _continuousTokenAmount) public view override returns (uint256) {
+    function getContinuousBurnRefund(uint256 _continuousTokenAmount) public view returns (uint256) {
         return _calculateSaleReturn(continuousSupply(), reserveBalance(), reserveRatio, _continuousTokenAmount);
     }
 
