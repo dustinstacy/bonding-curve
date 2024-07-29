@@ -194,7 +194,7 @@ library Power {
      *       This functions assumes that "_expN < 2 ^ 256 / log(MAX_NUM - 1)", otherwise the multiplication should be replaced with a "safeMul".
      */
 
-    function power(uint256 _baseN, uint256 _baseD, uint32 _expN, uint32 _expD) external view returns (uint256, uint8) {
+    function power(uint256 _baseN, uint256 _baseD, uint32 _expN, uint32 _expD) external pure returns (uint256, uint8) {
         require(_baseN < MAX_NUM, "baseN exceeds max value.");
         require(_baseN >= _baseD, "Bases < 1 are not supported.");
 
@@ -275,7 +275,7 @@ library Power {
      *     - This function finds the position of [the smallest value in "maxExpArray" larger than or equal to "x"]
      *     - This function finds the highest position of [a value in "maxExpArray" larger than or equal to "x"]
      */
-    function findPositionInMaxExpArray(uint256 _x) internal view returns (uint8) {
+    function findPositionInMaxExpArray(uint256 _x) internal pure returns (uint8) {
         uint8 lo = MIN_PRECISION;
         uint8 hi = MAX_PRECISION;
 
