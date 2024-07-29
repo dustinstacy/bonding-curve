@@ -2,7 +2,7 @@
 pragma solidity ^0.8.24;
 
 import {Test, console} from "forge-std/Test.sol";
-import {FriendtechSharesV1} from "src/FriendTechCurve.sol";
+import {FriendtechSharesV1} from "src/references/FriendTechCurve.sol";
 import {MockV3Aggregator} from "test/mocks/MockV3Aggregator.sol";
 import {Calculations} from "src/libraries/Calculations.sol";
 

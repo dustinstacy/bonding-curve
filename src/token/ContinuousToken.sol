@@ -3,7 +3,7 @@ pragma solidity ^0.8.24;
 
 import {Ownable} from "@openzeppelin/contracts/access/Ownable.sol";
 import {ERC20} from "@openzeppelin/contracts/token/ERC20/ERC20.sol";
-import {BancorBondingCurve} from "src/BancorBondingCurve.sol";
+import {BancorBondingCurve} from "src/references/BancorBondingCurve.sol";
 
 contract ContinuousToken is Ownable, ERC20, BancorBondingCurve {
     event Minted(address sender, uint256 amount, uint256 deposit);

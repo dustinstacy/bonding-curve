@@ -2,32 +2,25 @@
 pragma solidity ^0.8.24;
 
 import {ERC20Burnable, ERC20} from "@openzeppelin/contracts/token/ERC20/extensions/ERC20Burnable.sol";
-import {Ownable} from "@openzeppelin/contracts/access/Ownable.sol";
 import {BondingCurve} from "src/BondingCurve.sol";
 
-/// @title SimpleCoin
+/// @title SimpleToken
 /// @author Dustin Stacy
 /// @notice This contract implements a simple ERC20 token that can be bought and sold using a bonding curve.
 ///         It is designed to work with a bonding curve that is defined by a reserve ratio.
-contract SimpleCoin is ERC20Burnable {
+contract SimpleToken is ERC20Burnable {
     /*///////////////////////////////////////////////////////////////
                                 ERRORS
     ///////////////////////////////////////////////////////////////*/
 
     /// @dev Emitted when attempting to perform an action with an amount that must be more than zero.
-    error SimpleCoin__AmountMustBeMoreThanZero();
+    error SimpleToken__AmountMustBeMoreThanZero();
 
     /// @dev Emitted if the buyer does not send enough Ether to purchase the tokens.
-    error SimpleCoin__InsufficientFunds();
-
-    /// @dev Emitted if minting is unsuccesful.
-    error SimpleCoin__MintFailed();
+    error SimpleToken__InsufficientFundingForTransaction();
 
     /// @dev Emitted when attempting to burn an amount that exceeds the sender's balance.
-    error SimpleCoin__BurnAmountExceedsBalance();
-
-    /// @dev Emitted when attempting to perform an action with a zero address.
-    error SimpleCoin__NotZeroAddress();
+    error SimpleToken__BurnAmountExceedsBalance();
 
     /*///////////////////////////////////////////////////////////////
                              STATE VARIABLES
@@ -56,7 +49,7 @@ contract SimpleCoin is ERC20Burnable {
     event TokensPurchased(address indexed buyer, uint256 amountSpent, uint256 tokensMinted);
 
     /// @notice Event to log token sales.
-    event TokensSold(address indexed seller, uint256 amountReceived, uint256 tokensMinted);
+    event TokensSold(address indexed seller, uint256 amountReceived, uint256 tokensBurnt);
 
     /*///////////////////////////////////////////////////////////////
                               CONSTRUCTOR
@@ -74,26 +67,27 @@ contract SimpleCoin is ERC20Burnable {
         reserveRatio = _reserveRatio;
     }
 
+    /*///////////////////////////////////////////////////////////////
+                          EXTERNAL FUNCTIONS
+    ///////////////////////////////////////////////////////////////*/
+
     /// @param amount The amount of tokens to buy.
     function buyTokens(uint256 amount) external payable {
         if (amount == 0) {
-            revert SimpleCoin__AmountMustBeMoreThanZero();
+            revert SimpleToken__AmountMustBeMoreThanZero();
         }
 
-        uint256 price = i_bondingCurve.getPrice(totalSupply(), amount);
+        uint256 price = i_bondingCurve.getPrice(totalSupply(), reserveBalance, reserveRatio, amount);
 
         if (msg.value < price) {
-            revert SimpleCoin__InsufficientFunds();
+            revert SimpleToken__InsufficientFundingForTransaction();
         }
 
         // Update reserve balance and total supply
         reserveBalance += price;
 
         // Mint tokens to the buyer
-        bool minted = mint(msg.sender, amount);
-        if (!minted) {
-            revert SimpleCoin__MintFailed();
-        }
+        _mint(msg.sender, amount);
 
         emit TokensPurchased(msg.sender, price, amount);
     }
@@ -101,14 +95,21 @@ contract SimpleCoin is ERC20Burnable {
     /// @param amount The amount of tokens to sell.
     function sellTokens(uint256 amount) external {
         if (amount == 0) {
-            revert SimpleCoin__AmountMustBeMoreThanZero();
+            revert SimpleToken__AmountMustBeMoreThanZero();
         }
 
-        uint256 salePrice = i_bondingCurve.getSalePrice(totalSupply());
+        uint256 salePrice = i_bondingCurve.getSalePrice(totalSupply(), reserveBalance, reserveRatio, amount);
 
-        // Check if the contract has enough reserve to buy the tokens
+        // Check if the contract has enough reserve to buy the tokens.
         if (salePrice > reserveBalance) {
-            revert SimpleCoin__InsufficientFunds();
+            revert SimpleToken__InsufficientFundingForTransaction();
+        }
+
+        uint256 balance = balanceOf(msg.sender);
+
+        // Check if the seller has enough tokens to sell.
+        if (balance < amount) {
+            revert SimpleToken__BurnAmountExceedsBalance();
         }
 
         // Update reserve balance and total supply
@@ -121,32 +122,5 @@ contract SimpleCoin is ERC20Burnable {
         payable(msg.sender).transfer(salePrice);
 
         emit TokensSold(msg.sender, salePrice, amount);
-    }
-
-    /// @param _to The address that will receive the minted tokens
-    /// @param _amount The amount of tokens to mint
-    /// @return A boolean that indicates if the operation was successful
-    function mint(address _to, uint256 _amount) internal returns (bool) {
-        if (_to == address(0)) {
-            revert SimpleCoin__NotZeroAddress();
-        }
-        if (_amount == 0) {
-            revert SimpleCoin__AmountMustBeMoreThanZero();
-        }
-        _mint(_to, _amount);
-        return true;
-    }
-
-    /// @param _amount The amount of tokens to burn
-    /// @inheritdoc ERC20Burnable
-    function burn(uint256 _amount) public override {
-        uint256 balance = balanceOf(msg.sender);
-        if (_amount == 0) {
-            revert SimpleCoin__AmountMustBeMoreThanZero();
-        }
-        if (balance < _amount) {
-            revert SimpleCoin__BurnAmountExceedsBalance();
-        }
-        super.burn(_amount);
     }
 }

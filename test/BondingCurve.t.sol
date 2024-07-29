@@ -2,39 +2,46 @@
 pragma solidity ^0.8.24;
 
 import {Test, console} from "forge-std/Test.sol";
+import {SimpleProxy} from "src/SimpleProxy.sol";
+import {ERC1967Proxy} from "@openzeppelin/contracts/proxy/ERC1967/ERC1967Proxy.sol";
 import {BondingCurve} from "src/BondingCurve.sol";
-import {SimpleCoin} from "src/SimpleCoin.sol";
+import {SimpleToken} from "src/SimpleToken.sol";
 import {MockV3Aggregator} from "test/mocks/MockV3Aggregator.sol";
 import {Calculations} from "src/libraries/Calculations.sol";
 
 contract BondingCurveTest is Test {
-    BondingCurve public bc;
-    SimpleCoin public sc;
+    BondingCurve public curve;
+    // SimpleProxy public proxy;
+    ERC1967Proxy public proxy;
+    SimpleToken public token;
 
     address public user = makeAddr("user");
     address public user2 = makeAddr("user2");
 
     function setUp() public {
-        bc = new BondingCurve();
-        sc = new SimpleCoin("SimpleCoin", "KISS", address(bc), 50000);
+        curve = new BondingCurve();
+        // proxy = new SimpleProxy();
+        // proxy.setImplementation(address(curve));
+        proxy = new ERC1967Proxy(address(curve), "");
+        token = new SimpleToken("SimpleToken", "KISS", address(proxy), 50000);
         vm.deal(user, 1 ether);
         vm.deal(user2, 1 ether);
     }
 
     modifier buyToken() {
-        uint256 currentPrice = bc.getPrice(sc.totalSupply(), 1);
+        uint256 currentPrice = curve.getPrice(token.totalSupply(), token.reserveBalance(), token.reserveRatio(), 1);
         vm.prank(user);
-        sc.buyTokens{value: currentPrice}(1);
+        token.buyTokens{value: currentPrice}(1);
         _;
     }
 
     function test_BuyTokens() public {
-        uint256 startingBalance = sc.balanceOf(user);
+        uint256 startingBalance = token.balanceOf(user);
         uint256 startingEther = address(user).balance;
-        uint256 currentPrice = bc.getPrice(sc.totalSupply(), 1);
+        uint256 currentPrice = curve.getPrice(token.totalSupply(), token.reserveBalance(), token.reserveRatio(), 1);
         vm.prank(user);
-        sc.buyTokens{value: currentPrice}(1);
-        uint256 endingBalance = sc.balanceOf(user);
+        token.buyTokens{value: currentPrice}(1);
+        uint256 endingBalance = token.balanceOf(user);
         uint256 endingEther = address(user).balance;
         console.log("Starting Balance: ", startingBalance);
         console.log("Ending Balance: ", endingBalance);
@@ -43,27 +50,27 @@ contract BondingCurveTest is Test {
         assertEq(endingBalance, 1);
     }
 
-    function test_BuyTokensCurve() public {
+    function test_BuyTokentokenurve() public {
         for (uint256 i = 1; i < 10; i++) {
             address newUser = address(uint160(i));
             hoax(newUser, 1 ether);
-            uint256 currentPrice = bc.getPrice(sc.totalSupply(), 1);
+            uint256 currentPrice = curve.getPrice(token.totalSupply(), token.reserveBalance(), token.reserveRatio(), 1);
             console.log("Current Price ", i, " :", currentPrice);
-            sc.buyTokens{value: currentPrice}(1);
-            console.log("Reserve Balance ", i, " :", sc.reserveBalance());
-            console.log("Total Supply ", i, " :", sc.totalSupply());
+            token.buyTokens{value: currentPrice}(1);
+            console.log("Reserve Balance ", i, " :", token.reserveBalance());
+            console.log("Total Supply ", i, " :", token.totalSupply());
         }
     }
 
     function test_SellTokensOneUser() public buyToken {
-        uint256 startingBalance = sc.balanceOf(user);
+        uint256 startingBalance = token.balanceOf(user);
         uint256 startingEther = address(user).balance;
 
         vm.startPrank(user);
-        sc.approve(address(user), 1);
-        sc.sellTokens(1);
+        token.approve(address(user), 1);
+        token.sellTokens(1);
         vm.stopPrank();
-        uint256 endingBalance = sc.balanceOf(user);
+        uint256 endingBalance = token.balanceOf(user);
         uint256 endingEther = address(user).balance;
         console.log("Starting Balance: ", startingBalance);
         console.log("Ending Balance: ", endingBalance);
@@ -72,15 +79,15 @@ contract BondingCurveTest is Test {
         assertEq(endingBalance, 0);
     }
 
-    function test_SellTokensCurve() public {
+    function test_SellTokentokenurve() public {
         for (uint256 i = 1; i < 10; i++) {
             address newUser = address(uint160(i));
             hoax(newUser, 1 ether);
-            uint256 currentPrice = bc.getPrice(sc.totalSupply(), 1);
+            uint256 currentPrice = curve.getPrice(token.totalSupply(), token.reserveBalance(), token.reserveRatio(), 1);
             console.log("Current Price ", i, " :", currentPrice);
-            sc.buyTokens{value: currentPrice}(1);
-            console.log("Reserve Balance ", i, " :", sc.reserveBalance());
-            console.log("Total Supply ", i, " :", sc.totalSupply());
+            token.buyTokens{value: currentPrice}(1);
+            console.log("Reserve Balance ", i, " :", token.reserveBalance());
+            console.log("Total Supply ", i, " :", token.totalSupply());
         }
     }
 }

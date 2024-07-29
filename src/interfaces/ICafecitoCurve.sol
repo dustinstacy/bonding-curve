@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.24;
 
-import {CafecitoCurve} from "src/CafecitoCurve.sol";
+import {CafecitoCurve} from "src/references/CafecitoCurve.sol";
 
 interface ICafecitoCurve {
     function getCurve() external view returns (int256[] memory);
