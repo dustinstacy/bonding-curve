@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-pragma solidity ^0.8.6;
+pragma solidity ^0.8.24;
 
 /// @notice PiecewiseLogic library originally from Zap Protocol found here:
 ///         https://github.com/zapproject/hardhat-eth/blob/1155market/contracts/lib/platform/PiecewiseLogic.sol

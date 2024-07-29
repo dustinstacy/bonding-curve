@@ -2,8 +2,9 @@
 pragma solidity ^0.8.24;
 
 import {Power} from "src/libraries/Power.sol";
+import {IBancorBondingCurve} from "src/interfaces/IBancorBondingCurve.sol";
 
-contract BancorBondingCurve {
+abstract contract BancorBondingCurve is IBancorBondingCurve {
     /*
         reserve ratio, represented in ppm, 1-1000000
         1/3 corresponds to y= multiple * x^2
@@ -16,6 +17,14 @@ contract BancorBondingCurve {
     constructor(uint32 _reserveRatio) {
         require(_reserveRatio > 0 && _reserveRatio <= MAX_RESERVE_RATIO, "Invalid reserve ratio.");
         reserveRatio = _reserveRatio;
+    }
+
+    function getContinuousMintReward(uint256 _reserveTokenAmount) public view override returns (uint256) {
+        return _calculatePurchaseReturn(continuousSupply(), reserveBalance(), reserveRatio, _reserveTokenAmount);
+    }
+
+    function getContinuousBurnRefund(uint256 _continuousTokenAmount) public view override returns (uint256) {
+        return _calculateSaleReturn(continuousSupply(), reserveBalance(), reserveRatio, _continuousTokenAmount);
     }
 
     /**
@@ -32,12 +41,12 @@ contract BancorBondingCurve {
      *
      *  @return purchase return amount
      */
-    function calculatePurchaseReturn(
+    function _calculatePurchaseReturn(
         uint256 _supply,
         uint256 _reserveBalance,
         uint32 _reserveRatio,
         uint256 _depositAmount
-    ) public view returns (uint256) {
+    ) internal pure returns (uint256) {
         // validate input
         require(
             _supply > 0 && _reserveBalance > 0 && _reserveRatio > 0 && _reserveRatio <= MAX_RESERVE_RATIO,
@@ -76,9 +85,9 @@ contract BancorBondingCurve {
      *
      * @return sale return amount
      */
-    function calculateSaleReturn(uint256 _supply, uint256 _reserveBalance, uint32 _reserveRatio, uint256 _sellAmount)
-        public
-        view
+    function _calculateSaleReturn(uint256 _supply, uint256 _reserveBalance, uint32 _reserveRatio, uint256 _sellAmount)
+        internal
+        pure
         returns (uint256)
     {
         // validate input
@@ -107,4 +116,14 @@ contract BancorBondingCurve {
         uint256 newBalance = _reserveBalance << precision;
         return oldBalance - newBalance / result;
     }
+
+    /**
+     * @dev Abstract method that returns continuous token supply
+     */
+    function continuousSupply() public view virtual returns (uint256);
+
+    /**
+     * @dev Abstract method that returns reserve token balance
+     */
+    function reserveBalance() public view virtual returns (uint256);
 }

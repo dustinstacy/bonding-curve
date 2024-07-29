@@ -2,9 +2,19 @@
 pragma solidity ^0.8.0;
 
 contract BondingCurve {
-    uint256 public reserveBalance; // Reserve balance (in ETH)
-    uint256 public totalSupply; // Total token supply
-    uint256 public reserveRatio = 30; // Reserve ratio (30%)
+    /// @notice  reserveBalance keeps track of the total amount of Ether
+    /// (or other reserve currency) held by the contract.
+    /// This balance is crucial for the functioning of the bonding
+    /// curve as it influences the price of tokens.
+    uint256 public reserveBalance;
+
+    /// @notice reserveRatio is used to define the steepness or shape of the bonding curve.
+    /// It's specified in basis points, where 100 basis points equal 1 percent. For example,
+    /// a reserve ratio of 5000 corresponds to a 50% reserve ratio.
+    uint256 public reserveRatio;
+
+    /// @notice tokenSupply keeps track of the total amount of tokens in circulation.
+    uint256 public totalSupply;
 
     // Event to log purchases
     event TokensPurchased(address indexed buyer, uint256 amountSpent, uint256 tokensMinted);

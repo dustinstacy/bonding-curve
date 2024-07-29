@@ -1,20 +1,16 @@
 //SPDX-License-Identifier: MIT
-pragma solidity ^0.6.12;
+pragma solidity ^0.8.24;
 
-import "@openzeppelin/contracts/access/Ownable.sol";
-import "@openzeppelin/contracts/math/SafeMath.sol";
-import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
+import {Ownable} from "@openzeppelin/contracts/access/Ownable.sol";
+import {ERC20} from "@openzeppelin/contracts/token/ERC20/ERC20.sol";
 
-import "./curves/BancorBondingCurve.sol";
+import {BancorBondingCurve} from "src/BancorBondingCurve.sol";
 
 abstract contract ContinuousToken is Ownable, ERC20, BancorBondingCurve {
-    using SafeMath for uint256;
-
     event Minted(address sender, uint256 amount, uint256 deposit);
     event Burned(address sender, uint256 amount, uint256 refund);
 
     constructor(string memory _name, string memory _symbol, uint256 _initialSupply, uint32 _reserveRatio)
-        public
         ERC20(_name, _symbol)
         BancorBondingCurve(_reserveRatio)
     {

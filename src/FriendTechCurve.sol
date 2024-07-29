@@ -8,7 +8,7 @@
 
 // OpenZeppelin Contracts v4.4.1 (utils/Context.sol)
 
-pragma solidity ^0.8.0;
+pragma solidity ^0.8.24;
 
 /**
  * @dev Provides information about the current execution context, including the
@@ -153,41 +153,49 @@ contract FriendtechSharesV1 is Ownable {
         subjectFeePercent = _feePercent;
     }
 
-    function getPrice(uint256 supply, uint256 amount) public pure returns (uint256) {
+    function getPrice(uint256 supply, uint256 amount, uint256 scalingFactor) public pure returns (uint256) {
         uint256 sum1 = supply == 0 ? 0 : (supply - 1) * (supply) * (2 * (supply - 1) + 1) / 6;
         uint256 sum2 = supply == 0 && amount == 1
             ? 0
             : (supply - 1 + amount) * (supply + amount) * (2 * (supply - 1 + amount) + 1) / 6;
         uint256 summation = sum2 - sum1;
-        return summation * 1 ether / 16000; //16000 is a scaling factor, adjust to change curve steepness
+        return summation * 1 ether / (scalingFactor * 1e5); // scaling factor controls curve steepness
     }
 
-    function getBuyPrice(address sharesSubject, uint256 amount) public view returns (uint256) {
-        return getPrice(sharesSupply[sharesSubject], amount);
+    function getBuyPrice(address sharesSubject, uint256 amount, uint256 scalingFactor) public view returns (uint256) {
+        return getPrice(sharesSupply[sharesSubject], amount, scalingFactor);
     }
 
-    function getSellPrice(address sharesSubject, uint256 amount) public view returns (uint256) {
-        return getPrice(sharesSupply[sharesSubject] - amount, amount);
+    function getSellPrice(address sharesSubject, uint256 amount, uint256 scalingFactor) public view returns (uint256) {
+        return getPrice(sharesSupply[sharesSubject] - amount, amount, scalingFactor);
     }
 
-    function getBuyPriceAfterFee(address sharesSubject, uint256 amount) public view returns (uint256) {
-        uint256 price = getBuyPrice(sharesSubject, amount);
+    function getBuyPriceAfterFee(address sharesSubject, uint256 amount, uint256 scalingFactor)
+        public
+        view
+        returns (uint256)
+    {
+        uint256 price = getBuyPrice(sharesSubject, amount, scalingFactor);
         uint256 protocolFee = price * protocolFeePercent / 1 ether;
         uint256 subjectFee = price * subjectFeePercent / 1 ether;
         return price + protocolFee + subjectFee;
     }
 
-    function getSellPriceAfterFee(address sharesSubject, uint256 amount) public view returns (uint256) {
-        uint256 price = getSellPrice(sharesSubject, amount);
+    function getSellPriceAfterFee(address sharesSubject, uint256 amount, uint256 scalingFactor)
+        public
+        view
+        returns (uint256)
+    {
+        uint256 price = getSellPrice(sharesSubject, amount, scalingFactor);
         uint256 protocolFee = price * protocolFeePercent / 1 ether;
         uint256 subjectFee = price * subjectFeePercent / 1 ether;
         return price - protocolFee - subjectFee;
     }
 
-    function buyShares(address sharesSubject, uint256 amount) public payable {
+    function buyShares(address sharesSubject, uint256 amount, uint256 scalingFactor) public payable {
         uint256 supply = sharesSupply[sharesSubject];
         require(supply > 0 || sharesSubject == msg.sender, "Only the shares' subject can buy the first share");
-        uint256 price = getPrice(supply, amount);
+        uint256 price = getPrice(supply, amount, scalingFactor);
         uint256 protocolFee = price * protocolFeePercent / 1 ether;
         uint256 subjectFee = price * subjectFeePercent / 1 ether;
         require(msg.value >= price + protocolFee + subjectFee, "Insufficient payment");
@@ -199,10 +207,10 @@ contract FriendtechSharesV1 is Ownable {
         require(success1 && success2, "Unable to send funds");
     }
 
-    function sellShares(address sharesSubject, uint256 amount) public payable {
+    function sellShares(address sharesSubject, uint256 amount, uint256 scalingFactor) public payable {
         uint256 supply = sharesSupply[sharesSubject];
         require(supply > amount, "Cannot sell the last share");
-        uint256 price = getPrice(supply - amount, amount);
+        uint256 price = getPrice(supply - amount, amount, scalingFactor);
         uint256 protocolFee = price * protocolFeePercent / 1 ether;
         uint256 subjectFee = price * subjectFeePercent / 1 ether;
         require(sharesBalance[sharesSubject][msg.sender] >= amount, "Insufficient shares");
