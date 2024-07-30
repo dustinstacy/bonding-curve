@@ -32,7 +32,8 @@ contract SimpleToken is ERC20Burnable {
 
     /// @notice i_scalingFactor is used to define the steepness or shape of the bonding curve. It's
     ///         specified in basis points, where 100 basis points equal 1 percent. For example,
-    ///         a reserve ratio of 5000 corresponds to a 50% reserve ratio.
+    ///         a scaling factor of 5000 corresponds to a 50% reserve ratio.
+    /// @dev The scaling factor should be capped at 10000 basis points (100% reserve ratio).
     uint32 public immutable i_scalingFactor;
 
     /// @notice The initial cost of the token. Value to be set in Wei (or other reserve currency).

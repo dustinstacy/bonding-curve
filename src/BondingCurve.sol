@@ -17,7 +17,7 @@ contract BondingCurve is Initializable, OwnableUpgradeable, UUPSUpgradeable {
 
     uint256 private constant PRECISION = 1e18;
 
-    uint256 private constant DECIMALS = 1e4;
+    uint256 private constant DECIMALS = 1e2;
 
     /// @dev Disables the default initializer function.
     constructor() {
@@ -61,22 +61,22 @@ contract BondingCurve is Initializable, OwnableUpgradeable, UUPSUpgradeable {
         // }
 
         //logarithmic curve
-        for (uint256 i = 1; i <= amount; i++) {
-            price += ((((initialCost * (log2(supply + i))) / scalingFactor)) * DECIMALS) + initialCost;
-        }
+        // for (uint256 i = 1; i <= amount; i++) {
+        //     price += ((((initialCost * ((log2(supply + i)) * supply)) / scalingFactor)) * DECIMALS) + initialCost;
+        // }
 
         // exponential curve
-        // if (supply == 0 && amount > 1) {
-        //     uint256 sum1 = 0;
-        //     uint256 sum2 = (supply + amount) * (supply + amount - 1) * (2 * (supply + amount) + 1) / 6;
-        //     price = sum2 - sum1;
-        //     return (price * initialCost / (scalingFactor)) + initialCost * 2;
-        // } else {
-        //     uint256 sum1 = (supply - 1) * (supply) * (2 * (supply - 1) + 1) / 6;
-        //     uint256 sum2 = (supply - 1 + amount) * (supply + amount) * (2 * (supply - 1 + amount) + 1) / 6;
-        //     price = sum2 - sum1;
-        //     return (price * initialCost / (scalingFactor)) + initialCost;
-        // }
+        if (supply == 0 && amount > 1) {
+            uint256 sum1 = 0;
+            uint256 sum2 = (supply + amount) * (supply + amount - 1) * (2 * (supply + amount) + 1) / 6;
+            price = sum2 - sum1;
+            return (price * initialCost / (scalingFactor)) + initialCost * 2;
+        } else {
+            uint256 sum1 = (supply - 1) * (supply) * (2 * (supply - 1) + 1) / 6;
+            uint256 sum2 = (supply - 1 + amount) * (supply + amount) * (2 * (supply - 1 + amount) + 1) / 6;
+            price = sum2 - sum1;
+            return (price * initialCost / (scalingFactor)) + initialCost;
+        }
     }
 
     function log2(uint256 b) public pure returns (uint256) {

@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.24;
 
-import {PiecewiseLogic} from "src/libraries/PiecewiseLogic.sol";
+import {PiecewiseLogic} from "src/references/libraries/PiecewiseLogic.sol";
 
 contract CafecitoCurve {
     uint256 public initCost;

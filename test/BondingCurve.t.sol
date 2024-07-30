@@ -26,7 +26,7 @@ contract BondingCurveTest is Test {
         // proxy = new SimpleProxy();
         // proxy.setImplementation(address(curve));
         proxy = new ERC1967Proxy(address(curve), "");
-        token = new SimpleToken("SimpleToken", "KISS", address(proxy), 100, 0.001 ether);
+        token = new SimpleToken("SimpleToken", "KISS", address(proxy), 5000, 0.001 ether);
         ethUSDPriceFeed = new MockV3Aggregator(DECIMALS, ETH_USD_PRICE);
         vm.deal(user, 10 ether);
     }
@@ -60,7 +60,7 @@ contract BondingCurveTest is Test {
     }
 
     function test_BuyTokenCurve() public {
-        for (uint256 i = 1; i < 100; i++) {
+        for (uint256 i = 1; i < 102; i++) {
             address newUser = address(uint160(i));
             hoax(newUser, 1 ether);
             uint256 currentPrice =

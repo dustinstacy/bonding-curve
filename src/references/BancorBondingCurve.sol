@@ -1,11 +1,11 @@
 //SPDX-License-Identifier: Apache-2.0
 pragma solidity ^0.8.24;
 
-import {Power} from "src/libraries/Power.sol";
+import {Power} from "src/references/libraries/Power.sol";
 
 abstract contract BancorBondingCurve {
     /*
-        reserve ratio, represented in ppm, 1-1000000
+        reserve ratio, represented in ppm, 1-1000000s
         1/3 corresponds to y= multiple * x^2
         1/2 corresponds to y= multiple * x
         2/3 corresponds to y= multiple * x^1/2
