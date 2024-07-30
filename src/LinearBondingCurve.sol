@@ -42,7 +42,13 @@ contract LinearBondingCurve is Initializable, OwnableUpgradeable, UUPSUpgradeabl
     /// @return price Price of tokens in the reserve currency.
     /// @dev Need to implement protocol fees and gas calculations.
     /// @dev Need to set a max gas price to prevent frontrunning.
-    function getPrice(uint256 supply, uint256 initialCost, uint256 amount) external pure returns (uint256 price) {
+    function getPrice(
+        uint256 supply,
+        uint256, /* scalingFactor */
+        uint256 initialCost,
+        uint256, /* maxCost */
+        uint256 amount
+    ) external pure returns (uint256 price) {
         for (uint256 i = 1; i <= amount; i++) {
             price += ((supply + i) * initialCost);
         }
