@@ -10,7 +10,7 @@ contract PriceGettersTest is Test {
     FriendtechSharesV1 ftCurve;
     MockV3Aggregator ethUSDPriceFeed;
 
-    uint8 private constant DECIMALS = 0;
+    uint8 private constant DECIMALS = 8;
     int256 private constant ETH_USD_PRICE = 3265;
 
     function setUp() public {
@@ -19,7 +19,7 @@ contract PriceGettersTest is Test {
     }
 
     function test_GetPrice() public view {
-        uint256 scalingFactor = 100;
+        uint256 scalingFactor = 1000;
         for (uint256 i = 0; i < 10; i++) {
             uint256 price = ftCurve.getPrice(i, i + 1, scalingFactor);
             uint256 convertedPrice = Calculations.calculateUSDValue(address(ethUSDPriceFeed), price);

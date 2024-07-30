@@ -30,16 +30,13 @@ contract SimpleToken is ERC20Burnable {
     /// @dev In the case of an upgradeable implementation, this should be a proxy contract.
     BondingCurve private immutable i_bondingCurve;
 
-    /// @notice  reserveBalance keeps track of the total amount of Ether (or other reserve currency)
-    ///          held by the contract.
-    ///          This balance is crucial for the functioning of the bonding curve as it influences
-    ///          the price of tokens.
-    uint256 public reserveBalance;
-
-    /// @notice reserveRatio is used to define the steepness or shape of the bonding curve. It's
+    /// @notice i_scalingFactor is used to define the steepness or shape of the bonding curve. It's
     ///         specified in basis points, where 100 basis points equal 1 percent. For example,
     ///         a reserve ratio of 5000 corresponds to a 50% reserve ratio.
-    uint32 public reserveRatio;
+    uint32 public immutable i_scalingFactor;
+
+    /// @notice The initial cost of the token. Value to be set in Wei (or other reserve currency).
+    uint256 public immutable i_initialCost;
 
     /*///////////////////////////////////////////////////////////////
                                 EVENTS
@@ -57,14 +54,19 @@ contract SimpleToken is ERC20Burnable {
 
     /// @param _name The name of the token.
     /// @param _symbol The symbol of the token.
-    /// @param bcAddress The address of the BondingCurve contract.
+    /// @param _bcAddress The address of the BondingCurve contract.
     ///        If the BondingCurve contract is upgradeable, this should be the proxy address.
-    /// @param _reserveRatio The reserve ratio used to determine the price of tokens.
-    constructor(string memory _name, string memory _symbol, address bcAddress, uint32 _reserveRatio)
-        ERC20(_name, _symbol)
-    {
-        i_bondingCurve = BondingCurve(bcAddress);
-        reserveRatio = _reserveRatio;
+    /// @param _scalingFactor The scaling factor used to determine the price of tokens.
+    constructor(
+        string memory _name,
+        string memory _symbol,
+        address _bcAddress,
+        uint32 _scalingFactor,
+        uint256 _initialCost
+    ) ERC20(_name, _symbol) {
+        i_bondingCurve = BondingCurve(_bcAddress);
+        i_scalingFactor = _scalingFactor;
+        i_initialCost = _initialCost;
     }
 
     /*///////////////////////////////////////////////////////////////
@@ -77,14 +79,11 @@ contract SimpleToken is ERC20Burnable {
             revert SimpleToken__AmountMustBeMoreThanZero();
         }
 
-        uint256 price = i_bondingCurve.getPrice(totalSupply(), reserveBalance, reserveRatio, amount);
+        uint256 price = i_bondingCurve.getPrice(totalSupply(), i_scalingFactor, i_initialCost, amount);
 
         if (msg.value < price) {
             revert SimpleToken__InsufficientFundingForTransaction();
         }
-
-        // Update reserve balance and total supply
-        reserveBalance += price;
 
         // Mint tokens to the buyer
         _mint(msg.sender, amount);
@@ -92,35 +91,32 @@ contract SimpleToken is ERC20Burnable {
         emit TokensPurchased(msg.sender, price, amount);
     }
 
-    /// @param amount The amount of tokens to sell.
-    function sellTokens(uint256 amount) external {
-        if (amount == 0) {
-            revert SimpleToken__AmountMustBeMoreThanZero();
-        }
+    // /// @param amount The amount of tokens to sell.
+    // function sellTokens(uint256 amount) external {
+    //     if (amount == 0) {
+    //         revert SimpleToken__AmountMustBeMoreThanZero();
+    //     }
 
-        uint256 salePrice = i_bondingCurve.getSalePrice(totalSupply(), reserveBalance, reserveRatio, amount);
+    //     uint256 salePrice = i_bondingCurve.getSalePrice(totalSupply(), i_scalingFactor, i_initialCost, amount);
 
-        // Check if the contract has enough reserve to buy the tokens.
-        if (salePrice > reserveBalance) {
-            revert SimpleToken__InsufficientFundingForTransaction();
-        }
+    //     // should not be possible
+    //     if (address(this).balance < salePrice) {
+    //         revert SimpleToken__InsufficientFundingForTransaction();
+    //     }
 
-        uint256 balance = balanceOf(msg.sender);
+    //     uint256 balance = balanceOf(msg.sender);
 
-        // Check if the seller has enough tokens to sell.
-        if (balance < amount) {
-            revert SimpleToken__BurnAmountExceedsBalance();
-        }
+    //     // Check if the seller has enough tokens to sell.
+    //     if (balance < amount) {
+    //         revert SimpleToken__BurnAmountExceedsBalance();
+    //     }
 
-        // Update reserve balance and total supply
-        reserveBalance -= salePrice;
+    //     // Burn tokens from the seller
+    //     burnFrom(msg.sender, amount);
 
-        // Burn tokens from the seller
-        burnFrom(msg.sender, amount);
+    //     // Transfer Ether to the seller
+    //     payable(msg.sender).transfer(salePrice);
 
-        // Transfer Ether to the seller
-        payable(msg.sender).transfer(salePrice);
-
-        emit TokensSold(msg.sender, salePrice, amount);
-    }
+    //     emit TokensSold(msg.sender, salePrice, amount);
+    // }
 }
