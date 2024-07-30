@@ -6,17 +6,16 @@ import {OwnableUpgradeable} from "@openzeppelin/contracts-upgradeable/access/Own
 import {UUPSUpgradeable} from "@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol";
 import {console2} from "forge-std/console2.sol";
 
-/// @title BondingCurve
+/// @title LogarithmicBondingCurve
 /// @author Dustin Stacy
 /// @notice This contract implements a bonding curve that adjusts the price of tokens based on the total supply.
-///         The curve is defined by a reserve ratio, which determines the steepness of the curve.
-///         The contract is designed to work with ERC20 tokens.
-contract BondingCurve is Initializable, OwnableUpgradeable, UUPSUpgradeable {
+///         The curve is defined by a scaling factor and a logarithmic dampener, which determines the steepness of the curve.
+contract LogarithmicBondingCurve is Initializable, OwnableUpgradeable, UUPSUpgradeable {
     address public protocolFeeDestination;
     uint256 public protocolFeePercent;
 
-    uint256 private constant PRECISION = 1e18;
-
+    /// @dev Using to assess the number of decimal places to use in the price calculation.
+    /// @dev Ideally the formula will be updated to use a more accurate way of calculating the price.
     uint256 private constant DECIMALS = 1e2;
 
     /// @dev Disables the default initializer function.
@@ -44,9 +43,13 @@ contract BondingCurve is Initializable, OwnableUpgradeable, UUPSUpgradeable {
     /// @param supply Supply of tokens in circulation.
     /// @param scalingFactor Scaling factor used to determine the price of tokens.
     /// @param initialCost Initial cost of the token.
+    // @param maxCost Maximum cost of the token.
     /// @param amount Amount of tokens to buy.
-    /// @return price Price of tokens in the reserve currency.    // Function to compute exponential value (approximate implementation)
-    function getPrice(uint256 supply, uint256 scalingFactor, uint256 initialCost, uint256 amount)
+    /// @return price Price of tokens in the reserve currency.
+    /// @dev Need to address how to adjust the rate at which the logarithmic curve increases.
+    /// @dev Need to implement protocol fees and gas calculations.
+    /// @dev Need to set a max gas price to prevent frontrunning.
+    function getPrice(uint256 supply, uint256 scalingFactor, uint256 initialCost, uint256, /* maxCost */ uint256 amount)
         external
         pure
         returns (uint256 price)
@@ -55,30 +58,21 @@ contract BondingCurve is Initializable, OwnableUpgradeable, UUPSUpgradeable {
             return initialCost;
         }
 
-        // linear curve
-        // for (uint256 i = 1; i <= amount; i++) {
-        //     price += ((supply + i) * initialCost);
-        // }
-
-        //logarithmic curve
-        // for (uint256 i = 1; i <= amount; i++) {
-        //     price += ((((initialCost * ((log2(supply + i)) * supply)) / scalingFactor)) * DECIMALS) + initialCost;
-        // }
-
-        // exponential curve
-        if (supply == 0 && amount > 1) {
-            uint256 sum1 = 0;
-            uint256 sum2 = (supply + amount) * (supply + amount - 1) * (2 * (supply + amount) + 1) / 6;
-            price = sum2 - sum1;
-            return (price * initialCost / (scalingFactor)) + initialCost * 2;
-        } else {
-            uint256 sum1 = (supply - 1) * (supply) * (2 * (supply - 1) + 1) / 6;
-            uint256 sum2 = (supply - 1 + amount) * (supply + amount) * (2 * (supply - 1 + amount) + 1) / 6;
-            price = sum2 - sum1;
-            return (price * initialCost / (scalingFactor)) + initialCost;
+        for (uint256 i = 1; i <= amount; i++) {
+            price += ((((initialCost * ((log2(supply + i)) * supply)) / scalingFactor)) * DECIMALS) + initialCost;
         }
     }
 
+    // function getSalePrice(uint256 totalSupply, uint256 scalingFactor, uint256 initialCost, uint256 amount)
+    //     public
+    //     pure
+    //     returns (uint256 price)
+    // {
+    //     price = (totalSupply - 1) * scalingFactor * DECIMALS;
+    // }
+
+    /// @notice Function to calculate the log base 2 of a number.
+    /// @dev Need to assess the gas cost of this function versus the assembly version.
     function log2(uint256 b) public pure returns (uint256) {
         //if(b==0){return 0;}
         uint256 up = 256;
@@ -100,6 +94,7 @@ contract BondingCurve is Initializable, OwnableUpgradeable, UUPSUpgradeable {
         return down;
     }
 
+    // Assembly version of log2
     // function log2(uint256 x) public pure returns (uint256 y) {
     //     assembly {
     //         let arg := x
@@ -129,25 +124,5 @@ contract BondingCurve is Initializable, OwnableUpgradeable, UUPSUpgradeable {
     //         y := div(mload(add(m, sub(255, a))), shift)
     //         y := add(y, mul(256, gt(arg, 0x8000000000000000000000000000000000000000000000000000000000000000)))
     //     }
-    // }
-
-    // /// @dev update with a more complex curve.
-    // function getSalePrice(uint256 totalSupply, uint256 scalingFactor, uint256 initialCost, uint256 amount)
-    //     public
-    //     pure
-    //     returns (uint256 price)
-    // {
-    //     price = (totalSupply - 1) * scalingFactor * DECIMALS;
-    // }
-
-    //     )
-
-    // /// @dev update with a more complex curve.
-    // function getSalePrice(uint256 totalSupply, uint256 scalingFactor, uint256 initialCost, uint256 amount)
-    //     public
-    //     pure
-    //     returns (uint256 price)
-    // {
-    //     price = (totalSupply - 1) * scalingFactor * DECIMALS;
     // }
 }

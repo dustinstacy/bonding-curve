@@ -2,25 +2,25 @@
 pragma solidity ^0.8.24;
 
 import {ERC20Burnable, ERC20} from "@openzeppelin/contracts/token/ERC20/extensions/ERC20Burnable.sol";
-import {BondingCurve} from "src/BondingCurve.sol";
+import {LinearBondingCurve} from "src/LinearBondingCurve.sol";
 
-/// @title SimpleToken
+/// @title LINToken
 /// @author Dustin Stacy
 /// @notice This contract implements a simple ERC20 token that can be bought and sold using a bonding curve.
-///         It is designed to work with a bonding curve that is defined by a reserve ratio.
-contract SimpleToken is ERC20Burnable {
+///         It is designed to work with a bonding curve that is defined by a linear ratio.
+contract LINToken is ERC20Burnable {
     /*///////////////////////////////////////////////////////////////
                                 ERRORS
     ///////////////////////////////////////////////////////////////*/
 
     /// @dev Emitted when attempting to perform an action with an amount that must be more than zero.
-    error SimpleToken__AmountMustBeMoreThanZero();
+    error LINToken__AmountMustBeMoreThanZero();
 
     /// @dev Emitted if the buyer does not send enough Ether to purchase the tokens.
-    error SimpleToken__InsufficientFundingForTransaction();
+    error LINToken__InsufficientFundingForTransaction();
 
     /// @dev Emitted when attempting to burn an amount that exceeds the sender's balance.
-    error SimpleToken__BurnAmountExceedsBalance();
+    error LINToken__BurnAmountExceedsBalance();
 
     /*///////////////////////////////////////////////////////////////
                              STATE VARIABLES
@@ -28,15 +28,10 @@ contract SimpleToken is ERC20Burnable {
 
     /// @notice Instance of the BondingCurve contract used to determine the price of tokens.
     /// @dev In the case of an upgradeable implementation, this should be a proxy contract.
-    BondingCurve private immutable i_bondingCurve;
+    LinearBondingCurve private immutable i_bondingCurve;
 
-    /// @notice i_scalingFactor is used to define the steepness or shape of the bonding curve. It's
-    ///         specified in basis points, where 100 basis points equal 1 percent. For example,
-    ///         a scaling factor of 5000 corresponds to a 50% reserve ratio.
-    /// @dev The scaling factor should be capped at 10000 basis points (100% reserve ratio).
-    uint32 public immutable i_scalingFactor;
-
-    /// @notice The initial cost of the token. Value to be set in Wei (or other reserve currency).
+    /// @notice The initial cost of the token.
+    /// @dev Cap the scaling factor at 10000 basis points (100%)?
     uint256 public immutable i_initialCost;
 
     /*///////////////////////////////////////////////////////////////
@@ -55,19 +50,14 @@ contract SimpleToken is ERC20Burnable {
 
     /// @param _name The name of the token.
     /// @param _symbol The symbol of the token.
+    /// @param _initialCost The initial cost of the token.
     /// @param _bcAddress The address of the BondingCurve contract.
-    ///        If the BondingCurve contract is upgradeable, this should be the proxy address.
-    /// @param _scalingFactor The scaling factor used to determine the price of tokens.
-    constructor(
-        string memory _name,
-        string memory _symbol,
-        address _bcAddress,
-        uint32 _scalingFactor,
-        uint256 _initialCost
-    ) ERC20(_name, _symbol) {
-        i_bondingCurve = BondingCurve(_bcAddress);
-        i_scalingFactor = _scalingFactor;
+    /// @dev   If the ExponentialBondingCurve contract is upgradeable, `_bcAddress` should be the proxy address.
+    constructor(string memory _name, string memory _symbol, address _bcAddress, uint256 _initialCost)
+        ERC20(_name, _symbol)
+    {
         i_initialCost = _initialCost;
+        i_bondingCurve = LinearBondingCurve(_bcAddress);
     }
 
     /*///////////////////////////////////////////////////////////////
@@ -75,15 +65,18 @@ contract SimpleToken is ERC20Burnable {
     ///////////////////////////////////////////////////////////////*/
 
     /// @param amount The amount of tokens to buy.
+    /// @dev Needs UI to determine correct value to send before calling this function.
+    /// @dev Allow users to send extra to cover changes in supply before the transaction is processed?
+    /// @dev If so a refund mechanism should be implemented.
     function buyTokens(uint256 amount) external payable {
         if (amount == 0) {
-            revert SimpleToken__AmountMustBeMoreThanZero();
+            revert LINToken__AmountMustBeMoreThanZero();
         }
 
-        uint256 price = i_bondingCurve.getPrice(totalSupply(), i_scalingFactor, i_initialCost, amount);
+        uint256 price = i_bondingCurve.getPrice(totalSupply(), i_initialCost, amount);
 
         if (msg.value < price) {
-            revert SimpleToken__InsufficientFundingForTransaction();
+            revert LINToken__InsufficientFundingForTransaction();
         }
 
         // Mint tokens to the buyer
@@ -95,21 +88,21 @@ contract SimpleToken is ERC20Burnable {
     // /// @param amount The amount of tokens to sell.
     // function sellTokens(uint256 amount) external {
     //     if (amount == 0) {
-    //         revert SimpleToken__AmountMustBeMoreThanZero();
+    //         revert LINToken__AmountMustBeMoreThanZero();
     //     }
 
-    //     uint256 salePrice = i_bondingCurve.getSalePrice(totalSupply(), i_scalingFactor, i_initialCost, amount);
+    //     uint256 salePrice = i_bondingCurve.getSalePrice(totalSupply(),  i_initialCost, amount);
 
     //     // should not be possible
     //     if (address(this).balance < salePrice) {
-    //         revert SimpleToken__InsufficientFundingForTransaction();
+    //         revert LINToken__InsufficientFundingForTransaction();
     //     }
 
     //     uint256 balance = balanceOf(msg.sender);
 
     //     // Check if the seller has enough tokens to sell.
     //     if (balance < amount) {
-    //         revert SimpleToken__BurnAmountExceedsBalance();
+    //         revert LINToken__BurnAmountExceedsBalance();
     //     }
 
     //     // Burn tokens from the seller
