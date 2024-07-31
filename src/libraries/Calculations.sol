@@ -18,6 +18,22 @@ library Calculations {
     /// @dev Used to adjust decimals to relative USD value.
     uint256 private constant PRECISION = 1e18;
 
+    /// @notice The number of basis points in 100%.
+    uint256 private constant BASIS_POINTS = 10000;
+
+    function calculateScalingFactorPercent(uint256 scalingFactor) external pure returns (uint256) {
+        return scalingFactor * PRECISION / BASIS_POINTS;
+    }
+
+    function calculateInitialCostAdjustment(uint256 initialCost, uint256 scalingFactorPercent)
+        external
+        pure
+        returns (int256)
+    {
+        uint256 priceIncrement = initialCost * scalingFactorPercent / PRECISION;
+        return int256(initialCost - priceIncrement);
+    }
+
     /// @notice Retrieves the latest price from the Chainlink price feed using `latestRoundData()`,
     /// which returns a value with 8 decimals. To increase precision, `ADDITIONAL_FEED_PRECISION`
     /// is used to scale the price to the desired decimals length before dividing by `PRECISION` to obtain the USD value.

@@ -3,17 +3,20 @@ pragma solidity ^0.8.24;
 
 interface IBondingCurve {
     /**
-     * @dev Given a token amount to purchase, calculates the price of the tokens with maxCost argument.
+     * @dev Get raw price of linear bonding curve tokens.
      */
-    function getPrice(uint256 supply, uint256 scalingFactor, uint256 initialCost, uint256 maxCost, uint256 amount)
-        external
-        view
-        returns (uint256);
+    function getRawPrice(
+        uint256 supply,
+        uint256 initialCost,
+        uint256 scalingFactor,
+        uint256 amount,
+        int256 initialCostAdjustment
+    ) external view returns (uint256);
 
     /**
-     * @dev Given a token amount to purchase, calculates the price of the tokens without maxCost argument.
+     * @dev Get raw price of exponential bonding curve tokens.
      */
-    function getPrice(uint256 supply, uint256 scalingFactor, uint256 initialCost, uint256 amount)
+    function getRawPrice(uint256 supply, uint256 scalingFactor, uint256 initialCost, uint256 amount)
         external
         view
         returns (uint256);

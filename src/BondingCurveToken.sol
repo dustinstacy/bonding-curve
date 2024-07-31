@@ -3,6 +3,7 @@ pragma solidity ^0.8.24;
 
 import {ERC20Burnable, ERC20} from "@openzeppelin/contracts/token/ERC20/extensions/ERC20Burnable.sol";
 import {IBondingCurve} from "src/interfaces/IBondingCurve.sol";
+import {Calculations} from "src/libraries/Calculations.sol";
 
 /// @title BondingCurveToken
 /// @author Dustin Stacy
@@ -30,18 +31,22 @@ contract BondingCurveToken is ERC20Burnable {
     /// @dev In the case of an upgradeable implementation, this should be a proxy contract.
     IBondingCurve private immutable i_bondingCurve;
 
+    /// @notice The initial cost of the token.
+    /// @dev This value should be set in Wei (or other reserve currency).
+    uint256 public immutable i_initialCost;
+
     /// @notice i_scalingFactor is used to define the steepness or shape of the bonding curve.
     ///         It's specified in basis points, where 100 basis points equal 1 percent.
-    uint32 public immutable i_scalingFactor;
+    uint256 public immutable i_scalingFactor;
+
+    /// @notice The initial cost adjustment of the token based on the scaling factor.
+    /// @dev This value is combined with the scaled price increment set the base value of the token.
+    int256 public immutable i_initialCostAdjustment;
 
     /// @notice The maximum cost of the token.
     /// @dev This value should be set in Wei (or other reserve currency).
     /// @dev This variable can be used in formulas to produce Sigmoidal curves or adjust logarithmic curves.
     uint256 public immutable i_maxCost;
-
-    /// @notice The initial cost of the token.
-    /// @dev This value should be set in Wei (or other reserve currency).
-    uint256 public immutable i_initialCost;
 
     /*///////////////////////////////////////////////////////////////
                                 EVENTS
@@ -60,7 +65,6 @@ contract BondingCurveToken is ERC20Burnable {
     /// @param _name The name of the token.
     /// @param _symbol The symbol of the token.
     /// @param _initialCost The initial cost of the token.
-    /// @param _maxCost The maximum cost of the token.
     /// @param _scalingFactor The scaling factor used to determine the price of tokens.
     /// @param _bcAddress The address of the BondingCurve contract.
     /// @dev   If the ExponentialBondingCurve contract is upgradeable, `_bcAddress` should be the proxy address.
@@ -68,13 +72,12 @@ contract BondingCurveToken is ERC20Burnable {
         string memory _name,
         string memory _symbol,
         uint256 _initialCost,
-        uint256 _maxCost,
-        uint32 _scalingFactor,
+        uint256 _scalingFactor,
         address _bcAddress
     ) ERC20(_name, _symbol) {
         i_initialCost = _initialCost;
-        i_maxCost = _maxCost;
-        i_scalingFactor = _scalingFactor;
+        i_scalingFactor = Calculations.calculateScalingFactorPercent(_scalingFactor);
+        i_initialCostAdjustment = Calculations.calculateInitialCostAdjustment(_initialCost, i_scalingFactor);
         i_bondingCurve = IBondingCurve(_bcAddress);
     }
 
@@ -89,7 +92,8 @@ contract BondingCurveToken is ERC20Burnable {
             revert BondingCurveToken__AmountMustBeMoreThanZero();
         }
 
-        uint256 price = i_bondingCurve.getPrice(totalSupply(), i_scalingFactor, i_initialCost, i_maxCost, amount);
+        uint256 price =
+            i_bondingCurve.getRawPrice(totalSupply(), i_initialCost, i_scalingFactor, amount, i_initialCostAdjustment);
 
         /// @dev Allow users to send extra to cover changes in supply before the transaction is processed?
         /// @dev If so a refund mechanism should be implemented.

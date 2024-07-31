@@ -14,7 +14,7 @@ contract LinearBondingCurve is Initializable, OwnableUpgradeable, UUPSUpgradeabl
     address public protocolFeeDestination;
     uint256 public protocolFeePercent;
 
-    uint256 private constant BASIS_POINTS = 10000;
+    /// @notice The precision used in calculations.
     uint256 private constant PRECISION = 1e18;
 
     /// @dev Disables the default initializer function.
@@ -46,19 +46,17 @@ contract LinearBondingCurve is Initializable, OwnableUpgradeable, UUPSUpgradeabl
     /// @return totalPrice Price of tokens in the reserve currency.
     /// @dev Need to implement protocol fees and gas calculations.
     /// @dev Need to set a max gas price to prevent frontrunning.
-    function getPrice(uint256 supply, uint256 initialCost, uint256 scalingFactor, uint256 amount)
-        external
-        pure
-        returns (uint256 totalPrice)
-    {
-        uint256 scalingFactorPercent = scalingFactor * PRECISION / BASIS_POINTS; // Use 1e18 to maintain precision
-        uint256 priceIncrement = initialCost * scalingFactorPercent / PRECISION; // Adjust price by scaling factor
-        uint256 initialCostAdjustment = initialCost - priceIncrement; // Adjust initial cost by price increment
-
+    function getPrice(
+        uint256 supply,
+        uint256 initialCost,
+        uint256 scalingFactor,
+        uint256 amount,
+        int256 initialCostAdjustment
+    ) external pure returns (uint256 totalPrice) {
         for (uint256 i = 1; i <= amount; i++) {
             uint256 price = ((supply + i) * (initialCost));
-            uint256 scaledTotalPrice = price * scalingFactorPercent / PRECISION; // Adjust price by scaling factor
-            totalPrice += (scaledTotalPrice + initialCostAdjustment);
+            uint256 scaledTotalPrice = price * scalingFactor / PRECISION; // Adjust price by scaling factor
+            totalPrice += uint256(int256(scaledTotalPrice) + initialCostAdjustment);
         }
 
         return totalPrice;

@@ -27,14 +27,14 @@ contract ExponentialBondingCurveTest is Test {
 
     function test_EXP_BC_BuyFirstToken() public view {
         uint256 zeroSupply = 0;
-        uint256 actualPrice = expCurve.getPrice(zeroSupply, initialCost, scalingFactor, singleToken);
+        uint256 actualPrice = expCurve.getRawPrice(zeroSupply, initialCost, scalingFactor, singleToken);
         uint256 convertedPrice = Calculations.calculateUSDValue(address(ethUSDPriceFeed), actualPrice);
         console.log("Price: ", actualPrice, "Converted price: ", convertedPrice);
     }
 
     function test_EXP_BC_BuySecondToken() public view {
         uint256 oneSupply = 1;
-        uint256 actualPrice = expCurve.getPrice(oneSupply, initialCost, scalingFactor, singleToken);
+        uint256 actualPrice = expCurve.getRawPrice(oneSupply, initialCost, scalingFactor, singleToken);
         uint256 convertedPrice = Calculations.calculateUSDValue(address(ethUSDPriceFeed), actualPrice);
         console.log("Price: ", actualPrice, "Converted price: ", convertedPrice);
     }
@@ -43,11 +43,11 @@ contract ExponentialBondingCurveTest is Test {
         uint256 expectedPrice;
 
         for (uint256 i = 0; i < amount; i++) {
-            expectedPrice += expCurve.getPrice(supply + i, initialCost, scalingFactor, singleToken);
+            expectedPrice += expCurve.getRawPrice(supply + i, initialCost, scalingFactor, singleToken);
             console.log("Total New Supply: ", supply + i, "Price: ", expectedPrice);
         }
 
-        uint256 actualPrice = expCurve.getPrice(supply, initialCost, scalingFactor, amount);
+        uint256 actualPrice = expCurve.getRawPrice(supply, initialCost, scalingFactor, amount);
         uint256 convertedPrice = Calculations.calculateUSDValue(address(ethUSDPriceFeed), expectedPrice);
         console.log("Price: ", actualPrice, "Converted price: ", convertedPrice);
 
