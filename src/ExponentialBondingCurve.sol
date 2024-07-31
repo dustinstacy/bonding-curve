@@ -44,7 +44,7 @@ contract ExponentialBondingCurve is Initializable, OwnableUpgradeable, UUPSUpgra
     /// @dev Need to implement protocol fees and gas calculations.
     /// @dev Need to set a max gas price to prevent frontrunning.
     /// @dev Need to inspect gas reduction with minting first token to the creator to remove checks.
-    function getPrice(uint256 supply, uint256 initialCost, uint256, /* maxCost */ uint256 scalingFactor, uint256 amount)
+    function getRawPrice(uint256 supply, uint256 initialCost, uint256 scalingFactor, uint256 amount)
         external
         pure
         returns (uint256 price)
@@ -63,14 +63,4 @@ contract ExponentialBondingCurve is Initializable, OwnableUpgradeable, UUPSUpgra
             return price = (totalSum * initialCost / (scalingFactor)) + initialCost;
         }
     }
-
-    // function getSalePrice(uint256 totalSupply, uint256 scalingFactor, uint256 initialCost, uint256 amount)
-    //     public
-    //     pure
-    //     returns (uint256 price)
-    // {
-    //     price = (totalSupply - 1) * scalingFactor * DECIMALS;
-    // }
-
-    //     )
 }

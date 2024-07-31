@@ -6,7 +6,7 @@ import {ExponentialBondingCurve} from "src/ExponentialBondingCurve.sol";
 import {MockV3Aggregator} from "test/mocks/MockV3Aggregator.sol";
 import {Calculations} from "src/libraries/Calculations.sol";
 
-contract BondingCurveTest is Test {
+contract ExponentialBondingCurveTest is Test {
     ExponentialBondingCurve public expCurve;
     MockV3Aggregator ethUSDPriceFeed;
 
@@ -16,7 +16,6 @@ contract BondingCurveTest is Test {
     // Curve Variables
     uint256 supply = 0;
     uint256 initialCost = 0.001 ether;
-    uint256 maxCost = 10000 ether;
     uint256 scalingFactor = 1000;
     uint256 amount = 100;
     uint256 singleToken = 1;
@@ -26,29 +25,29 @@ contract BondingCurveTest is Test {
         ethUSDPriceFeed = new MockV3Aggregator(DECIMALS, ETH_USD_PRICE);
     }
 
-    function test_BuyFirstToken() public view {
+    function test_EXP_BC_BuyFirstToken() public view {
         uint256 zeroSupply = 0;
-        uint256 actualPrice = expCurve.getPrice(zeroSupply, initialCost, maxCost, scalingFactor, singleToken);
+        uint256 actualPrice = expCurve.getPrice(zeroSupply, initialCost, scalingFactor, singleToken);
         uint256 convertedPrice = Calculations.calculateUSDValue(address(ethUSDPriceFeed), actualPrice);
         console.log("Price: ", actualPrice, "Converted price: ", convertedPrice);
     }
 
-    function test_BuySecondToken() public view {
+    function test_EXP_BC_BuySecondToken() public view {
         uint256 oneSupply = 1;
-        uint256 actualPrice = expCurve.getPrice(oneSupply, initialCost, maxCost, scalingFactor, singleToken);
+        uint256 actualPrice = expCurve.getPrice(oneSupply, initialCost, scalingFactor, singleToken);
         uint256 convertedPrice = Calculations.calculateUSDValue(address(ethUSDPriceFeed), actualPrice);
         console.log("Price: ", actualPrice, "Converted price: ", convertedPrice);
     }
 
-    function test_BuyTokensInBulk() public view {
+    function test_EXP_BC_BuyTokensInBulk() public view {
         uint256 expectedPrice;
 
         for (uint256 i = 0; i < amount; i++) {
-            expectedPrice += expCurve.getPrice(supply + i, initialCost, maxCost, scalingFactor, singleToken);
+            expectedPrice += expCurve.getPrice(supply + i, initialCost, scalingFactor, singleToken);
             console.log("Total New Supply: ", supply + i, "Price: ", expectedPrice);
         }
 
-        uint256 actualPrice = expCurve.getPrice(supply, initialCost, maxCost, scalingFactor, amount);
+        uint256 actualPrice = expCurve.getPrice(supply, initialCost, scalingFactor, amount);
         uint256 convertedPrice = Calculations.calculateUSDValue(address(ethUSDPriceFeed), expectedPrice);
         console.log("Price: ", actualPrice, "Converted price: ", convertedPrice);
 
@@ -60,7 +59,7 @@ contract BondingCurveTest is Test {
     //     uint256 amount = 100;
 
     //     for (uint256 i = 0; i < amount; i++) {
-    //         uint256 currentPrice = expCurve.getPrice(supply, initialCost, maxCost, scalingFactor, amount);
+    //         uint256 currentPrice = expCurve.getPrice(supply, initialCost,  scalingFactor, amount);
     //         // totalPrice += currentPrice;
     //         uint256 convertedPrice = Calculations.calculateUSDValue(address(ethUSDPriceFeed), currentPrice);
     //         console.log("Total Supply: ", supply, "Converted price: ", convertedPrice);

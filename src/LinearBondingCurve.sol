@@ -14,6 +14,9 @@ contract LinearBondingCurve is Initializable, OwnableUpgradeable, UUPSUpgradeabl
     address public protocolFeeDestination;
     uint256 public protocolFeePercent;
 
+    uint256 private constant BASIS_POINTS = 10000;
+    uint256 private constant PRECISION = 1e18;
+
     /// @dev Disables the default initializer function.
     constructor() {
         _disableInitializers();
@@ -38,29 +41,26 @@ contract LinearBondingCurve is Initializable, OwnableUpgradeable, UUPSUpgradeabl
     /// @notice Function to calculate the price of tokens based on a bonding curve formula.
     /// @param supply Supply of tokens in circulation.
     /// @param initialCost Initial cost of the token.
+    /// @param scalingFactor Scaling factor used to determine the price of tokens.
     /// @param amount Amount of tokens to buy.
-    /// @return price Price of tokens in the reserve currency.
+    /// @return totalPrice Price of tokens in the reserve currency.
     /// @dev Need to implement protocol fees and gas calculations.
     /// @dev Need to set a max gas price to prevent frontrunning.
-    function getPrice(
-        uint256 supply,
-        uint256, /* scalingFactor */
-        uint256 initialCost,
-        uint256, /* maxCost */
-        uint256 amount
-    ) external pure returns (uint256 price) {
+    function getPrice(uint256 supply, uint256 initialCost, uint256 scalingFactor, uint256 amount)
+        external
+        pure
+        returns (uint256 totalPrice)
+    {
+        uint256 scalingFactorPercent = scalingFactor * PRECISION / BASIS_POINTS; // Use 1e18 to maintain precision
+        uint256 priceIncrement = initialCost * scalingFactorPercent / PRECISION; // Adjust price by scaling factor
+        uint256 initialCostAdjustment = initialCost - priceIncrement; // Adjust initial cost by price increment
+
         for (uint256 i = 1; i <= amount; i++) {
-            price += ((supply + i) * initialCost);
+            uint256 price = ((supply + i) * (initialCost));
+            uint256 scaledTotalPrice = price * scalingFactorPercent / PRECISION; // Adjust price by scaling factor
+            totalPrice += (scaledTotalPrice + initialCostAdjustment);
         }
 
-        return price;
+        return totalPrice;
     }
-
-    // function getSalePrice(uint256 totalSupply, uint256 scalingFactor, uint256 initialCost, uint256 amount)
-    //     public
-    //     pure
-    //     returns (uint256 price)
-    // {
-    //     price = (totalSupply - 1) * scalingFactor * DECIMALS;
-    // }
 }

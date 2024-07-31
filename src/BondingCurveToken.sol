@@ -32,7 +32,6 @@ contract BondingCurveToken is ERC20Burnable {
 
     /// @notice i_scalingFactor is used to define the steepness or shape of the bonding curve.
     ///         It's specified in basis points, where 100 basis points equal 1 percent.
-    /// @dev Cap the scaling factor at 10000 basis points (100%)?
     uint32 public immutable i_scalingFactor;
 
     /// @notice The maximum cost of the token.
@@ -85,8 +84,6 @@ contract BondingCurveToken is ERC20Burnable {
 
     /// @param amount The amount of tokens to buy.
     /// @dev Needs UI to determine correct value to send before calling this function.
-    /// @dev Allow users to send extra to cover changes in supply before the transaction is processed?
-    /// @dev If so a refund mechanism should be implemented.
     function buyTokens(uint256 amount) external payable {
         if (amount == 0) {
             revert BondingCurveToken__AmountMustBeMoreThanZero();
@@ -94,6 +91,8 @@ contract BondingCurveToken is ERC20Burnable {
 
         uint256 price = i_bondingCurve.getPrice(totalSupply(), i_scalingFactor, i_initialCost, i_maxCost, amount);
 
+        /// @dev Allow users to send extra to cover changes in supply before the transaction is processed?
+        /// @dev If so a refund mechanism should be implemented.
         if (msg.value < price) {
             revert BondingCurveToken__InsufficientFundingForTransaction();
         }
