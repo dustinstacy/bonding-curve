@@ -27,30 +27,38 @@ contract LinearBondingCurveTest is Test {
         initialCostAdjustment = Calculations.calculateInitialCostAdjustment(initialCost, scalingFactor);
     }
 
-    function test_LIN_BC_GetEachTokenPrice() public view {
+    function test_LIN_BC_GetSingleTokenPrice() public view {
+        uint256 expectedPrice =
+            linCurve.getRawPrice(supply, initialCost, scalingFactor, singleToken, initialCostAdjustment);
+        uint256 convertedPrice = Calculations.calculateUSDValue(address(ethUSDPriceFeed), expectedPrice);
+        console.log("Token: ", supply + 1);
+        console.log("Price: ", expectedPrice, "Converted price: ", convertedPrice);
+    }
+
+    function test_LIN_BC_GetMultipleTokenPrices() public view {
         uint256 expectedPrice;
 
         for (uint256 i = 0; i < amount; i++) {
             expectedPrice =
-                linCurve.getPrice(supply + i, initialCost, scalingFactor, singleToken, initialCostAdjustment);
+                linCurve.getRawPrice(supply + i, initialCost, scalingFactor, singleToken, initialCostAdjustment);
             uint256 convertedPrice = Calculations.calculateUSDValue(address(ethUSDPriceFeed), expectedPrice);
             console.log("Token: ", supply + i + 1);
             console.log("Price: ", expectedPrice, "Converted price: ", convertedPrice);
         }
     }
 
-    function test_LIN_BC_GetBulkTokenPrice() public view {
+    function test_LIN_BC_GetBatchTokenPrice() public view {
         uint256 expectedPrice;
 
         for (uint256 i = 0; i < amount; i++) {
             expectedPrice +=
-                linCurve.getPrice(supply + i, initialCost, scalingFactor, singleToken, initialCostAdjustment);
+                linCurve.getRawPrice(supply + i, initialCost, scalingFactor, singleToken, initialCostAdjustment);
             uint256 convertedPrice = Calculations.calculateUSDValue(address(ethUSDPriceFeed), expectedPrice);
             console.log("Tokens: ", supply + 1, " - ", supply + i + 1);
             console.log("Price: ", expectedPrice, "Converted price: ", convertedPrice);
         }
 
-        uint256 actualPrice = linCurve.getPrice(supply, initialCost, scalingFactor, amount, initialCostAdjustment);
+        uint256 actualPrice = linCurve.getRawPrice(supply, initialCost, scalingFactor, amount, initialCostAdjustment);
         assertEq(actualPrice, expectedPrice);
         console.log("Price: ", actualPrice, "Expected Price: ", expectedPrice);
     }

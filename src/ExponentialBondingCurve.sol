@@ -60,7 +60,7 @@ contract ExponentialBondingCurve is Initializable, OwnableUpgradeable, UUPSUpgra
             uint256 sum1 = (supply - 1) * (supply) * (2 * (supply - 1) + 1) / 6;
             uint256 sum2 = (supply - 1 + amount) * (supply + amount) * (2 * (supply - 1 + amount) + 1) / 6;
             uint256 totalSum = sum2 - sum1;
-            return price = (totalSum * initialCost / (scalingFactor)) + initialCost;
+            return price = (totalSum * initialCost / (scalingFactor)) + initialCost * amount;
         }
     }
 }
