@@ -21,10 +21,20 @@ library Calculations {
     /// @notice The number of basis points in 100%.
     uint256 private constant BASIS_POINTS = 10000;
 
+    /*//////////////////////////////////////////////////////////////
+                            FUNCTIONS
+    //////////////////////////////////////////////////////////////*/
+
+    /// @notice Calculates the scaling factor percent used to determine the token price increment.
+    /// @dev Compensates for solidity's lack of floating point numbers.
+    /// @param scalingFactor The scaling factor used to determine the price of tokens.
     function calculateScalingFactorPercent(uint256 scalingFactor) external pure returns (uint256) {
         return scalingFactor * PRECISION / BASIS_POINTS;
     }
 
+    /// @notice Calculates the initial cost adjustment based on the initial cost and scaling factor percent.
+    /// @dev Returns int256 because the return value can be negative if the scaling factor is greater than 100%.
+    /// @param initialCost The initial cost of the token.
     function calculateInitialCostAdjustment(uint256 initialCost, uint256 scalingFactorPercent)
         external
         pure
@@ -46,18 +56,9 @@ library Calculations {
         return ((uint256(price) * ADDITIONAL_FEED_PRECISION) * amount) / PRECISION;
     }
 
-    /// @param tokenPriceFeed The token price feed address.
-    /// @param usdAmountInWei The USD value in Wei.
-    /// @return The token amount.
-    function calculateTokenAmountFromUSD(address tokenPriceFeed, uint256 usdAmountInWei)
-        public
-        view
-        returns (uint256)
-    {
-        AggregatorV3Interface priceFeed = AggregatorV3Interface(tokenPriceFeed);
-        (, int256 price,,,) = priceFeed.latestRoundData();
-        return (usdAmountInWei * PRECISION) / (uint256(price) * ADDITIONAL_FEED_PRECISION);
-    }
+    /*//////////////////////////////////////////////////////////////
+                            GETTERS
+    //////////////////////////////////////////////////////////////*/
 
     /// @return The `ADDITIONAL_FEED_PRECISION` constant.
     function getAdditionaFeedPrecision() external pure returns (uint256) {
@@ -67,5 +68,10 @@ library Calculations {
     /// @return The `PRECISION` constant.
     function getPrecision() external pure returns (uint256) {
         return PRECISION;
+    }
+
+    /// @return The `BASIS_POINTS` constant.
+    function getBasisPoints() external pure returns (uint256) {
+        return BASIS_POINTS;
     }
 }
