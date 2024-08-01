@@ -20,41 +20,50 @@ contract ExponentialBondingCurveTest is Test {
     uint256 amount = 100;
     uint256 singleToken = 1;
 
+    modifier onlyForSupplyGreaterThanZero() {
+        if (supply == 0) {
+            return;
+        }
+        _;
+    }
+
     function setUp() public {
         expCurve = new ExponentialBondingCurve();
         ethUSDPriceFeed = new MockV3Aggregator(DECIMALS, ETH_USD_PRICE);
     }
 
-    function test_EXP_BC_GetSingleTokenPrice() public view {
-        uint256 expectedPrice = expCurve.getRawPrice(supply, initialCost, scalingFactor, singleToken);
-        uint256 convertedPrice = Calculations.calculateUSDValue(address(ethUSDPriceFeed), expectedPrice);
-        console.log("Token: ", supply + 1);
-        console.log("Price: ", expectedPrice, "Converted price: ", convertedPrice);
+    function test_EXP_BC_GetFirstTokenPrice() public view {
+        uint256 actualPrice = expCurve.getRawPrice(0, initialCost, scalingFactor, singleToken);
+
+        console.log("Price: ", actualPrice, "Expected Price: ", initialCost);
+        assertEq(actualPrice, initialCost);
     }
 
-    function test_EXP_BC_GetEachTokenPrice() public view {
-        uint256 expectedPrice;
+    function test_EXP_BC_GetAnyTokenBeyondFirstTokenPrice() public view onlyForSupplyGreaterThanZero {
+        uint256 actualPrice = expCurve.getRawPrice(supply, initialCost, scalingFactor, singleToken);
 
-        for (uint256 i = 0; i < amount; i++) {
-            expectedPrice = expCurve.getRawPrice(supply + i, initialCost, scalingFactor, singleToken);
-            uint256 convertedPrice = Calculations.calculateUSDValue(address(ethUSDPriceFeed), expectedPrice);
-            console.log("Token: ", supply + i + 1);
-            console.log("Price: ", expectedPrice, "Converted price: ", convertedPrice);
-        }
+        uint256 sum1 = (supply - 1) * (supply) * (2 * (supply - 1) + 1) / 6;
+        uint256 sum2 = (supply - 1 + singleToken) * (supply + singleToken) * (2 * (supply - 1 + singleToken) + 1) / 6;
+        uint256 totalSum = sum2 - sum1;
+        uint256 expectedPrice = (totalSum * initialCost / (scalingFactor)) + initialCost * singleToken;
+
+        console.log("Price: ", actualPrice, "Expected Price: ", expectedPrice);
+        assertEq(actualPrice, expectedPrice);
     }
 
     function test_EXP_BC_GetBulkTokenPrice() public view {
-        uint256 expectedPrice;
+        uint256 actualPrice = expCurve.getRawPrice(supply, initialCost, scalingFactor, amount);
 
+        uint256 expectedPrice;
         for (uint256 i = 0; i < amount; i++) {
             expectedPrice += expCurve.getRawPrice(supply + i, initialCost, scalingFactor, singleToken);
-            uint256 convertedPrice = Calculations.calculateUSDValue(address(ethUSDPriceFeed), expectedPrice);
-            console.log("Tokens: ", supply + 1, " - ", supply + i + 1);
-            console.log("Price: ", expectedPrice, "Converted price: ", convertedPrice);
         }
 
-        uint256 actualPrice = expCurve.getRawPrice(supply, initialCost, scalingFactor, amount);
-        assertApproxEqAbs(actualPrice, expectedPrice, (amount / 2));
         console.log("Price: ", actualPrice, "Expected Price: ", expectedPrice);
+        // Using the sum of squares in getRawPrice() results in values that extend beyond the precision of the solidity.
+        // For each token accounted for in a batch getRawPrice() call, there is a loss of precision of around .5 wei.
+        // This is due to the nature of the calculations in the contract and the limitations of the EVM.
+        // To account for this, we will use an approximate equality check with a margin of error of half the amount of tokens.
+        assertApproxEqAbs(actualPrice, expectedPrice, (amount / 2));
     }
 }

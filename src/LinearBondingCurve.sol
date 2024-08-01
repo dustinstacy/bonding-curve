@@ -64,4 +64,9 @@ contract LinearBondingCurve is Initializable, OwnableUpgradeable, UUPSUpgradeabl
 
         return totalPrice;
     }
+
+    /// @return The `PRECISION` constant.
+    function getPrecision() external pure returns (uint256) {
+        return PRECISION;
+    }
 }
