@@ -30,8 +30,8 @@ library Calculations {
         pure
         returns (int256)
     {
-        uint256 priceIncrement = initialCost * scalingFactorPercent / PRECISION;
-        return int256(initialCost - priceIncrement);
+        int256 priceIncrement = int256(initialCost * scalingFactorPercent) / int256(PRECISION);
+        return int256(initialCost) - priceIncrement;
     }
 
     /// @notice Retrieves the latest price from the Chainlink price feed using `latestRoundData()`,

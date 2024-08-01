@@ -14,7 +14,7 @@ contract ExponentialBondingCurveTest is Test {
     int256 private constant ETH_USD_PRICE = 3265;
 
     // Curve Variables
-    uint256 supply = 10000;
+    uint256 supply = 0;
     uint256 initialCost = 0.001 ether;
     uint256 scalingFactor = 10000;
     uint256 amount = 100;
