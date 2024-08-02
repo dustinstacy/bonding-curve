@@ -14,7 +14,7 @@ contract LinearBondingCurveTest is Test {
     int256 private constant ETH_USD_PRICE = 3265;
 
     // Curve Variables
-    uint256 supply = 0;
+    uint256 supply = 100;
     uint256 initialCost = 0.001 ether;
     uint256 scalingFactor = 10000;
     uint256 amount = 100;
@@ -30,16 +30,16 @@ contract LinearBondingCurveTest is Test {
         priceIncrement = initialCost * scalingFactor / linCurve.getPrecision();
     }
 
-    function test_LIN_BC_GetFirstTokenPrice() public view {
-        uint256 actualPrice = linCurve.getRawPrice(0, initialCost, scalingFactor, singleToken, initialCostAdjustment);
+    function test_LIN_BC_GetFirstTokenBuyPrice() public view {
+        uint256 actualPrice = linCurve.getRawBuyPrice(0, initialCost, scalingFactor, singleToken, initialCostAdjustment);
 
         console.log("Price: ", actualPrice, "Expected Price: ", initialCost);
         assertEq(actualPrice, initialCost);
     }
 
-    function test_LIN_BC_GetAnyTokenPrice() public view {
+    function test_LIN_BC_GetAnyTokenBuyPrice() public view {
         uint256 actualPrice =
-            linCurve.getRawPrice(supply, initialCost, scalingFactor, singleToken, initialCostAdjustment);
+            linCurve.getRawBuyPrice(supply, initialCost, scalingFactor, singleToken, initialCostAdjustment);
 
         uint256 expectedPrice = supply * priceIncrement + initialCost;
 
@@ -47,13 +47,45 @@ contract LinearBondingCurveTest is Test {
         assertEq(actualPrice, expectedPrice);
     }
 
-    function test_LIN_BC_GetBatchTokenPrice() public view {
-        uint256 actualPrice = linCurve.getRawPrice(supply, initialCost, scalingFactor, amount, initialCostAdjustment);
+    function test_LIN_BC_GetBatchTokenBuyPrice() public view {
+        uint256 actualPrice = linCurve.getRawBuyPrice(supply, initialCost, scalingFactor, amount, initialCostAdjustment);
 
         uint256 expectedPrice;
         for (uint256 i = 0; i < amount; i++) {
             expectedPrice +=
-                linCurve.getRawPrice(supply + i, initialCost, scalingFactor, singleToken, initialCostAdjustment);
+                linCurve.getRawBuyPrice(supply + i, initialCost, scalingFactor, singleToken, initialCostAdjustment);
+        }
+
+        console.log("Price: ", actualPrice, "Expected Price: ", expectedPrice);
+        assertEq(actualPrice, expectedPrice);
+    }
+
+    function test_LIN_BC_GetSecondTokenSellPrice() public view {
+        uint256 actualPrice =
+            linCurve.getRawSellPrice(1, initialCost, scalingFactor, singleToken, initialCostAdjustment);
+
+        console.log("Price: ", actualPrice, "Expected Price: ", initialCost);
+        assertEq(actualPrice, initialCost);
+    }
+
+    function test_LIN_BC_GetAnyTokenSellPrice() public view {
+        uint256 actualPrice =
+            linCurve.getRawSellPrice(supply, initialCost, scalingFactor, singleToken, initialCostAdjustment);
+
+        uint256 expectedPrice = (supply - 1) * priceIncrement + initialCost;
+
+        console.log("Price: ", actualPrice, "Expected Price: ", expectedPrice);
+        assertEq(actualPrice, expectedPrice);
+    }
+
+    function test_LIN_BC_GetBatchTokenSellPrice() public view {
+        uint256 actualPrice =
+            linCurve.getRawSellPrice(supply, initialCost, scalingFactor, amount, initialCostAdjustment);
+
+        uint256 expectedPrice;
+        for (uint256 i = 0; i < amount; i++) {
+            expectedPrice +=
+                linCurve.getRawSellPrice(supply - i, initialCost, scalingFactor, singleToken, initialCostAdjustment);
         }
 
         console.log("Price: ", actualPrice, "Expected Price: ", expectedPrice);

@@ -41,7 +41,7 @@ contract LinearBondingCurve is Initializable, OwnableUpgradeable, UUPSUpgradeabl
     /// @param newImplementation The address of the new implementation contract.
     function _authorizeUpgrade(address newImplementation) internal override onlyOwner {}
 
-    /// @notice Function to calculate the price of tokens based on a bonding curve formula.
+    /// @notice Function to calculate the buy price of tokens based on a bonding curve formula.
     /// @param supply Supply of tokens in circulation.
     /// @param initialCost Initial cost of the token.
     /// @param scalingFactor Scaling factor used to determine the price of tokens.
@@ -49,7 +49,7 @@ contract LinearBondingCurve is Initializable, OwnableUpgradeable, UUPSUpgradeabl
     /// @return totalPrice Price of tokens in the reserve currency.
     /// @dev Need to implement protocol fees and gas calculations.
     /// @dev Need to set a max gas price to prevent frontrunning.
-    function getRawPrice(
+    function getRawBuyPrice(
         uint256 supply,
         uint256 initialCost,
         uint256 scalingFactor,
@@ -58,6 +58,30 @@ contract LinearBondingCurve is Initializable, OwnableUpgradeable, UUPSUpgradeabl
     ) external pure returns (uint256 totalPrice) {
         for (uint256 i = 1; i <= amount; i++) {
             uint256 price = ((supply + i) * (initialCost));
+            uint256 scaledTotalPrice = price * scalingFactor / PRECISION; // Adjust price by scaling factor
+            totalPrice += uint256(int256(scaledTotalPrice) + initialCostAdjustment);
+        }
+
+        return totalPrice;
+    }
+
+    /// @notice Function to calculate the sell price of tokens based on a bonding curve formula.
+    /// @param supply Supply of tokens in circulation.
+    /// @param initialCost Initial cost of the token.
+    /// @param scalingFactor Scaling factor used to determine the price of tokens.
+    /// @param amount Amount of tokens to sell.
+    /// @return totalPrice Price of tokens in the reserve currency.
+    /// @dev Need to implement protocol fees and gas calculations.
+    /// @dev Need to set a max gas price to prevent frontrunning.
+    function getRawSellPrice(
+        uint256 supply,
+        uint256 initialCost,
+        uint256 scalingFactor,
+        uint256 amount,
+        int256 initialCostAdjustment
+    ) external pure returns (uint256 totalPrice) {
+        for (uint256 i = 0; i <= amount - 1; i++) {
+            uint256 price = ((supply - i) * (initialCost));
             uint256 scaledTotalPrice = price * scalingFactor / PRECISION; // Adjust price by scaling factor
             totalPrice += uint256(int256(scaledTotalPrice) + initialCostAdjustment);
         }

@@ -58,7 +58,7 @@ contract CreateJSONGraphData is Script {
         for (uint256 i = 0; i < amount; i++) {
             uint256 tokenId = supply + i;
             uint256 expectedPrice =
-                linCurve.getRawPrice(tokenId, initialCost, scalingFactor, singleToken, initialCostAdjustment);
+                linCurve.getRawBuyPrice(tokenId, initialCost, scalingFactor, singleToken, initialCostAdjustment);
             uint256 convertedPrice = Calculations.calculateUSDValue(address(ethUSDPriceFeed), expectedPrice);
 
             tokenIds[i] = tokenId;

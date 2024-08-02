@@ -96,8 +96,9 @@ contract BondingCurveToken is ERC20Burnable {
 
         /// @dev Update to getTotalPrice function.
         /// @dev Checking to ensure the price has not updated since the user queried the price.
-        uint256 price =
-            i_bondingCurve.getRawPrice(totalSupply(), i_initialCost, i_scalingFactor, amount, i_initialCostAdjustment);
+        uint256 price = i_bondingCurve.getRawBuyPrice(
+            totalSupply(), i_initialCost, i_scalingFactor, amount, i_initialCostAdjustment
+        );
 
         /// @dev Allow users to send extra to cover changes in supply before the transaction is processed?
         /// @dev If so a refund mechanism should be implemented.
