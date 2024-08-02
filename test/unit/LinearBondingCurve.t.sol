@@ -60,7 +60,7 @@ contract LinearBondingCurveTest is Test {
         assertEq(actualPrice, expectedPrice);
     }
 
-    function test_LIN_BC_GetSecondTokenSellPrice() public view {
+    function test_LIN_BC_GetFirstTokenSellPrice() public view {
         uint256 actualPrice =
             linCurve.getRawSellPrice(1, initialCost, scalingFactor, singleToken, initialCostAdjustment);
 

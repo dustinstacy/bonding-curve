@@ -47,7 +47,7 @@ contract ExponentialBondingCurve is Initializable, OwnableUpgradeable, UUPSUpgra
     /// @dev Need to implement protocol fees and gas calculations.
     /// @dev Need to set a max gas price to prevent frontrunning.
     /// @dev Need to inspect gas reduction with minting first token to the creator to remove checks.
-    function getRawPrice(uint256 supply, uint256 initialCost, uint256 scalingFactor, uint256 amount)
+    function getRawBuyPrice(uint256 supply, uint256 initialCost, uint256 scalingFactor, uint256 amount)
         external
         pure
         returns (uint256 price)
@@ -64,6 +64,34 @@ contract ExponentialBondingCurve is Initializable, OwnableUpgradeable, UUPSUpgra
             uint256 sum2 = (supply - 1 + amount) * (supply + amount) * (2 * (supply - 1 + amount) + 1) / 6;
             uint256 totalSum = sum2 - sum1;
             return price = (totalSum * initialCost / (scalingFactor)) + initialCost * amount;
+        }
+    }
+
+    /// @notice Function to calculate the price of tokens based on a bonding curve formula.
+    /// @param supply Supply of tokens in circulation.
+    /// @param initialCost Initial cost of the token.
+    /// @param scalingFactor Scaling factor used to determine the price of tokens.
+    /// @param amount Amount of tokens to buy.
+    /// @return price Price of tokens in the reserve currency.
+    /// @dev Need to implement protocol fees and gas calculations.
+    /// @dev Need to set a max gas price to prevent frontrunning.
+    /// @dev Need to inspect gas reduction with minting first token to the creator to remove checks.
+
+    function getRawSellPrice(uint256 supply, uint256 initialCost, uint256 scalingFactor, uint256 amount)
+        external
+        pure
+        returns (uint256 price)
+    {
+        if (supply - amount == 0) {
+            uint256 sum = (supply - 1) * supply * (2 * (supply - 1) + 1) / 6;
+            return (sum * initialCost / scalingFactor) + initialCost * amount;
+        } else if (supply == 1) {
+            return initialCost;
+        } else {
+            uint256 sum1 = (supply - 1) * supply * (2 * (supply - 1) + 1) / 6;
+            uint256 sum2 = (supply - amount) * (supply - amount + 1) * (2 * (supply - amount) - 1) / 6;
+            uint256 totalSum = sum1 - sum2;
+            return (totalSum * initialCost / scalingFactor) + initialCost * amount;
         }
     }
 }

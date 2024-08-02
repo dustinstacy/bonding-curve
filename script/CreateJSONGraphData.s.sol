@@ -13,10 +13,10 @@ contract CreateJSONGraphData is Script {
     MockV3Aggregator ethUSDPriceFeed;
 
     //curve variables
-    uint256 supply = 100;
+    uint256 supply = 0;
     uint256 initialCost = 0.001 ether;
-    uint256 scalingFactor = 1000;
-    uint256 amount = 100;
+    uint256 scalingFactor = 10000;
+    uint256 amount = 10;
     uint256 singleToken = 1;
     int256 initialCostAdjustment;
     // 0 = Linear, 1 = Exponential.
@@ -79,7 +79,7 @@ contract CreateJSONGraphData is Script {
         prices = new uint256[](amount);
 
         for (uint256 i = 0; i < amount; i++) {
-            uint256 expectedPrice = expCurve.getRawPrice(supply + i, initialCost, scalingFactor, singleToken);
+            uint256 expectedPrice = expCurve.getRawBuyPrice(supply + i, initialCost, scalingFactor, singleToken);
             uint256 convertedPrice = Calculations.calculateUSDValue(address(ethUSDPriceFeed), expectedPrice);
 
             tokenIds[i] = supply + i + 1;
