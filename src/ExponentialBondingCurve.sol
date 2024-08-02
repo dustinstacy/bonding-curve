@@ -88,10 +88,10 @@ contract ExponentialBondingCurve is Initializable, OwnableUpgradeable, UUPSUpgra
         } else if (supply == 1) {
             return initialCost;
         } else {
-            uint256 sum1 = (supply - 1) * supply * (2 * (supply - 1) + 1) / 6;
-            uint256 sum2 = (supply - amount) * (supply - amount + 1) * (2 * (supply - amount) - 1) / 6;
-            uint256 totalSum = sum1 - sum2;
-            return (totalSum * initialCost / scalingFactor) + initialCost * amount;
+            uint256 sum1 = ((supply - amount) - 1) * ((supply - amount)) * (2 * ((supply - amount) - 1) + 1) / 6;
+            uint256 sum2 = (supply - 1) * (supply) * (2 * (supply - 1) + 1) / 6;
+            uint256 totalSum = sum2 - sum1;
+            return price = (totalSum * initialCost / (scalingFactor)) + initialCost * amount;
         }
     }
 }
