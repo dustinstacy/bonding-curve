@@ -87,19 +87,20 @@ contract BondingCurveToken is ERC20Burnable {
     ///////////////////////////////////////////////////////////////*/
 
     /// @param amount The amount of tokens to buy.
-    /// @dev Needs UI with getTotalPrice function to determine correct value to send before calling this function.
-    /// @dev getTotalPrice will return the raw price of the token as well as the protocol fee and gas fee.
+    /// @dev Needs UI with getTotalBuyPrice function to determine correct value to send before calling this function.
+    /// @dev getTotalPrice will return the raw buy price of the token(s) as well as the protocol fee and gas fee.
     function buyTokens(uint256 amount) external payable {
         if (amount == 0) {
             revert BondingCurveToken__AmountMustBeMoreThanZero();
         }
 
-        /// @dev Update to getTotalPrice function.
-        /// @dev Checking to ensure the price has not updated since the user queried the price.
+        /// @dev Update to getTotalBuyPrice function.
+        /// @dev Fetching the price to ensure it has not updated since the user queried it.
         uint256 price = i_bondingCurve.getRawBuyPrice(
             totalSupply(), i_initialCost, i_scalingFactor, amount, i_initialCostAdjustment
         );
 
+        /// @notice Reverts if not enought Ether is sent. Could be due to price change.
         /// @dev Allow users to send extra to cover changes in supply before the transaction is processed?
         /// @dev If so a refund mechanism should be implemented.
         if (msg.value < price) {
@@ -112,32 +113,38 @@ contract BondingCurveToken is ERC20Burnable {
         emit TokensPurchased(msg.sender, price, amount);
     }
 
-    // /// @param amount The amount of tokens to sell.
-    // function sellTokens(uint256 amount) external {
-    //     if (amount == 0) {
-    //         revert BondingCurveToken__AmountMustBeMoreThanZero();
-    //     }
+    /// @param amount The amount of tokens to sell.
+    /// @dev Needs UI with getTotalSellPrice function to determine correct amount to transfer before calling this function.
+    /// @dev getTotalSalePrice will return the raw sell price of the token(s) minus the protocol fee and gas fee.
+    function sellTokens(uint256 amount) external {
+        if (amount == 0) {
+            revert BondingCurveToken__AmountMustBeMoreThanZero();
+        }
 
-    //     uint256 salePrice = i_bondingCurve.getSalePrice(totalSupply(), i_scalingFactor, i_initialCost, amount);
+        /// @dev Update to getTotalSellPrice function.
+        /// @dev Need to implement a check to ensure the price has not updated since the user queried it.
+        uint256 salePrice = i_bondingCurve.getRawSellPrice(
+            totalSupply(), i_scalingFactor, i_initialCost, amount, i_initialCostAdjustment
+        );
 
-    //     // should not be possible
-    //     if (address(this).balance < salePrice) {
-    //         revert BondingCurveToken__InsufficientFundingForTransaction();
-    //     }
+        // should not be possible
+        if (address(this).balance < salePrice) {
+            revert BondingCurveToken__InsufficientFundingForTransaction();
+        }
 
-    //     uint256 balance = balanceOf(msg.sender);
+        uint256 balance = balanceOf(msg.sender);
 
-    //     // Check if the seller has enough tokens to sell.
-    //     if (balance < amount) {
-    //         revert BondingCurveToken__BurnAmountExceedsBalance();
-    //     }
+        // Check if the seller has enough tokens to sell.
+        if (balance < amount) {
+            revert BondingCurveToken__BurnAmountExceedsBalance();
+        }
 
-    //     // Burn tokens from the seller
-    //     burnFrom(msg.sender, amount);
+        // Burn tokens from the seller
+        burnFrom(msg.sender, amount);
 
-    //     // Transfer Ether to the seller
-    //     payable(msg.sender).transfer(salePrice);
+        // Transfer Ether to the seller
+        payable(msg.sender).transfer(salePrice);
 
-    //     emit TokensSold(msg.sender, salePrice, amount);
-    // }
+        emit TokensSold(msg.sender, salePrice, amount);
+    }
 }
