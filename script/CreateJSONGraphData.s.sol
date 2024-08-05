@@ -20,7 +20,7 @@ contract CreateJSONGraphData is Script {
     uint256 singleToken = 1;
     int256 initialCostAdjustment;
     // 0 = Linear, 1 = Exponential.
-    uint256 curve = 1;
+    uint256 curve = 0;
 
     string private constant DESTINATION = "/script/data/graphData.json";
     uint8 private constant DECIMALS = 8;

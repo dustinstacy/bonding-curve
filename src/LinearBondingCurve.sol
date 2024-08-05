@@ -72,8 +72,8 @@ contract LinearBondingCurve is Initializable, OwnableUpgradeable, UUPSUpgradeabl
     /// @param amount Amount of tokens to sell.
     /// @return totalPrice Price of tokens in the reserve currency.
     /// @dev Need to implement protocol fees and gas calculations.
-    /// @dev Need to set a max gas price to prevent frontrunning.
     function getRawSellPrice(
+        /// @dev Need to set a max gas price to prevent frontrunning.
         uint256 supply,
         uint256 initialCost,
         uint256 scalingFactor,

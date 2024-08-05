@@ -1,14 +1,14 @@
 {
   "data": [
-    { "token": 1, "priceInWei": 1000000000000000, "price": 32650 },
-    { "token": 2, "priceInWei": 1000100000000000, "price": 32653 },
-    { "token": 3, "priceInWei": 1000400000000000, "price": 32663 },
-    { "token": 4, "priceInWei": 1000900000000000, "price": 32679 },
-    { "token": 5, "priceInWei": 1001600000000000, "price": 32702 },
-    { "token": 6, "priceInWei": 1002500000000000, "price": 32731 },
-    { "token": 7, "priceInWei": 1003600000000000, "price": 32767 },
-    { "token": 8, "priceInWei": 1004900000000000, "price": 32809 },
-    { "token": 9, "priceInWei": 1006400000000000, "price": 32858 },
-    { "token": 10, "priceInWei": 1008100000000000, "price": 32914 }
+    { "token": 0, "priceInWei": 1000000000000000, "price": 32650 },
+    { "token": 1, "priceInWei": 2000000000000000, "price": 65300 },
+    { "token": 2, "priceInWei": 3000000000000000, "price": 97950 },
+    { "token": 3, "priceInWei": 4000000000000000, "price": 130600 },
+    { "token": 4, "priceInWei": 5000000000000000, "price": 163250 },
+    { "token": 5, "priceInWei": 6000000000000000, "price": 195900 },
+    { "token": 6, "priceInWei": 7000000000000000, "price": 228550 },
+    { "token": 7, "priceInWei": 8000000000000000, "price": 261200 },
+    { "token": 8, "priceInWei": 9000000000000000, "price": 293850 },
+    { "token": 9, "priceInWei": 10000000000000000, "price": 326500 }
   ]
 }
