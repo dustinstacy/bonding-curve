@@ -43,7 +43,7 @@ contract LinearBondingCurve is Initializable, OwnableUpgradeable, UUPSUpgradeabl
     /// @param currentSupply The current currentSupply of tokens.
     /// @param initialCost The initial cost of the token.
     /// @param value The amount of ether sent to purchase tokens.
-    /// @dev This is the function getPurchaseReturn should call to determine the amount of tokens to mint after fees.
+    /// @dev Need to incorporate a fee calculation into the return value.
     /// @dev Currently tested for precision down to the wei.
     /// @dev This function is gas inefficient and needs to be optimized.
     function calculatePurchaseReturn(uint256 currentSupply, uint256 initialCost, uint256 value)
@@ -51,6 +51,8 @@ contract LinearBondingCurve is Initializable, OwnableUpgradeable, UUPSUpgradeabl
         pure
         returns (uint256 rawPurchaseReturn)
     {
+        require(initialCost > 0, "Initial cost must be greater than zero");
+        require(value > 0, "Value must be greater than zero");
         // Placeholder until scaling introduced
         uint256 tokenPriceIncrement = initialCost;
 
@@ -92,13 +94,15 @@ contract LinearBondingCurve is Initializable, OwnableUpgradeable, UUPSUpgradeabl
                 remainingCurrentDiscreteTokenPrice = currentDiscreteTokenPrice;
             }
         }
+
+        return rawPurchaseReturn;
     }
 
     /// @notice Calculates the amount of ether needed to purchase the next full token.
     /// @param currentSupply supply of tokens.
     /// @param initialCost The initial cost of the token.
-    /// @dev If fees are implemented, this function should return the total cost of the token after fees.
     /// @dev Could just boil down to current supply * initial cost + token price increment?
+    /// @dev This function should take into account the protocol fee.
     function calculateReserveTokensNeeded(uint256 currentSupply, uint256 initialCost)
         external
         pure
@@ -133,23 +137,12 @@ contract LinearBondingCurve is Initializable, OwnableUpgradeable, UUPSUpgradeabl
         return reserveTokensNeeded;
     }
 
-    /// @notice Calculates the purchase return after protocol fees are deducted.
-    /// @param currentSupply supply of tokens.
-    /// @param initialCost The initial cost of the token.
-    /// @param value The amount of ether sent to purchase tokens.
-    /// @dev This is the function the token contract should call to determine the amount of tokens to mint.
-    /// @dev If fees are implemented, this function should return the amount of tokens to mint after fees.
-    function getBuyPriceAfterFees(uint256 currentSupply, uint256 initialCost, uint256 value)
-        external
-        pure
-        returns (uint256)
-    {}
-
     /// @notice Calculates the amount of ether that can be returned for the given amount of tokens.
     /// @param currentSupply supply of tokens.
     /// @param initialCost The initial cost of the token.
     /// @param amount The amount of tokens to sell.
     /// @dev Need to add a sell penalty to the calculation.
+    /// @dev Do protocol fees apply to the sale of tokens as well?
     function getSaleReturn(uint256 currentSupply, uint256 initialCost, uint256 amount)
         external
         pure
@@ -181,33 +174,4 @@ contract LinearBondingCurve is Initializable, OwnableUpgradeable, UUPSUpgradeabl
 
     /// @param newImplementation The address of the new implementation contract.
     function _authorizeUpgrade(address newImplementation) internal override onlyOwner {}
-
-    // Saving if reserve context is needed for future optimization.
-    // function _getReserveAmount(uint256 currentSupply, uint256 initialCost)
-    //     internal
-    //     pure
-    //     returns (uint256)
-    // {
-    //     // Convert inputs to fixed-point arithmetic
-    //     uint256 scaledInitialCost = initialCost * PRECISION;
-    //     uint256 scaledTokenPriceIncrement = scaledInitialCost;
-
-    //     // Handle the case where currentSupply is zero
-    //     if (currentSupply == 0) {
-    //         return 0;
-    //     }
-
-    //     // Total Reserve = currentSupply * initialCost + tokenPriceIncrement * ((currentSupply - 1) * currentSupply / 2)
-    //     uint256 sumOfIncrements;
-
-    //     // Use fixed-point arithmetic for accurate calculation
-    //     if (currentSupply >= PRECISION) {
-    //         sumOfIncrements = (scaledTokenPriceIncrement * (currentSupply - PRECISION) * currentSupply) / (2 * PRECISION);
-    //     } else {
-    //         sumOfIncrements = 0;
-    //     }
-
-    //     uint256 totalReserve = (currentSupply * scaledInitialCost) / PRECISION + sumOfIncrements / PRECISION;
-    //     return (totalReserve / PRECISION);
-    // }
 }

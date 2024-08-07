@@ -104,16 +104,14 @@ contract LINToken is ERC20Burnable {
                           EXTERNAL FUNCTIONS
     ///////////////////////////////////////////////////////////////*/
 
-    /// @notice Allows a user to purchase tokens by sending Ether to the contract.
+    /// @notice Allows a user to mint tokens by sending Ether to the contract.
     /// @dev The amount of tokens minted is determined by the bonding curve.
     /// @dev Need to implement a gas limit to prevent front-running attacks.
-    /// @dev Function will be updated to call getBuyPriceAfterFees function.
-    function buyTokens() external payable {
+    function mintTokens() external payable {
         if (msg.value == 0) {
             revert LINToken__AmountMustBeMoreThanZero();
         }
 
-        /// @dev Update to getTotalPurchaseReturn function.
         uint256 amount = i_bondingCurve.calculatePurchaseReturn(totalSupply(), i_initialCost, msg.value);
 
         // Mint tokens to the buyer
@@ -129,25 +127,21 @@ contract LINToken is ERC20Burnable {
         return i_bondingCurve.calculateReserveTokensNeeded(totalSupply(), i_initialCost);
     }
 
-    /// @param amount The amount of tokens to sell.
-    /// @dev Should sale penalty be implemented in the bonding curve or in the token contract?
-    /// @dev Are protocol fees included in the sale of tokens as well?
+    /// @param amount The amount of tokens to burn.
     /// @dev Need to implement a gas limit to prevent front-running attacks.
     /// @dev CEI is implemented here so is OZ nonReentrant modifier necessary?
-    function sellTokens(uint256 amount) external {
+    function burnTokens(uint256 amount) external {
         if (amount == 0) {
             revert LINToken__AmountMustBeMoreThanZero();
         }
 
         uint256 balance = balanceOf(msg.sender);
 
-        // Check if the seller has enough tokens to sell.
+        // Check if the seller has enough tokens to burn.
         if (balance < amount) {
             revert LINToken__BurnAmountExceedsBalance();
         }
 
-        /// @dev Update to getTotalSellPrice function.
-        /// @dev Need to implement a check to ensure the price has not updated since the user queried it.
         uint256 salePrice = i_bondingCurve.getSaleReturn(totalSupply(), i_initialCost, amount);
 
         // should not be possible

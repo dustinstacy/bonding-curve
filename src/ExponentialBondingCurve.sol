@@ -45,6 +45,7 @@ contract ExponentialBondingCurve is Initializable, OwnableUpgradeable, UUPSUpgra
     /// @param reserveTokensReceived The amount of reserve tokens received (in wei).
     /// @param reserveRatioPPM The reserve ratio (in PRECISIONd format, such as 1e18).
     /// @return tokensToReturn The amount of continuous tokens to mint (in 1e18 format).
+    /// @dev Need to incorporate a fee calculation into the return value.
     function calculatePurchaseReturn(
         uint256 currentSupply,
         uint256 reserveTokenBalance,
@@ -71,8 +72,7 @@ contract ExponentialBondingCurve is Initializable, OwnableUpgradeable, UUPSUpgra
     /// @param reserveTokenBalance The balance of reserve tokens (in wei).
     /// @param tokensToReturn The amount of continuous tokens to mint (in 1e18 format).
     /// @param reserveRatioPPM The reserve ratio (in PRECISIONd format, such as 1e18).
-    /// @dev Need to implement a function to calculate the total cost of the next full token.
-    /// @dev If fees are implemented, this function should return the total cost of the token after fees.
+    /// @dev This function should take into account the protocol fee.
     function calculateReserveTokensNeeded(
         uint256 currentSupply,
         uint256 reserveTokenBalance,
@@ -93,19 +93,12 @@ contract ExponentialBondingCurve is Initializable, OwnableUpgradeable, UUPSUpgra
         return reserveTokensNeeded;
     }
 
-    /// @notice Calculates the purchase return after protocol fees are deducted.
-    /// @param supply The current supply of tokens.
-    /// @param initialCost The initial cost of the token.
-    /// @param value The amount of ether sent to purchase tokens.
-    /// @dev This is the function the token contract should call to determine the amount of tokens to mint.
-    /// @dev If fees are implemented, this function should return the amount of tokens to mint after fees.
-    function getBuyPriceAfterFees(uint256 supply, uint256 initialCost, uint256 value) external pure returns (uint256) {}
-
     /// @notice Calculates the amount of ether that can be returned for the given amount of tokens.
     /// @param supply The current supply of tokens.
     /// @param initialCost The initial cost of the token.
     /// @param amount The amount of tokens to sell.
     /// @dev Need to add a sell penalty to the calculation.
+    /// @dev Do protocol fees apply to the sale of tokens as well?
     function getSaleReturn(uint256 supply, uint256 initialCost, uint256 amount) external pure returns (uint256) {}
 
     /*//////////////////////////////////////////////////////////////
