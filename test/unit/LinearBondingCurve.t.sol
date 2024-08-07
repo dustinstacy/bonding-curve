@@ -14,12 +14,13 @@ contract LinearBondingCurveTest is Test {
     // Test Variables
     uint256 supply;
     uint256 value;
+    uint256 amount;
 
     function setUp() public {
         linCurve = new LinearBondingCurve();
     }
 
-    function test_LIN_BC_BuyFirstWholeToken() public {
+    function test_LIN_BC_MintFirstWholeToken() public {
         supply = 0;
         value = initialCost;
 
@@ -30,7 +31,7 @@ contract LinearBondingCurveTest is Test {
         assertEq(actualReturn, expectedReturn);
     }
 
-    function test_LIN_BC_BuyFirstPieceOfToken() public {
+    function test_LIN_BC_MintFirstPieceOfToken() public {
         supply = 0;
         value = initialCost / 2;
 
@@ -41,7 +42,7 @@ contract LinearBondingCurveTest is Test {
         assertEq(actualReturn, expectedReturn);
     }
 
-    function test_LIN_BC_BuySecondPieceOfTokenLessThanSupplyOfOne() public {
+    function test_LIN_BC_MintSecondPieceOfTokenLessThanSupplyOfOne() public {
         supply = 0;
         value = initialCost / 2;
 
@@ -61,7 +62,7 @@ contract LinearBondingCurveTest is Test {
         assertEq(actualReturn, expectedReturn);
     }
 
-    function test_LIN_BC_BuySecondWholeToken() public {
+    function test_LIN_BC_MintSecondWholeToken() public {
         supply = 1e18;
         value = initialCost * 2;
 
@@ -72,7 +73,7 @@ contract LinearBondingCurveTest is Test {
         assertEq(actualReturn, expectedReturn);
     }
 
-    function test_LIN_BC_BuyPartialToken() public {
+    function test_LIN_BC_MintPartialToken() public {
         supply = 1e18;
         value = initialCost;
 
@@ -83,7 +84,7 @@ contract LinearBondingCurveTest is Test {
         assertEq(actualReturn, expectedReturn);
     }
 
-    function test_LIN_BC_LargeValueAndSupply() public {
+    function test_LIN_BC_MintLargeValueAndSupply() public {
         supply = 3523.68e18;
         value = 13e18;
 
@@ -229,5 +230,86 @@ contract LinearBondingCurveTest is Test {
 
         console2.log("Value: ", actualValue, "Expected Value: ", expectedValue);
         assertEq(actualValue, expectedValue);
+    }
+
+    function test_LIN_BC_SellTokenOne() public {
+        supply = 1e18;
+        amount = 1e18;
+
+        uint256 actualReturn = linCurve.calculateSaleReturn(supply, initialCost, amount);
+        uint256 expectedReturn = initialCost;
+
+        console2.log("Return: ", actualReturn, "Expected Return: ", expectedReturn);
+        assertEq(actualReturn, expectedReturn);
+    }
+
+    function test_LIN_BC_SellTokenTwo() public {
+        supply = 2e18;
+        amount = 1e18;
+
+        uint256 actualReturn = linCurve.calculateSaleReturn(supply, initialCost, amount);
+        uint256 expectedReturn = initialCost * 2;
+
+        console2.log("Return: ", actualReturn, "Expected Return: ", expectedReturn);
+        assertEq(actualReturn, expectedReturn);
+    }
+
+    function test_LIN_BC_SellFirstPieceOfToken() public {
+        supply = 1e18;
+        amount = 5e17;
+
+        uint256 actualReturn = linCurve.calculateSaleReturn(supply, initialCost, amount);
+        uint256 expectedReturn = initialCost / 2;
+
+        console2.log("Return: ", actualReturn, "Expected Return: ", expectedReturn);
+        assertEq(actualReturn, expectedReturn);
+    }
+
+    function test_LIN_BC_SellSecondPieceOfToken() public {
+        supply = 1e18;
+        amount = 5e17;
+
+        uint256 actualReturn = linCurve.calculateSaleReturn(supply, initialCost, amount);
+        uint256 expectedReturn = initialCost / 2;
+
+        console2.log("Return: ", actualReturn, "Expected Return: ", expectedReturn);
+        assertEq(actualReturn, expectedReturn);
+
+        supply = 5e17;
+        amount = 5e17;
+
+        actualReturn = linCurve.calculateSaleReturn(supply, initialCost, amount);
+        expectedReturn = initialCost / 2;
+
+        console2.log("Return: ", actualReturn, "Expected Return: ", expectedReturn);
+        assertEq(actualReturn, expectedReturn);
+    }
+
+    function test_LIN_BC_SellDownToZero() public {
+        supply = 2e18;
+        amount = 2e18;
+
+        uint256 actualReturn = linCurve.calculateSaleReturn(supply, initialCost, amount);
+        uint256 expectedReturn = initialCost * 3;
+
+        console2.log("Return: ", actualReturn, "Expected Return: ", expectedReturn);
+        assertEq(actualReturn, expectedReturn);
+    }
+
+    function test_LIN_BC_SellLargeValueAndSupply() public {
+        supply = 3523.68e18;
+        amount = 13e18;
+
+        // looooong math not shown here
+        uint256 expectedReturn = 93842680000000000000; // 93.84268
+        uint256 actualReturn = linCurve.calculateSaleReturn(supply, initialCost, amount);
+
+        console2.log("Return: ", actualReturn, "Expected Return: ", expectedReturn);
+        assertEq(actualReturn, expectedReturn);
+
+        uint256 expectedSupply = 3510680000000000000000;
+        uint256 newSupply = supply - amount;
+        console2.log("New Supply: ", newSupply, "Expected Supply: ", expectedSupply);
+        assertEq(newSupply, expectedSupply);
     }
 }

@@ -142,7 +142,7 @@ contract LINToken is ERC20Burnable {
             revert LINToken__BurnAmountExceedsBalance();
         }
 
-        uint256 salePrice = i_bondingCurve.getSaleReturn(totalSupply(), i_initialCost, amount);
+        uint256 salePrice = i_bondingCurve.calculateSaleReturn(totalSupply(), i_initialCost, amount);
 
         // should not be possible
         if (address(this).balance < salePrice) {

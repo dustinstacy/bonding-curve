@@ -143,11 +143,56 @@ contract LinearBondingCurve is Initializable, OwnableUpgradeable, UUPSUpgradeabl
     /// @param amount The amount of tokens to sell.
     /// @dev Need to add a sell penalty to the calculation.
     /// @dev Do protocol fees apply to the sale of tokens as well?
-    function getSaleReturn(uint256 currentSupply, uint256 initialCost, uint256 amount)
+    function calculateSaleReturn(uint256 currentSupply, uint256 initialCost, uint256 amount)
         external
         pure
         returns (uint256)
-    {}
+    {
+        require(amount > 0, "Amount must be greater than zero");
+        require(currentSupply > 0, "Current supply must be greater than zero");
+        require(amount <= currentSupply, "Amount must be less than or equal to the current supply");
+
+        // Placeholder until scaling introduced
+        uint256 tokenPriceIncrement = initialCost;
+
+        // Variables to store the current token prices
+        uint256 currentDiscreteTokenPrice;
+        uint256 remainingCurrentDiscreteTokenPrice;
+        uint256 percentDiscreteTokenRemaining;
+
+        if (amount == currentSupply) {
+            if (currentSupply < PRECISION) {
+                return (initialCost * amount / PRECISION);
+            }
+            return initialCost + (((currentSupply / PRECISION) * tokenPriceIncrement));
+        }
+
+        // Get amount remaining within current token price
+        currentDiscreteTokenPrice = initialCost + (((currentSupply / PRECISION) - 1) * tokenPriceIncrement);
+        console2.log("currentSupply", currentSupply / PRECISION);
+        console2.log("currentDiscreteTokenPrice", currentDiscreteTokenPrice);
+        percentDiscreteTokenRemaining = (PRECISION - currentSupply % PRECISION);
+        remainingCurrentDiscreteTokenPrice = (percentDiscreteTokenRemaining * currentDiscreteTokenPrice) / PRECISION;
+
+        uint256 saleReturn;
+        uint256 tokensRemaining = amount;
+
+        while (tokensRemaining > 0) {
+            if (tokensRemaining < percentDiscreteTokenRemaining) {
+                saleReturn += (tokensRemaining * remainingCurrentDiscreteTokenPrice) / PRECISION;
+                break;
+            } else {
+                saleReturn += remainingCurrentDiscreteTokenPrice;
+                tokensRemaining -= percentDiscreteTokenRemaining;
+                currentSupply -= percentDiscreteTokenRemaining;
+                currentDiscreteTokenPrice = initialCost + ((currentSupply / PRECISION) * tokenPriceIncrement);
+                remainingCurrentDiscreteTokenPrice = currentDiscreteTokenPrice;
+                percentDiscreteTokenRemaining = (PRECISION - currentSupply % PRECISION);
+            }
+        }
+
+        return saleReturn;
+    }
 
     /*//////////////////////////////////////////////////////////////
                             PUBLIC FUNCTIONS
