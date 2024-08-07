@@ -10,6 +10,7 @@ import {Calculations} from "src/libraries/Calculations.sol";
 /// @notice This contract implements a simple ERC20 token that can be bought and sold using a linear bonding curve.
 /// @dev The Linear Bonding curve token differs from the Exponential token in that it sets and initial cost adjustment variable.
 ///      If sublinear or superlinear curves are not desired, this variable can be eliminated and both tokens can use the same contract.
+///      Then the i_initialCost and i_scalingFactor can be relocated to the ExponentialBondingCurve contract.
 ///      To do so, an interface must be created to exchange the LinearBondingCurve instance state variable for a standardized bonding curve interface.
 ///      This would allow the same token to be used with any bonding curve that implements the interface.
 ///      Note, it may still be desirable to have separate contracts for different bonding curve tokens to allow for different parameters if changes arise.
@@ -129,9 +130,9 @@ contract LINToken is ERC20Burnable {
     }
 
     /// @param amount The amount of tokens to sell.
-    /// @dev Needs UI with getTotalSellPrice function to determine correct amount to transfer before calling this function.
-    /// @dev getTotalSalePrice will return the raw sell price of the token(s) minus the protocol fee and gas fee.
-    /// @dev Need to implement a gas limit to prevent front-running attacks?
+    /// @dev Should sale penalty be implemented in the bonding curve or in the token contract?
+    /// @dev Are protocol fees included in the sale of tokens as well?
+    /// @dev Need to implement a gas limit to prevent front-running attacks.
     /// @dev CEI is implemented here so is OZ nonReentrant modifier necessary?
     function sellTokens(uint256 amount) external {
         if (amount == 0) {

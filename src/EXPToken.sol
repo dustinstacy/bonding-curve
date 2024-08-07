@@ -8,6 +8,15 @@ import {Calculations} from "src/libraries/Calculations.sol";
 /// @title ExponentialCurveToken
 /// @author Dustin Stacy
 /// @notice This contract implements a simple ERC20 token that can be bought and sold using an exponential bonding curve.
+///         The price of the token is determined by the bonding curve, which adjusts based on the total supply.
+///         The bonding curve is defined by a scaling factor, which determines the steepness of the curve.
+///         As implemented, the scaling factor can be adjusted by the owner of the contract.
+///         This will allow us to experiment with different curve shapes and determine the best fit for our use case.
+///         If it's determined that the scaling factor should be fixed, we can remove the ability to adjust it.
+///         Then the i_initialCost and i_scalingFactor can be relocated to the ExponentialBondingCurve contract.
+///         To do so, an interface must be created to exchange the ExponentialBondingCurve instance state variable for a standardized bonding curve interface.
+///         This would allow the same token to be used with any bonding curve that implements the interface.
+///         Note, it may still be desirable to have separate contracts for different bonding curve tokens to allow for different parameters if changes arise.
 contract EXPToken is ERC20Burnable {
     /*///////////////////////////////////////////////////////////////
                                 ERRORS
@@ -36,6 +45,9 @@ contract EXPToken is ERC20Burnable {
 
     /// @notice i_scalingFactor is used to define the steepness of the bonding curve.
     ///         It's specified in basis points, where 100 basis points equal 1 percent.
+    ///         In this implementation, the scaling factor acts more like a reserve ratio.
+    ///         With lower values, the price of the token will increase more rapidly.
+    ///         With higher values, the price of the token will increase more slowly.
     uint256 public immutable i_scalingFactor;
 
     /*///////////////////////////////////////////////////////////////
@@ -58,6 +70,8 @@ contract EXPToken is ERC20Burnable {
     /// @param _scalingFactor The scaling factor used to determine the price of tokens.
     /// @param _bcAddress The address of the ExponentialBondingCurve contract.
     /// @dev   If the ExponentialBondingCurve contract is upgradeable, `_bcAddress` should be the proxy address.
+    /// @dev   If initialCost is predetermined, this can be set as a constant in the contract.
+    /// @dev   If scaling is not desired, this can be set as a constant in the contract.
     constructor(
         string memory _name,
         string memory _symbol,
@@ -74,56 +88,63 @@ contract EXPToken is ERC20Burnable {
                           EXTERNAL FUNCTIONS
     ///////////////////////////////////////////////////////////////*/
 
-    /// @param amount The amount of tokens to buy.
-    /// @dev Needs UI with getTotalPrice function to determine correct value to send before calling this function.
-    /// @dev getTotalPrice will return the raw price of the token as well as the protocol fee and gas fee.
-    function buyTokens(uint256 amount) external payable {
-        if (amount == 0) {
+    /// @notice Allows a user to purchase tokens by sending ether to the contract.
+    /// @dev The amount of tokens minted is determined by the bonding curve.
+    /// @dev Need to implement a gas limit to prevent front-running attacks.
+    /// @dev Function will be updated to call getBuyPriceAfterFees function.
+    function buyTokens() external payable {
+        if (msg.value == 0) {
             revert EXPToken__AmountMustBeMoreThanZero();
         }
 
-        /// @dev Update to getTotalPrice function.
-        /// @dev Checking to ensure the price has not updated since the user queried the price.
-        uint256 price = i_bondingCurve.getRawBuyPrice(totalSupply(), i_initialCost, i_scalingFactor, amount);
-
-        /// @dev Allow users to send extra to cover changes in supply before the transaction is processed?
-        /// @dev If so a refund mechanism should be implemented.
-        if (msg.value < price) {
-            revert EXPToken__InsufficientFundingForTransaction();
-        }
+        /// @dev Update to getTotalPurchaseReturn function.
+        uint256 amount = i_bondingCurve.getRawPurchaseReturn(totalSupply(), i_initialCost, i_scalingFactor, msg.value);
 
         // Mint tokens to the buyer
         _mint(msg.sender, amount);
 
-        emit TokensPurchased(msg.sender, price, amount);
+        emit TokensPurchased(msg.sender, msg.value, amount);
     }
 
-    // /// @param amount The amount of tokens to sell.
-    // function sellTokens(uint256 amount) external {
-    //     if (amount == 0) {
-    //         revert EXPToken__AmountMustBeMoreThanZero();
-    //     }
+    /// @notice Returns the current price of a whole token.
+    /// @dev Is there a need/desire to implement a buyWholeToken function?
+    /// @dev Or is the query of the price sufficient for the user to determine the amount to send?
+    function getFullTokenPrice() external view returns (uint256) {
+        return i_bondingCurve.getFullTokenPrice(totalSupply(), i_initialCost);
+    }
 
-    //     uint256 salePrice = i_bondingCurve.getSalePrice(totalSupply(), i_scalingFactor, i_initialCost, amount);
+    /// @param amount The amount of tokens to sell.
+    /// @dev Should sale penalty be implemented in the bonding curve or in the token contract?
+    /// @dev Are protocol fees included in the sale of tokens as well?
+    /// @dev Need to implement a gas limit to prevent front-running attacks.
+    /// @dev CEI is implemented here so is OZ nonReentrant modifier necessary?
+    function sellTokens(uint256 amount) external {
+        if (amount == 0) {
+            revert EXPToken__AmountMustBeMoreThanZero();
+        }
 
-    //     // should not be possible
-    //     if (address(this).balance < salePrice) {
-    //         revert EXPToken__InsufficientFundingForTransaction();
-    //     }
+        uint256 balance = balanceOf(msg.sender);
 
-    //     uint256 balance = balanceOf(msg.sender);
+        // Check if the seller has enough tokens to sell.
+        if (balance < amount) {
+            revert EXPToken__BurnAmountExceedsBalance();
+        }
 
-    //     // Check if the seller has enough tokens to sell.
-    //     if (balance < amount) {
-    //         revert EXPToken__BurnAmountExceedsBalance();
-    //     }
+        /// @dev Update to getTotalSellPrice function.
+        /// @dev Need to implement a check to ensure the price has not updated since the user queried it.
+        uint256 salePrice = i_bondingCurve.getSaleReturn(totalSupply(), i_initialCost, amount);
 
-    //     // Burn tokens from the seller
-    //     burnFrom(msg.sender, amount);
+        // should not be possible
+        if (address(this).balance < salePrice) {
+            revert EXPToken__InsufficientFundingForTransaction();
+        }
 
-    //     // Transfer Ether to the seller
-    //     payable(msg.sender).transfer(salePrice);
+        // Burn tokens from the seller
+        burnFrom(msg.sender, amount);
 
-    //     emit TokensSold(msg.sender, salePrice, amount);
-    // }
+        // Transfer Ether to the seller
+        payable(msg.sender).transfer(salePrice);
+
+        emit TokensSold(msg.sender, salePrice, amount);
+    }
 }
