@@ -8,19 +8,19 @@ import {Calculations} from "src/libraries/Calculations.sol";
 /// @title ExponentialCurveToken
 /// @author Dustin Stacy
 /// @notice This contract implements a simple ERC20 token that can be bought and sold using an exponential bonding curve.
-contract BondingCurveToken is ERC20Burnable {
+contract EXPToken is ERC20Burnable {
     /*///////////////////////////////////////////////////////////////
                                 ERRORS
     ///////////////////////////////////////////////////////////////*/
 
     /// @dev Emitted when attempting to perform an action with an amount that must be more than zero.
-    error BondingCurveToken__AmountMustBeMoreThanZero();
+    error EXPToken__AmountMustBeMoreThanZero();
 
     /// @dev Emitted if the buyer does not send enough Ether to purchase the tokens.
-    error BondingCurveToken__InsufficientFundingForTransaction();
+    error EXPToken__InsufficientFundingForTransaction();
 
     /// @dev Emitted when attempting to burn an amount that exceeds the sender's balance.
-    error BondingCurveToken__BurnAmountExceedsBalance();
+    error EXPToken__BurnAmountExceedsBalance();
 
     /*///////////////////////////////////////////////////////////////
                              STATE VARIABLES
@@ -79,7 +79,7 @@ contract BondingCurveToken is ERC20Burnable {
     /// @dev getTotalPrice will return the raw price of the token as well as the protocol fee and gas fee.
     function buyTokens(uint256 amount) external payable {
         if (amount == 0) {
-            revert BondingCurveToken__AmountMustBeMoreThanZero();
+            revert EXPToken__AmountMustBeMoreThanZero();
         }
 
         /// @dev Update to getTotalPrice function.
@@ -89,7 +89,7 @@ contract BondingCurveToken is ERC20Burnable {
         /// @dev Allow users to send extra to cover changes in supply before the transaction is processed?
         /// @dev If so a refund mechanism should be implemented.
         if (msg.value < price) {
-            revert BondingCurveToken__InsufficientFundingForTransaction();
+            revert EXPToken__InsufficientFundingForTransaction();
         }
 
         // Mint tokens to the buyer
@@ -101,21 +101,21 @@ contract BondingCurveToken is ERC20Burnable {
     // /// @param amount The amount of tokens to sell.
     // function sellTokens(uint256 amount) external {
     //     if (amount == 0) {
-    //         revert BondingCurveToken__AmountMustBeMoreThanZero();
+    //         revert EXPToken__AmountMustBeMoreThanZero();
     //     }
 
     //     uint256 salePrice = i_bondingCurve.getSalePrice(totalSupply(), i_scalingFactor, i_initialCost, amount);
 
     //     // should not be possible
     //     if (address(this).balance < salePrice) {
-    //         revert BondingCurveToken__InsufficientFundingForTransaction();
+    //         revert EXPToken__InsufficientFundingForTransaction();
     //     }
 
     //     uint256 balance = balanceOf(msg.sender);
 
     //     // Check if the seller has enough tokens to sell.
     //     if (balance < amount) {
-    //         revert BondingCurveToken__BurnAmountExceedsBalance();
+    //         revert EXPToken__BurnAmountExceedsBalance();
     //     }
 
     //     // Burn tokens from the seller

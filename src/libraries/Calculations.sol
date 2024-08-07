@@ -32,16 +32,23 @@ library Calculations {
         return scalingFactor * PRECISION / BASIS_POINTS;
     }
 
+    function calculatePriceIncrement(uint256 initialCost, uint256 scalingFactorPercent)
+        external
+        pure
+        returns (uint256)
+    {
+        return initialCost * scalingFactorPercent / PRECISION;
+    }
+
     /// @notice Calculates the initial cost adjustment based on the initial cost and scaling factor percent.
     /// @dev Returns int256 because the return value can be negative if the scaling factor is greater than 100%.
     /// @param initialCost The initial cost of the token.
-    function calculateInitialCostAdjustment(uint256 initialCost, uint256 scalingFactorPercent)
+    function calculateInitialCostAdjustment(uint256 initialCost, uint256 priceIncrement)
         external
         pure
         returns (int256)
     {
-        int256 priceIncrement = int256(initialCost * scalingFactorPercent) / int256(PRECISION);
-        return int256(initialCost) - priceIncrement;
+        return int256(initialCost) - int256(priceIncrement);
     }
 
     /// @notice Retrieves the latest price from the Chainlink price feed using `latestRoundData()`,

@@ -8,19 +8,24 @@ import {Calculations} from "src/libraries/Calculations.sol";
 /// @title LinearCurveToken
 /// @author Dustin Stacy
 /// @notice This contract implements a simple ERC20 token that can be bought and sold using a linear bonding curve.
-contract BondingCurveToken is ERC20Burnable {
+/// @dev The Linear Bonding curve token differs from the Exponential token in that it sets and initial cost adjustment variable.
+///      If sublinear or superlinear curves are not desired, this variable can be eliminated and both tokens can use the same contract.
+///      To do so, an interface must be created to exchange the LinearBondingCurve instance state variable for a standardized bonding curve interface.
+///      This would allow the same token to be used with any bonding curve that implements the interface.
+///      Note, it may still be desirable to have separate contracts for different bonding curve tokens to allow for different parameters if changes arise.
+contract LINToken is ERC20Burnable {
     /*///////////////////////////////////////////////////////////////
                                 ERRORS
     ///////////////////////////////////////////////////////////////*/
 
     /// @dev Emitted when attempting to perform an action with an amount that must be more than zero.
-    error BondingCurveToken__AmountMustBeMoreThanZero();
+    error LINToken__AmountMustBeMoreThanZero();
 
     /// @dev Emitted if the buyer does not send enough Ether to purchase the tokens.
-    error BondingCurveToken__InsufficientFundingForTransaction();
+    error LINToken__InsufficientFundingForTransaction();
 
     /// @dev Emitted when attempting to burn an amount that exceeds the sender's balance.
-    error BondingCurveToken__BurnAmountExceedsBalance();
+    error LINToken__BurnAmountExceedsBalance();
 
     /*///////////////////////////////////////////////////////////////
                              STATE VARIABLES
@@ -36,7 +41,16 @@ contract BondingCurveToken is ERC20Burnable {
 
     /// @notice i_scalingFactor is used to define the steepness of the bonding curve.
     ///         It's specified in basis points, where 100 basis points equal 1 percent.
+    ///         This allows for the creating of sublinear or superlinear curves.
+    ///         A value of 10000 (100%) will create a true linear curve.
+    ///         Sublinear and superlinear curves can be created by using values less than or greater than 10000.
+    ///         For example, a value of 5000 (50%) will create a sublinear curve where the price of tokens increases at 50% of the initial cost.
+    ///         i.e. 1 ether => 1.5 ether => 2 ether => 2.5 ether => 3 ether etc.
     uint256 public immutable i_scalingFactor;
+
+    /// @notice The price increment of the token based on the scaling factor.
+    /// @dev This value is used to determine the price increase of each token based on the scaling factor.
+    uint256 public immutable i_tokenPriceIncrement;
 
     /// @notice The initial cost adjustment of the token based on the scaling factor.
     /// @dev This value is combined with the scaled price increment to retain the base value of the token.
@@ -69,6 +83,8 @@ contract BondingCurveToken is ERC20Burnable {
     /// @param _scalingFactor The scaling factor used to determine the price of tokens.
     /// @param _bcAddress The address of the LinearBondingCurve contract.
     /// @dev   If the LinearBondingCurve contract is upgradeable, `_bcAddress` should be the proxy address.
+    /// @dev   If initialCost is predetermined, this can be set as a constant in the contract.
+    /// @dev   If scaling is not desired, this can be set as a constant in the contract. (or potentially removed altogether)
     constructor(
         string memory _name,
         string memory _symbol,
@@ -78,7 +94,8 @@ contract BondingCurveToken is ERC20Burnable {
     ) ERC20(_name, _symbol) {
         i_initialCost = _initialCost;
         i_scalingFactor = Calculations.calculateScalingFactorPercent(_scalingFactor);
-        i_initialCostAdjustment = Calculations.calculateInitialCostAdjustment(_initialCost, i_scalingFactor);
+        i_tokenPriceIncrement = Calculations.calculatePriceIncrement(_initialCost, i_scalingFactor);
+        i_initialCostAdjustment = Calculations.calculateInitialCostAdjustment(_initialCost, i_tokenPriceIncrement);
         i_bondingCurve = LinearBondingCurve(_bcAddress);
     }
 
@@ -86,65 +103,61 @@ contract BondingCurveToken is ERC20Burnable {
                           EXTERNAL FUNCTIONS
     ///////////////////////////////////////////////////////////////*/
 
-    /// @param amount The amount of tokens to buy.
-    /// @dev Needs UI with getTotalBuyPrice function to determine correct value to send before calling this function.
+    /// @dev Needs UI with getTotalPurchaseReturn function to determine correct value to send before calling this function.
     /// @dev getTotalPrice will return the raw buy price of the token(s) as well as the protocol fee and gas fee.
-    function buyTokens(uint256 amount) external payable {
-        if (amount == 0) {
-            revert BondingCurveToken__AmountMustBeMoreThanZero();
+    function buyTokens() external payable {
+        if (msg.value == 0) {
+            revert LINToken__AmountMustBeMoreThanZero();
         }
 
-        /// @dev Update to getTotalBuyPrice function.
-        /// @dev Fetching the price to ensure it has not updated since the user queried it.
-        uint256 price = i_bondingCurve.getRawBuyPrice(
-            totalSupply(), i_initialCost, i_scalingFactor, amount, i_initialCostAdjustment
-        );
+        /// @dev Update to getTotalPurchaseReturn function.
+        uint256 amount = i_bondingCurve.getRawPurchaseReturn(totalSupply(), i_initialCost, msg.value);
 
-        /// @notice Reverts if not enought Ether is sent. Could be due to price change.
-        /// @dev Allow users to send extra to cover changes in supply before the transaction is processed?
-        /// @dev If so a refund mechanism should be implemented.
-        if (msg.value < price) {
-            revert BondingCurveToken__InsufficientFundingForTransaction();
-        }
+        // /// @notice Reverts if not enought Ether is sent. Could be due to price change.
+        // /// @dev Allow users to send extra to cover changes in supply before the transaction is processed?
+        // /// @dev If so a refund mechanism should be implemented.
+        // if (msg.value < price) {
+        //     revert LINToken__InsufficientFundingForTransaction();
+        // }
 
         // Mint tokens to the buyer
         _mint(msg.sender, amount);
 
-        emit TokensPurchased(msg.sender, price, amount);
+        emit TokensPurchased(msg.sender, msg.value, amount);
     }
 
-    /// @param amount The amount of tokens to sell.
-    /// @dev Needs UI with getTotalSellPrice function to determine correct amount to transfer before calling this function.
-    /// @dev getTotalSalePrice will return the raw sell price of the token(s) minus the protocol fee and gas fee.
-    function sellTokens(uint256 amount) external {
-        if (amount == 0) {
-            revert BondingCurveToken__AmountMustBeMoreThanZero();
-        }
+    // /// @param amount The amount of tokens to sell.
+    // /// @dev Needs UI with getTotalSellPrice function to determine correct amount to transfer before calling this function.
+    // /// @dev getTotalSalePrice will return the raw sell price of the token(s) minus the protocol fee and gas fee.
+    // function sellTokens(uint256 amount) external {
+    //     if (amount == 0) {
+    //         revert LINToken__AmountMustBeMoreThanZero();
+    //     }
 
-        /// @dev Update to getTotalSellPrice function.
-        /// @dev Need to implement a check to ensure the price has not updated since the user queried it.
-        uint256 salePrice = i_bondingCurve.getRawSellPrice(
-            totalSupply(), i_scalingFactor, i_initialCost, amount, i_initialCostAdjustment
-        );
+    //     /// @dev Update to getTotalSellPrice function.
+    //     /// @dev Need to implement a check to ensure the price has not updated since the user queried it.
+    //     uint256 salePrice = i_bondingCurve.getRawSellPrice(
+    //         totalSupply(), i_scalingFactor, i_initialCost, amount, i_initialCostAdjustment
+    //     );
 
-        // should not be possible
-        if (address(this).balance < salePrice) {
-            revert BondingCurveToken__InsufficientFundingForTransaction();
-        }
+    //     // should not be possible
+    //     if (address(this).balance < salePrice) {
+    //         revert LINToken__InsufficientFundingForTransaction();
+    //     }
 
-        uint256 balance = balanceOf(msg.sender);
+    //     uint256 balance = balanceOf(msg.sender);
 
-        // Check if the seller has enough tokens to sell.
-        if (balance < amount) {
-            revert BondingCurveToken__BurnAmountExceedsBalance();
-        }
+    //     // Check if the seller has enough tokens to sell.
+    //     if (balance < amount) {
+    //         revert LINToken__BurnAmountExceedsBalance();
+    //     }
 
-        // Burn tokens from the seller
-        burnFrom(msg.sender, amount);
+    //     // Burn tokens from the seller
+    //     burnFrom(msg.sender, amount);
 
-        // Transfer Ether to the seller
-        payable(msg.sender).transfer(salePrice);
+    //     // Transfer Ether to the seller
+    //     payable(msg.sender).transfer(salePrice);
 
-        emit TokensSold(msg.sender, salePrice, amount);
-    }
+    //     emit TokensSold(msg.sender, salePrice, amount);
+    // }
 }

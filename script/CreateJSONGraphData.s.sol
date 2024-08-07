@@ -16,15 +16,19 @@ contract CreateJSONGraphData is Script {
     uint256 supply = 0;
     uint256 initialCost = 0.001 ether;
     uint256 scalingFactor = 10000;
-    uint256 amount = 10;
+    uint256 amount = 100;
+    uint256 value = 0.001 ether;
+
     uint256 singleToken = 1;
+    uint256 priceIncrement;
     int256 initialCostAdjustment;
+
     // 0 = Linear, 1 = Exponential.
     uint256 curve = 0;
 
     string private constant DESTINATION = "/script/data/graphData.json";
     uint8 private constant DECIMALS = 8;
-    int256 private constant ETH_USD_PRICE = 3265;
+    int256 private constant ETH_USD_PRICE = 2460;
 
     function run() public {
         ethUSDPriceFeed = new MockV3Aggregator(DECIMALS, ETH_USD_PRICE);
@@ -32,7 +36,8 @@ contract CreateJSONGraphData is Script {
         if (curve == 0) {
             linCurve = new LinearBondingCurve();
             scalingFactor = Calculations.calculateScalingFactorPercent(scalingFactor);
-            initialCostAdjustment = Calculations.calculateInitialCostAdjustment(initialCost, scalingFactor);
+            priceIncrement = Calculations.calculatePriceIncrement(initialCost, scalingFactor);
+            initialCostAdjustment = Calculations.calculateInitialCostAdjustment(initialCost, priceIncrement);
             (uint256[] memory tokenIds, uint256[] memory priceInWei, uint256[] memory prices) = createLinearGraph();
             string memory json = _createJson(tokenIds, priceInWei, prices);
             vm.writeFile(string.concat(vm.projectRoot(), DESTINATION), json);
@@ -57,8 +62,7 @@ contract CreateJSONGraphData is Script {
 
         for (uint256 i = 0; i < amount; i++) {
             uint256 tokenId = supply + i;
-            uint256 expectedPrice =
-                linCurve.getRawBuyPrice(tokenId, initialCost, scalingFactor, singleToken, initialCostAdjustment);
+            uint256 expectedPrice = linCurve.getRawPurchaseReturn(tokenId, initialCost, value);
             uint256 convertedPrice = Calculations.calculateUSDValue(address(ethUSDPriceFeed), expectedPrice);
 
             tokenIds[i] = tokenId;
