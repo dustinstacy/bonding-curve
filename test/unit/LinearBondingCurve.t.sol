@@ -23,7 +23,7 @@ contract LinearBondingCurveTest is Test {
         supply = 0;
         value = initialCost;
 
-        uint256 actualReturn = linCurve.getRawPurchaseReturn(supply, initialCost, value);
+        uint256 actualReturn = linCurve.calculatePurchaseReturn(supply, initialCost, value);
         uint256 expectedReturn = 1e18;
 
         console2.log("Return: ", actualReturn, "Expected Return: ", expectedReturn);
@@ -34,7 +34,7 @@ contract LinearBondingCurveTest is Test {
         supply = 0;
         value = initialCost / 2;
 
-        uint256 actualReturn = linCurve.getRawPurchaseReturn(supply, initialCost, value);
+        uint256 actualReturn = linCurve.calculatePurchaseReturn(supply, initialCost, value);
         uint256 expectedReturn = 5e17;
 
         console2.log("Return: ", actualReturn, "Expected Return: ", expectedReturn);
@@ -45,7 +45,7 @@ contract LinearBondingCurveTest is Test {
         supply = 0;
         value = initialCost / 2;
 
-        uint256 actualReturn = linCurve.getRawPurchaseReturn(supply, initialCost, value);
+        uint256 actualReturn = linCurve.calculatePurchaseReturn(supply, initialCost, value);
         uint256 expectedReturn = 5e17;
 
         console2.log("Return: ", actualReturn, "Expected Return: ", expectedReturn);
@@ -54,7 +54,7 @@ contract LinearBondingCurveTest is Test {
         supply = 5e17;
         value = initialCost / 2;
 
-        actualReturn = linCurve.getRawPurchaseReturn(supply, initialCost, value);
+        actualReturn = linCurve.calculatePurchaseReturn(supply, initialCost, value);
         expectedReturn = 5e17;
 
         console2.log("Return: ", actualReturn, "Expected Return: ", expectedReturn);
@@ -65,7 +65,7 @@ contract LinearBondingCurveTest is Test {
         supply = 1e18;
         value = initialCost * 2;
 
-        uint256 actualReturn = linCurve.getRawPurchaseReturn(supply, initialCost, value);
+        uint256 actualReturn = linCurve.calculatePurchaseReturn(supply, initialCost, value);
         uint256 expectedReturn = 1e18;
 
         console2.log("Return: ", actualReturn, "Expected Return: ", expectedReturn);
@@ -76,7 +76,7 @@ contract LinearBondingCurveTest is Test {
         supply = 1e18;
         value = initialCost;
 
-        uint256 actualReturn = linCurve.getRawPurchaseReturn(supply, initialCost, value);
+        uint256 actualReturn = linCurve.calculatePurchaseReturn(supply, initialCost, value);
         uint256 expectedReturn = 5e17;
 
         console2.log("Return: ", actualReturn, "Expected Return: ", expectedReturn);
@@ -87,7 +87,7 @@ contract LinearBondingCurveTest is Test {
         supply = 3523.68e18;
         value = 13e18;
 
-        uint256 actualReturn = linCurve.getRawPurchaseReturn(supply, initialCost, value);
+        uint256 actualReturn = linCurve.calculatePurchaseReturn(supply, initialCost, value);
 
         // Expected value calculated using the formula:
         //     currentDiscreetTokenPrice = initialCost + (((supply / PRECISION) * tokenPriceIncrement)) =
@@ -169,5 +169,65 @@ contract LinearBondingCurveTest is Test {
         uint256 expectedSupply = 3527366870748299319727; // 3.527366870748299319727
         console2.log("New Supply: ", supply + expectedReturn, "Expected Supply: ", expectedSupply);
         assertEq(supply + expectedReturn, expectedSupply);
+    }
+
+    function test_LIN_BC_GetNextFullTokenPrice() public {
+        supply = 0;
+
+        uint256 actualValue = linCurve.calculateReserveTokensNeeded(supply, initialCost);
+        uint256 expectedValue = initialCost;
+
+        console2.log("Value: ", actualValue, "Expected Value: ", expectedValue);
+        assertEq(actualValue, expectedValue);
+    }
+
+    function test_LIN_BC_GetNextFullTokenPriceTwo() public {
+        supply = 0.5e18;
+
+        uint256 actualValue = linCurve.calculateReserveTokensNeeded(supply, initialCost);
+        uint256 expectedValue = 0.0015 ether;
+
+        console2.log("Value: ", actualValue, "Expected Value: ", expectedValue);
+        assertEq(actualValue, expectedValue);
+    }
+
+    function test_LIN_BC_GetNextFullTokenPriceThree() public {
+        supply = 145.8e18;
+
+        uint256 actualValue = linCurve.calculateReserveTokensNeeded(supply, initialCost);
+
+        // Expected value calculated using the formula:
+        // currentDiscreteTokenPrice = initialCost + (((currentSupply / PRECISION) * tokenPriceIncrement));
+        // percentDiscreteTokenRemaining = (PRECISION - currentSupply % PRECISION);
+        // remainingCurrentDiscreteTokenPrice = (percentDiscreteTokenRemaining * currentDiscreteTokenPrice) / PRECISION;
+
+        // if (remainingCurrentDiscreteTokenPrice < currentDiscreteTokenPrice) {
+        //     reserveTokensNeeded += remainingCurrentDiscreteTokenPrice;
+        //     currentSupply += PRECISION;
+        //     currentDiscreteTokenPrice = initialCost + ((currentSupply / PRECISION) * tokenPriceIncrement);
+        //     uint256 percentNextDiscreteTokenRemaining = (PRECISION - percentDiscreteTokenRemaining % PRECISION);
+        //     remainingCurrentDiscreteTokenPrice =
+        //         (percentNextDiscreteTokenRemaining * currentDiscreteTokenPrice) / PRECISION;
+        //     reserveTokensNeeded += remainingCurrentDiscreteTokenPrice;
+        // } else {
+        //     reserveTokensNeeded = currentDiscreteTokenPrice;
+        // }
+
+        // currentDiscreteTokenPrice = 0.001 ether + (((145.8e18 / 1e18) * 0.001 ether) = 0.1468 ether
+        // percentDiscreteTokenRemaining = 1e18 - 145.8e18 % 1e18 = _200_000_000_000_000_000 (20%)
+        // remainingCurrentDiscreteTokenPrice = (200e18 * 0.1468 ether) / 1e18 = 0.0292 ether
+
+        // if {
+        // reserveTokensNeeded += 0.0292 ether
+        // currentSupply += _200_000_000_000_000_000 = 146e18
+        // currentDiscreteTokenPrice = 0.001 ether + ((146e18 / 1e18) * 0.001 ether) = 0.147 ether
+        // percentNextDiscreteTokenRemaining = 1e18 - _200_000_000_000_000_000 % 1e18 = 800e18 (80%)
+        // remainingCurrentDiscreteTokenPrice = (800e18 * 0.147 ether) / 1e18 = 0.1176 ether
+        // reserveTokensNeeded += 0.1176 ether
+        // total = 0.0292 ether + 0.1176 ether = 0.1468 ether
+        uint256 expectedValue = 0.1468 ether;
+
+        console2.log("Value: ", actualValue, "Expected Value: ", expectedValue);
+        assertEq(actualValue, expectedValue);
     }
 }
