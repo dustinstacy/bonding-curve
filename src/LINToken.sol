@@ -103,8 +103,10 @@ contract LINToken is ERC20Burnable {
                           EXTERNAL FUNCTIONS
     ///////////////////////////////////////////////////////////////*/
 
-    /// @dev Needs UI with getTotalPurchaseReturn function to determine correct value to send before calling this function.
-    /// @dev getTotalPrice will return the raw buy price of the token(s) as well as the protocol fee and gas fee.
+    /// @notice Allows a user to purchase tokens by sending Ether to the contract.
+    /// @dev The amount of tokens minted is determined by the bonding curve.
+    /// @dev Need to implement a gas limit to prevent front-running attacks.
+    /// @dev Function will be updated to call getBuyPriceAfterFees function.
     function buyTokens() external payable {
         if (msg.value == 0) {
             revert LINToken__AmountMustBeMoreThanZero();
@@ -113,51 +115,51 @@ contract LINToken is ERC20Burnable {
         /// @dev Update to getTotalPurchaseReturn function.
         uint256 amount = i_bondingCurve.getRawPurchaseReturn(totalSupply(), i_initialCost, msg.value);
 
-        // /// @notice Reverts if not enought Ether is sent. Could be due to price change.
-        // /// @dev Allow users to send extra to cover changes in supply before the transaction is processed?
-        // /// @dev If so a refund mechanism should be implemented.
-        // if (msg.value < price) {
-        //     revert LINToken__InsufficientFundingForTransaction();
-        // }
-
         // Mint tokens to the buyer
         _mint(msg.sender, amount);
 
         emit TokensPurchased(msg.sender, msg.value, amount);
     }
 
-    // /// @param amount The amount of tokens to sell.
-    // /// @dev Needs UI with getTotalSellPrice function to determine correct amount to transfer before calling this function.
-    // /// @dev getTotalSalePrice will return the raw sell price of the token(s) minus the protocol fee and gas fee.
-    // function sellTokens(uint256 amount) external {
-    //     if (amount == 0) {
-    //         revert LINToken__AmountMustBeMoreThanZero();
-    //     }
+    /// @notice Returns the current price of a whole token.
+    /// @dev Is there a need/desire to implement a buyWholeToken function?
+    /// @dev Or is the query of the price sufficient for the user to determine the amount to send?
+    function getFullTokenPrice() external view returns (uint256) {
+        return i_bondingCurve.getFullTokenPrice(totalSupply(), i_initialCost);
+    }
 
-    //     /// @dev Update to getTotalSellPrice function.
-    //     /// @dev Need to implement a check to ensure the price has not updated since the user queried it.
-    //     uint256 salePrice = i_bondingCurve.getRawSellPrice(
-    //         totalSupply(), i_scalingFactor, i_initialCost, amount, i_initialCostAdjustment
-    //     );
+    /// @param amount The amount of tokens to sell.
+    /// @dev Needs UI with getTotalSellPrice function to determine correct amount to transfer before calling this function.
+    /// @dev getTotalSalePrice will return the raw sell price of the token(s) minus the protocol fee and gas fee.
+    /// @dev Need to implement a gas limit to prevent front-running attacks?
+    /// @dev CEI is implemented here so is OZ nonReentrant modifier necessary?
+    function sellTokens(uint256 amount) external {
+        if (amount == 0) {
+            revert LINToken__AmountMustBeMoreThanZero();
+        }
 
-    //     // should not be possible
-    //     if (address(this).balance < salePrice) {
-    //         revert LINToken__InsufficientFundingForTransaction();
-    //     }
+        uint256 balance = balanceOf(msg.sender);
 
-    //     uint256 balance = balanceOf(msg.sender);
+        // Check if the seller has enough tokens to sell.
+        if (balance < amount) {
+            revert LINToken__BurnAmountExceedsBalance();
+        }
 
-    //     // Check if the seller has enough tokens to sell.
-    //     if (balance < amount) {
-    //         revert LINToken__BurnAmountExceedsBalance();
-    //     }
+        /// @dev Update to getTotalSellPrice function.
+        /// @dev Need to implement a check to ensure the price has not updated since the user queried it.
+        uint256 salePrice = i_bondingCurve.getSaleReturn(totalSupply(), i_initialCost, amount);
 
-    //     // Burn tokens from the seller
-    //     burnFrom(msg.sender, amount);
+        // should not be possible
+        if (address(this).balance < salePrice) {
+            revert LINToken__InsufficientFundingForTransaction();
+        }
 
-    //     // Transfer Ether to the seller
-    //     payable(msg.sender).transfer(salePrice);
+        // Burn tokens from the seller
+        burnFrom(msg.sender, amount);
 
-    //     emit TokensSold(msg.sender, salePrice, amount);
-    // }
+        // Transfer Ether to the seller
+        payable(msg.sender).transfer(salePrice);
+
+        emit TokensSold(msg.sender, salePrice, amount);
+    }
 }

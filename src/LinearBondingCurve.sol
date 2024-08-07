@@ -43,6 +43,9 @@ contract LinearBondingCurve is Initializable, OwnableUpgradeable, UUPSUpgradeabl
     /// @param supply The current supply of tokens.
     /// @param initialCost The initial cost of the token.
     /// @param value The amount of ether sent to purchase tokens.
+    /// @dev This is the function getPurchaseReturn should call to determine the amount of tokens to mint after fees.
+    /// @dev Currently tested for precision down to the wei.
+    /// @dev This function is gas inefficient and needs to be optimized.
     function getRawPurchaseReturn(uint256 supply, uint256 initialCost, uint256 value)
         external
         pure
@@ -68,7 +71,7 @@ contract LinearBondingCurve is Initializable, OwnableUpgradeable, UUPSUpgradeabl
         }
 
         // Loop through the value to calculate the amount of tokens that can be purchased
-        /// @dev This loop is gas inefficient and should be optimized.
+        /// @dev This loop is the primary gas inefficiency in the contract.
         while (value > 0) {
             if (remainingCurrentDiscreetTokenPrice < currentDiscreetTokenPrice) {
                 value -= remainingCurrentDiscreetTokenPrice;
@@ -95,13 +98,27 @@ contract LinearBondingCurve is Initializable, OwnableUpgradeable, UUPSUpgradeabl
         }
     }
 
-    // function getNextFullTokenPrice(uint256 supply, uint256 initialCost, uint256 tokenPriceIncrement)
-    //     external
-    //     pure
-    //     returns (uint256)
-    // {
-    //     uint256 currentFractionRemaining = getRemainingcurrentDiscreetTokenPrice(supply, initialCost, tokenPriceIncrement);
-    // }
+    /// @notice Calculates the amount of ether needed to purchase the next full token.
+    /// @param supply current supply of tokens.
+    /// @param initialCost The initial cost of the token.
+    /// @dev Need to implement a function to calculate the total cost of the next full token.
+    /// @dev If fees are implemented, this function should return the total cost of the token after fees.
+    function getFullTokenPrice(uint256 supply, uint256 initialCost) external pure returns (uint256) {}
+
+    /// @notice Calculates the purchase return after protocol fees are deducted.
+    /// @param supply The current supply of tokens.
+    /// @param initialCost The initial cost of the token.
+    /// @param value The amount of ether sent to purchase tokens.
+    /// @dev This is the function the token contract should call to determine the amount of tokens to mint.
+    /// @dev If fees are implemented, this function should return the amount of tokens to mint after fees.
+    function getBuyPriceAfterFees(uint256 supply, uint256 initialCost, uint256 value) external pure returns (uint256) {}
+
+    /// @notice Calculates the amount of ether that can be returned for the given amount of tokens.
+    /// @param supply The current supply of tokens.
+    /// @param initialCost The initial cost of the token.
+    /// @param amount The amount of tokens to sell.
+    /// @dev Need to add a sell penalty to the calculation.
+    function getSaleReturn(uint256 supply, uint256 initialCost, uint256 amount) external pure returns (uint256) {}
 
     /*//////////////////////////////////////////////////////////////
                             PUBLIC FUNCTIONS
@@ -129,7 +146,7 @@ contract LinearBondingCurve is Initializable, OwnableUpgradeable, UUPSUpgradeabl
     /// @param newImplementation The address of the new implementation contract.
     function _authorizeUpgrade(address newImplementation) internal override onlyOwner {}
 
-    // Save if reserve context is needed
+    // Saving if reserve context is needed for future optimization.
     // function _getReserveAmount(uint256 supply, uint256 initialCost)
     //     internal
     //     pure
