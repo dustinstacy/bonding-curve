@@ -161,10 +161,10 @@ contract LinearBondingCurve is Initializable, OwnableUpgradeable, UUPSUpgradeabl
         uint256 percentDiscreteTokenRemaining;
 
         if (amount == currentSupply) {
-            if (currentSupply < PRECISION) {
+            if (currentSupply <= PRECISION) {
                 return (initialCost * amount / PRECISION);
             }
-            return initialCost + (((currentSupply / PRECISION) * tokenPriceIncrement));
+            return initialCost + (((currentSupply / PRECISION)) * tokenPriceIncrement);
         }
 
         // Get amount remaining within current token price

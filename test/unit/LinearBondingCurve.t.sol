@@ -307,7 +307,7 @@ contract LinearBondingCurveTest is Test {
         console2.log("Return: ", actualReturn, "Expected Return: ", expectedReturn);
         assertEq(actualReturn, expectedReturn);
 
-        uint256 expectedSupply = 3510680000000000000000;
+        uint256 expectedSupply = 3510680000000000000000; // 3.51068
         uint256 newSupply = supply - amount;
         console2.log("New Supply: ", newSupply, "Expected Supply: ", expectedSupply);
         assertEq(newSupply, expectedSupply);
