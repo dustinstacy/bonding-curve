@@ -42,56 +42,85 @@ contract ExponentialBondingCurve is Initializable, OwnableUpgradeable, UUPSUpgra
     /// @param supply Supply of tokens in circulation.
     /// @param initialCost Initial cost of the token.
     /// @param scalingFactor Scaling factor used to determine the price of tokens.
-    /// @param amount Amount of tokens to buy.
-    /// @return price Price of tokens in the reserve currency.
+    /// @param value Amount of ether sent to purchase tokens.
+    /// @return totalTokens Amount of tokens to mint.
     /// @dev Need to implement protocol fees and gas calculations.
     /// @dev Need to set a max gas price to prevent frontrunning.
     /// @dev Need to inspect gas reduction with minting first token to the creator to remove checks.
-    function getRawBuyPrice(uint256 supply, uint256 initialCost, uint256 scalingFactor, uint256 amount)
+    function getRawBuyPrice(uint256 supply, uint256 initialCost, uint256 scalingFactor, uint256 value)
         external
         pure
-        returns (uint256 price)
+        returns (uint256 totalTokens)
     {
-        if (supply == 0) {
-            if (amount == 1) {
-                return initialCost;
-            } else {
-                uint256 sum = (amount - 1) * (amount) * (2 * (amount - 1) + 1) / 6;
-                return (sum * initialCost) / scalingFactor + initialCost * amount;
+        // uint256 currentSupply = supply;
+        // uint256 remainingValue = value;
+        // uint256 totalTokens = 0;
+
+        // if (supply == 0) {
+        //     if (amount == 1) {
+        //         return initialCost;
+        //     } else {
+        //         uint256 sum = (amount - 1) * (amount) * (2 * (amount - 1) + 1) / 6;
+        //         return (sum * initialCost) / scalingFactor + initialCost * amount;
+        //     }
+        // } else {
+        //     uint256 sum1 = (supply - 1) * (supply) * (2 * (supply - 1) + 1) / 6;
+        //     uint256 sum2 = (supply - 1 + amount) * (supply + amount) * (2 * (supply - 1 + amount) + 1) / 6;
+        //     uint256 totalSum = sum2 - sum1;
+        //     return tokens = (totalSum * initialCost / (scalingFactor)) + initialCost * amount;
+        // }
+        // Start with initial values
+        uint256 currentSupply = supply;
+        uint256 remainingValue = value;
+        totalTokens = 0;
+        uint256 price;
+
+        while (remainingValue > 0) {
+            uint256 nextSupply = currentSupply + 1;
+            price =
+                ((initialCost * (nextSupply * nextSupply + currentSupply * nextSupply)) / scalingFactor) + initialCost;
+            console2.log("Price: ", price, "Remaining Value: ", remainingValue);
+
+            if (price > remainingValue) {
+                // Calculate the fraction of the next token that can be purchased
+                uint256 fractionalToken = (remainingValue * 1e18) / price;
+                totalTokens += fractionalToken;
+                break;
             }
-        } else {
-            uint256 sum1 = (supply - 1) * (supply) * (2 * (supply - 1) + 1) / 6;
-            uint256 sum2 = (supply - 1 + amount) * (supply + amount) * (2 * (supply - 1 + amount) + 1) / 6;
-            uint256 totalSum = sum2 - sum1;
-            return price = (totalSum * initialCost / (scalingFactor)) + initialCost * amount;
+
+            // Deduct the price from the remaining value
+            remainingValue -= price;
+            totalTokens += 1e18; // Add one full token to the total
+            currentSupply = nextSupply;
         }
+
+        return totalTokens;
     }
 
-    /// @notice Function to calculate the price of tokens based on a bonding curve formula.
-    /// @param supply Supply of tokens in circulation.
-    /// @param initialCost Initial cost of the token.
-    /// @param scalingFactor Scaling factor used to determine the price of tokens.
-    /// @param amount Amount of tokens to buy.
-    /// @return price Price of tokens in the reserve currency.
-    /// @dev Need to implement protocol fees and gas calculations.
-    /// @dev Need to set a max gas price to prevent frontrunning.
-    /// @dev Need to inspect gas reduction with minting first token to the creator to remove checks.
-
-    function getRawSellPrice(uint256 supply, uint256 initialCost, uint256 scalingFactor, uint256 amount)
-        external
-        pure
-        returns (uint256 price)
-    {
-        if (supply - amount == 0) {
-            uint256 sum = (supply - 1) * supply * (2 * (supply - 1) + 1) / 6;
-            return (sum * initialCost / scalingFactor) + initialCost * amount;
-        } else if (supply == 1) {
-            return initialCost;
-        } else {
-            uint256 sum1 = ((supply - amount) - 1) * ((supply - amount)) * (2 * ((supply - amount) - 1) + 1) / 6;
-            uint256 sum2 = (supply - 1) * (supply) * (2 * (supply - 1) + 1) / 6;
-            uint256 totalSum = sum2 - sum1;
-            return price = (totalSum * initialCost / (scalingFactor)) + initialCost * amount;
-        }
-    }
+    // /// @notice Function to calculate the tokens of tokens based on a bonding curve formula.
+    // /// @param supply Supply of tokens in circulation.
+    // /// @param initialCost Initial cost of the token.
+    // /// @param scalingFactor Scaling factor used to determine the price of tokens.
+    // /// @param amount Amount of tokens to buy.
+    // /// @return price Price of tokens in the reserve currency.
+    // /// @dev Need to implement protocol fees and gas calculations.
+    // /// @dev Need to set a max gas price to prevent frontrunning.
+    // /// @dev Need to inspect gas reduction with minting first token to the creator to remove checks.
+    // function getRawSellPrice(uint256 supply, uint256 initialCost, uint256 scalingFactor, uint256 amount)
+    //     external
+    //     pure
+    //     returns (uint256 price)
+    // {
+    //     if (supply - amount == 0) {
+    //         uint256 sum = (supply - 1) * supply * (2 * (supply - 1) + 1) / 6;
+    //         return (sum * initialCost / scalingFactor) + initialCost * amount;
+    //     } else if (supply == 1) {
+    //         return initialCost;
+    //     } else {
+    //         uint256 sum1 = ((supply - amount) - 1) * ((supply - amount)) * (2 * ((supply - amount) - 1) + 1) / 6;
+    //         uint256 sum2 = (supply - 1) * (supply) * (2 * (supply - 1) + 1) / 6;
+    //         uint256 totalSum = sum2 - sum1;
+    //         return price = (totalSum * initialCost / (scalingFactor)) + initialCost * amount;
+    //     }
+    // }
 }

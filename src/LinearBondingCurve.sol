@@ -81,12 +81,8 @@ contract LinearBondingCurve is Initializable, OwnableUpgradeable, UUPSUpgradeabl
                 remainingCurrentDiscreetTokenPrice = currentDiscreetTokenPrice;
                 percentDiscreetTokenRemaining = (PRECISION - supply % PRECISION);
             } else if (value < currentDiscreetTokenPrice) {
-                console2.log("Value: ", value);
-                console2.log(value * PRECISION / remainingCurrentDiscreetTokenPrice);
                 rawPurchaseReturn += (value * PRECISION / remainingCurrentDiscreetTokenPrice);
-                console2.log("Raw Purchase Return: ", rawPurchaseReturn);
                 supply += (value * PRECISION / remainingCurrentDiscreetTokenPrice);
-                console2.log("Supply: ", supply);
                 break;
             } else {
                 value -= remainingCurrentDiscreetTokenPrice;

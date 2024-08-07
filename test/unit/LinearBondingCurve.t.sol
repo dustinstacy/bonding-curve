@@ -26,20 +26,43 @@ contract LinearBondingCurveTest is Test {
         ethUSDPriceFeed = new MockV3Aggregator(FEED_DECIMALS, ETH_USD_PRICE);
     }
 
-    modifier onlyForSupplyGreaterThanZero() {
-        if (supply == 0) {
-            console2.log("Supply is zero. Adjust arguments to validate this test.");
-            return;
-        }
-        _;
-    }
-
     function test_LIN_BC_BuyFirstWholeToken() public {
         supply = 0;
         value = initialCost;
 
         uint256 actualReturn = linCurve.getRawPurchaseReturn(supply, initialCost, value);
         uint256 expectedReturn = 1e18;
+
+        console2.log("Return: ", actualReturn, "Expected Return: ", expectedReturn);
+        assertEq(actualReturn, expectedReturn);
+    }
+
+    function test_LIN_BC_BuyFirstPieceOfToken() public {
+        supply = 0;
+        value = initialCost / 2;
+
+        uint256 actualReturn = linCurve.getRawPurchaseReturn(supply, initialCost, value);
+        uint256 expectedReturn = 5e17;
+
+        console2.log("Return: ", actualReturn, "Expected Return: ", expectedReturn);
+        assertEq(actualReturn, expectedReturn);
+    }
+
+    function test_LIN_BC_BuySecondPieceOfTokenLessThanSupplyOfOne() public {
+        supply = 0;
+        value = initialCost / 2;
+
+        uint256 actualReturn = linCurve.getRawPurchaseReturn(supply, initialCost, value);
+        uint256 expectedReturn = 5e17;
+
+        console2.log("Return: ", actualReturn, "Expected Return: ", expectedReturn);
+        assertEq(actualReturn, expectedReturn);
+
+        supply = 5e17;
+        value = initialCost / 2;
+
+        actualReturn = linCurve.getRawPurchaseReturn(supply, initialCost, value);
+        expectedReturn = 5e17;
 
         console2.log("Return: ", actualReturn, "Expected Return: ", expectedReturn);
         assertEq(actualReturn, expectedReturn);
