@@ -3,15 +3,9 @@ pragma solidity ^0.8.24;
 
 import {Test, console2} from "forge-std/Test.sol";
 import {LinearBondingCurve} from "src/LinearBondingCurve.sol";
-import {MockV3Aggregator} from "test/mocks/MockV3Aggregator.sol";
-import {Calculations} from "src/libraries/Calculations.sol";
 
 contract LinearBondingCurveTest is Test {
     LinearBondingCurve public linCurve;
-    MockV3Aggregator ethUSDPriceFeed;
-
-    uint8 private constant FEED_DECIMALS = 8;
-    int256 private constant ETH_USD_PRICE = 3265;
 
     // Curve Variables
     uint256 scalingFactor = 10000; // True linear curve
@@ -23,7 +17,6 @@ contract LinearBondingCurveTest is Test {
 
     function setUp() public {
         linCurve = new LinearBondingCurve();
-        ethUSDPriceFeed = new MockV3Aggregator(FEED_DECIMALS, ETH_USD_PRICE);
     }
 
     function test_LIN_BC_BuyFirstWholeToken() public {

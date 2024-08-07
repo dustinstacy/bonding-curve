@@ -6,6 +6,7 @@ import {AggregatorV3Interface} from "@chainlink/interfaces/AggregatorV3Interface
 /// @title Calculations
 /// @author Dustin Stacy
 /// @notice This library contains the math functions for converting between token amounts and USD values.
+/// @dev In context of this project, this library may not be necessary, but it is included to demonstrate potential use cases.
 library Calculations {
     /*//////////////////////////////////////////////////////////////
                             STATE VARIABLES

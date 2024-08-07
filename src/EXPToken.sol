@@ -108,7 +108,8 @@ contract EXPToken is ERC20Burnable {
         }
 
         /// @dev Update to getTotalPurchaseReturn function.
-        uint256 amount = i_bondingCurve.getRawPurchaseReturn(totalSupply(), reserveBalance, msg.value, i_reserveRatio);
+        uint256 amount =
+            i_bondingCurve.calculatePurchaseReturn(totalSupply(), reserveBalance, msg.value, i_reserveRatio);
         reserveBalance += msg.value;
 
         // Mint tokens to the buyer
@@ -121,7 +122,7 @@ contract EXPToken is ERC20Burnable {
     /// @dev Is there a need/desire to implement a buyWholeToken function?
     /// @dev Or is the query of the price sufficient for the user to determine the amount to send?
     function getFullTokenPrice() external view returns (uint256) {
-        return i_bondingCurve.getFullTokenPrice(totalSupply(), i_initialCost);
+        return i_bondingCurve.calculateReserveTokensNeeded(totalSupply(), reserveBalance, 1, i_reserveRatio);
     }
 
     /// @param amount The amount of tokens to sell.
