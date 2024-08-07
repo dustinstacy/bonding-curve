@@ -9,13 +9,16 @@ import {console2} from "forge-std/console2.sol"; // remove from production
 /// @title ExponentialBondingCurve
 /// @author Dustin Stacy
 /// @notice This contract implements a bonding curve that adjusts the price of tokens based on the total supply.
-///         The curve is defined by a scaling factor, which determines the steepness and bend of the curve.
+///         The curve is defined by a reserveRatio, which determines the steepness and bend of the curve.
 contract ExponentialBondingCurve is Initializable, OwnableUpgradeable, UUPSUpgradeable {
     /*///////////////////////////////////////////////////////////////
                             STATE VARIABLES
     ///////////////////////////////////////////////////////////////*/
     address public protocolFeeDestination;
     uint256 public protocolFeePercent;
+
+    uint256 private constant PRECISION = 1e18;
+    uint256 private constant PPM_PRECISION = 1e6;
 
     /*///////////////////////////////////////////////////////////////
                         INITIALIZER FUNCTIONS
@@ -36,64 +39,32 @@ contract ExponentialBondingCurve is Initializable, OwnableUpgradeable, UUPSUpgra
                             EXTERNAL FUNCTIONS
     //////////////////////////////////////////////////////////////*/
 
-    /// @notice Function to calculate the price of tokens based on a bonding curve formula.
-    /// @param supply Supply of tokens in circulation.
-    /// @param initialCost Initial cost of the token.
-    /// @param scalingFactor Scaling factor used to determine the price of tokens.
-    /// @param value Amount of ether sent to purchase tokens.
-    /// @return totalTokens Amount of tokens to mint.
-    /// @dev Need to implement protocol fees and gas calculations.
-    /// @dev Need to set a max gas price to prevent frontrunning.
-    /// @dev Need to inspect gas reduction with minting first token to the creator to remove checks.
-    function getRawPurchaseReturn(uint256 supply, uint256 initialCost, uint256 scalingFactor, uint256 value)
-        external
-        pure
-        returns (uint256 totalTokens)
-    {
-        // uint256 currentSupply = supply;
-        // uint256 remainingValue = value;
-        // uint256 totalTokens = 0;
+    /// @notice Function to calculate the amount of continuous tokens to return based on reserve tokens received.
+    /// @param currentSupply The current supply of continuous tokens (in 1e18 format).
+    /// @param reserveTokenBalance The balance of reserve tokens (in wei).
+    /// @param reserveTokensReceived The amount of reserve tokens received (in wei).
+    /// @param reserveRatioPPM The reserve ratio (in PRECISIONd format, such as 1e18).
+    /// @return tokensToReturn The amount of continuous tokens to mint (in 1e18 format).
+    function getRawPurchaseReturn(
+        uint256 currentSupply,
+        uint256 reserveTokenBalance,
+        uint256 reserveTokensReceived,
+        uint256 reserveRatioPPM
+    ) external pure returns (uint256 tokensToReturn) {
+        // Ensure that the reserveTokenBalance is not zero to prevent division by zero
+        require(reserveTokenBalance > 0, "Reserve token balance must be greater than zero");
+        // Ensure that the reserveRatio is positive
+        require(reserveRatioPPM > 0, "Reserve ratio must be greater than zero");
 
-        // if (supply == 0) {
-        //     if (amount == 1) {
-        //         return initialCost;
-        //     } else {
-        //         uint256 sum = (amount - 1) * (amount) * (2 * (amount - 1) + 1) / 6;
-        //         return (sum * initialCost) / scalingFactor + initialCost * amount;
-        //     }
-        // } else {
-        //     uint256 sum1 = (supply - 1) * (supply) * (2 * (supply - 1) + 1) / 6;
-        //     uint256 sum2 = (supply - 1 + amount) * (supply + amount) * (2 * (supply - 1 + amount) + 1) / 6;
-        //     uint256 totalSum = sum2 - sum1;
-        //     return tokens = (totalSum * initialCost / (scalingFactor)) + initialCost * amount;
-        // }
+        // Convert reserveRatioPPM to a fraction
+        uint256 reserveRatio = reserveRatioPPM * PRECISION / PPM_PRECISION;
+        // console2.log("Reserve Ratio: ", reserveRatio);
 
-        // Start with initial values
-        // uint256 currentSupply = supply;
-        // uint256 remainingValue = value;
-        // totalTokens = 0;
-        // uint256 price;
-
-        // while (remainingValue > 0) {
-        //     uint256 nextSupply = currentSupply + 1;
-        //     price =
-        //         ((initialCost * (nextSupply * nextSupply + currentSupply * nextSupply)) / scalingFactor) + initialCost;
-        //     console2.log("Price: ", price, "Remaining Value: ", remainingValue);
-
-        //     if (price > remainingValue) {
-        //         // Calculate the fraction of the next token that can be purchased
-        //         uint256 fractionalToken = (remainingValue * 1e18) / price;
-        //         totalTokens += fractionalToken;
-        //         break;
-        //     }
-
-        //     // Deduct the price from the remaining value
-        //     remainingValue -= price;
-        //     totalTokens += 1e18; // Add one full token to the total
-        //     currentSupply = nextSupply;
-        // }
-
-        // return totalTokens;
+        uint256 fraction = (reserveTokensReceived * PRECISION) / reserveTokenBalance;
+        uint256 base = PRECISION + fraction;
+        uint256 exp = (base * reserveRatio) / PRECISION;
+        uint256 purchaseReturn = currentSupply * exp / PRECISION;
+        return purchaseReturn;
     }
 
     /// @notice Calculates the amount of ether needed to purchase the next full token.

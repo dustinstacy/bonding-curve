@@ -13,7 +13,7 @@ import {Calculations} from "src/libraries/Calculations.sol";
 ///         As implemented, the scaling factor can be adjusted by the owner of the contract.
 ///         This will allow us to experiment with different curve shapes and determine the best fit for our use case.
 ///         If it's determined that the scaling factor should be fixed, we can remove the ability to adjust it.
-///         Then the i_initialCost and i_scalingFactor can be relocated to the ExponentialBondingCurve contract.
+///         Then the i_initialCost and i_reserveRatio can be relocated to the ExponentialBondingCurve contract.
 ///         To do so, an interface must be created to exchange the ExponentialBondingCurve instance state variable for a standardized bonding curve interface.
 ///         This would allow the same token to be used with any bonding curve that implements the interface.
 ///         Note, it may still be desirable to have separate contracts for different bonding curve tokens to allow for different parameters if changes arise.
@@ -43,12 +43,20 @@ contract EXPToken is ERC20Burnable {
     /// @dev This value should be set in Wei (or other reserve currency).
     uint256 public immutable i_initialCost;
 
-    /// @notice i_scalingFactor is used to define the steepness of the bonding curve.
-    ///         It's specified in basis points, where 100 basis points equal 1 percent.
-    ///         In this implementation, the scaling factor acts more like a reserve ratio.
+    /// @notice i_reserveRatio is used to define the steepness of the bonding curve.
+    ///         Represented in ppm, 1-1000000.
+    ///         1/3 corresponds to y= multiple * x^2
+    ///         1/2 corresponds to y= multiple * x
+    ///         2/3 corresponds to y= multiple * x^1/2
     ///         With lower values, the price of the token will increase more rapidly.
     ///         With higher values, the price of the token will increase more slowly.
-    uint256 public immutable i_scalingFactor;
+    uint256 public immutable i_reserveRatio;
+
+    /// @notice The total amount of Ether held in the contract.
+    /// @dev This value should be used to determine the reserve balance of the contract.
+    /// @dev For now it will be instantiated to a set value for testing purposes.
+    /// @dev In the future, a decision will need to be made as to how to initialize this value.
+    uint256 public reserveBalance;
 
     /*///////////////////////////////////////////////////////////////
                                 EVENTS
@@ -67,7 +75,7 @@ contract EXPToken is ERC20Burnable {
     /// @param _name The name of the token.
     /// @param _symbol The symbol of the token.
     /// @param _initialCost The initial cost of the token.
-    /// @param _scalingFactor The scaling factor used to determine the price of tokens.
+    /// @param _reserveRatio The scaling factor used to determine the price of tokens.
     /// @param _bcAddress The address of the ExponentialBondingCurve contract.
     /// @dev   If the ExponentialBondingCurve contract is upgradeable, `_bcAddress` should be the proxy address.
     /// @dev   If initialCost is predetermined, this can be set as a constant in the contract.
@@ -76,12 +84,14 @@ contract EXPToken is ERC20Burnable {
         string memory _name,
         string memory _symbol,
         uint256 _initialCost,
-        uint256 _scalingFactor,
-        address _bcAddress
+        uint256 _reserveRatio,
+        address _bcAddress,
+        uint256 _reserveBalance
     ) ERC20(_name, _symbol) {
         i_initialCost = _initialCost;
-        i_scalingFactor = _scalingFactor;
+        i_reserveRatio = _reserveRatio;
         i_bondingCurve = ExponentialBondingCurve(_bcAddress);
+        reserveBalance = _reserveBalance;
     }
 
     /*///////////////////////////////////////////////////////////////
@@ -98,7 +108,8 @@ contract EXPToken is ERC20Burnable {
         }
 
         /// @dev Update to getTotalPurchaseReturn function.
-        uint256 amount = i_bondingCurve.getRawPurchaseReturn(totalSupply(), i_initialCost, i_scalingFactor, msg.value);
+        uint256 amount = i_bondingCurve.getRawPurchaseReturn(totalSupply(), reserveBalance, msg.value, i_reserveRatio);
+        reserveBalance += msg.value;
 
         // Mint tokens to the buyer
         _mint(msg.sender, amount);

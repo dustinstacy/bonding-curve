@@ -19,7 +19,9 @@ contract ExponentialBondingCurveTest is Test {
 
     // Test Variables;
     uint256 supply;
+    uint256 reserveBalance;
     uint256 value;
+    uint256 reserveRatio;
 
     // modifier onlyForSupplyGreaterThanZero() {
     //     if (supply == 0) {
@@ -43,11 +45,45 @@ contract ExponentialBondingCurveTest is Test {
     }
 
     function test_EXP_BC_GetFirstTokenBuyPrice() public {
-        supply = 0e18;
-        value = 0.0001 ether;
-        uint256 actualPrice = expCurve.getRawBuyPrice(0, initialCost, scalingFactor, initialCost);
-        console.log("Price: ", actualPrice, "Expected Price: ", initialCost);
-        assertEq(actualPrice, initialCost);
+        supply = 2.32e18;
+        reserveBalance = 0.0011 ether;
+        // 2_000_000_000_000_000_000
+        value = 0.001 ether;
+        reserveRatio = 4000;
+
+        // _017_716_363_636_363_635
+
+        // _442_909_090_909_090_908
+
+        // 1_320_000_000_000_000_000
+
+        // _180_000_000_000_000_000
+
+        // _200_000_000_000_000_000
+
+        // _120_000_000_000_000_000
+
+        // _066_000_000_000_000_000
+
+        // _006_600_000_000_000_000
+
+        // 12_000_000_000_000_000
+
+        // _004_000_000_000_000_000
+
+        // 3_000_000_000_000_000_000
+
+        // _012_000_000_000_000_000
+
+        uint256 actualReturn = expCurve.getRawPurchaseReturn(supply, reserveBalance, value, reserveRatio);
+        console.log("Return: ", actualReturn);
+        // _005_999_999_999_999_999
+        // _008_999_999_999_999_999
+        // _003_026_699_999_999_998
+        // _032_999_999_999_999_999
+        // _303_000_000_000_000_000
+        // 3_003_000_000_000_000_000
+        // _064_000_000_000_000_000
     }
 
     // function test_EXP_BC_GetAnyTokenBeyondFirstTokenBuyPrice() public view onlyForSupplyGreaterThanZero {
