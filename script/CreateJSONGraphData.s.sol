@@ -7,6 +7,18 @@ import {ExponentialBondingCurve} from "src/ExponentialBondingCurve.sol";
 import {Calculations} from "src/libraries/Calculations.sol";
 import {MockV3Aggregator} from "test/mocks/MockV3Aggregator.sol";
 
+/// @title CreateJSONGraphData
+/// @author Dustin Stacy
+/// @notice This script is used to create a JSON file that contains the data for a bonding curve graph.
+/// @dev The JSON file will contain the token ID, price in wei, and price in USD for a specified number of tokens.
+/// @dev Running the script will create a JSON file at the specified destination.
+/// @dev Launching the index.html file in the browser (Localhost) will display the graph.
+/// @dev Warning! The script overwrites the existing JSON file at the specified destination.
+///
+///      !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+///      !!!!!!!!!! Needs to be updated to work with the new bonding curve contracts !!!!!!!!!!
+///      !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+///
 contract CreateJSONGraphData is Script {
     LinearBondingCurve public linCurve;
     ExponentialBondingCurve public expCurve;
@@ -26,8 +38,11 @@ contract CreateJSONGraphData is Script {
     // 0 = Linear, 1 = Exponential.
     uint256 curve = 0;
 
+    // File destination
     string private constant DESTINATION = "/script/data/graphData.json";
+    // Decimals needed for price feed
     uint8 private constant DECIMALS = 8;
+    // Manually set price for ETH/USD instead of using Chainlink, can update as needed.
     int256 private constant ETH_USD_PRICE = 2460;
 
     function run() public {
