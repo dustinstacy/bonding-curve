@@ -17,7 +17,8 @@ contract LinearBondingCurve is Initializable, OwnableUpgradeable, UUPSUpgradeabl
     address public protocolFeeDestination;
     uint256 public protocolFeePercent;
 
-    /// @notice The precision used in calculations.
+    /// @dev Solidity does not support floating point numbers, so we use fixed point math.
+    /// @dev Precision also acts as the number 1 commonly used in curve calculations.
     uint256 private constant PRECISION = 1e18;
 
     /*///////////////////////////////////////////////////////////////

@@ -84,7 +84,7 @@ contract ExponentialBondingCurveTest is Test {
         assertApproxEqRel(actualReturn, tokensToReturn, 1e4);
     }
 
-    function test_EXP_BC_GetFirstTokenBuyPrice() public {
+    function test_EXP_BC_GetFirstTokenMintPrice() public {
         supply = 1e18;
         reserveBalance = 0.0001 ether;
         reserveRatio = 500000;
@@ -106,7 +106,7 @@ contract ExponentialBondingCurveTest is Test {
         assertEq(actualValue, value);
     }
 
-    function test_EXP_BC_GetFirstTokenBuyPriceTwo() public {
+    function test_EXP_BC_GetFirstTokenMintPriceTwo() public {
         supply = 1e18;
         reserveBalance = 0.0001 ether;
         reserveRatio = 400000;
@@ -128,7 +128,7 @@ contract ExponentialBondingCurveTest is Test {
         assertEq(actualValue, value);
     }
 
-    function test_EXP_BC_GetFirstTokenBuyPriceThree() public {
+    function test_EXP_BC_GetFirstTokenMintPriceThree() public {
         supply = 1e18;
         reserveBalance = 0.0001 ether;
         reserveRatio = 813000;
@@ -148,5 +148,53 @@ contract ExponentialBondingCurveTest is Test {
             expCurve.calculateReserveTokensNeeded(supply, reserveBalance, tokensToReturn, reserveRatio);
         assertApproxEqRel(neededReturnForExpectedValue, tokensToReturn, 1e4);
         assertEq(actualValue, value);
+    }
+
+    function test_EXP_BC_CalculateBurnTokenOne() public {
+        // starting varaibles
+        supply = 1e18;
+        reserveBalance = 0.0001 ether;
+        reserveRatio = 500000;
+        value = 0.0001 ether;
+        tokensToReturn = 1e18;
+
+        uint256 tokensMinted = expCurve.calculatePurchaseReturn(supply, reserveBalance, value, reserveRatio);
+        uint256 costOfToken =
+            expCurve.calculateReserveTokensNeeded(supply, reserveBalance, tokensToReturn, reserveRatio);
+        uint256 newSupply = supply + tokensMinted;
+        uint256 newReserveBalance = reserveBalance + value;
+
+        //sell 1 token
+        uint256 tokensToBurn = 1e18;
+
+        uint256 saleValue = expCurve.calculateSaleReturn(newSupply, newReserveBalance, tokensToBurn, reserveRatio);
+        assertEq(saleValue, costOfToken);
+        assertEq(supply, newSupply - tokensToBurn);
+    }
+
+    function test_EXP_BC_CalculateBurnTokenTwo() public {
+        // starting varaibles
+        supply = 5e18;
+        reserveBalance = 0.0002 ether;
+        reserveRatio = 500000;
+        value = 0.005 ether;
+
+        uint256 tokensMinted = expCurve.calculatePurchaseReturn(supply, reserveBalance, value, reserveRatio);
+        //   tokensMinted results:
+        //   fraction:  25000000000000000000
+        //   base:  26000000000000000000
+        //   exp:  13000000000000000000
+        //   purchaseReturn:  65000000000000000000
+
+        uint256 newSupply = supply + tokensMinted;
+        uint256 newReserveBalance = reserveBalance + value;
+
+        //sell minted tokens
+        uint256 tokensToBurn = tokensMinted;
+
+        uint256 saleValue = expCurve.calculateSaleReturn(newSupply, newReserveBalance, tokensToBurn, reserveRatio);
+        console.log("saleValue: ", saleValue);
+        assertEq(saleValue, value);
+        assertEq(supply, newSupply - tokensToBurn);
     }
 }

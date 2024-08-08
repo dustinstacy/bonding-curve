@@ -12,7 +12,7 @@ import {ExponentialBondingCurve} from "src/ExponentialBondingCurve.sol";
 ///         As implemented, the scaling factor can be adjusted by the owner of the contract.
 ///         This will allow us to experiment with different curve shapes and determine the best fit for our use case.
 ///         If it's determined that the scaling factor should be fixed, we can remove the ability to adjust it.
-///         Then the i_initialCost and i_reserveRatio can be relocated to the ExponentialBondingCurve contract.
+///         Then the i_reserveRatio can be relocated to the ExponentialBondingCurve contract.
 ///         To do so, an interface must be created to exchange the ExponentialBondingCurve instance state variable for a standardized bonding curve interface.
 ///         This would allow the same token to be used with any bonding curve that implements the interface.
 ///         Note, it may still be desirable to have separate contracts for different bonding curve tokens to allow for different parameters if changes arise.
@@ -42,10 +42,6 @@ contract EXPToken is ERC20Burnable {
     /// @notice Instance of a Bonding Curve contract used to determine the price of tokens.
     /// @dev In the case of an upgradeable implementation, this should be a proxy contract.
     ExponentialBondingCurve private immutable i_bondingCurve;
-
-    /// @notice The initial cost of the token.
-    /// @dev This value should be set in Wei (or other reserve currency).
-    uint256 public immutable i_initialCost;
 
     /// @notice i_reserveRatio is used to define the steepness of the bonding curve.
     ///         Represented in ppm, 1-1000000.
@@ -78,7 +74,6 @@ contract EXPToken is ERC20Burnable {
 
     /// @param _name The name of the token.
     /// @param _symbol The symbol of the token.
-    /// @param _initialCost The initial cost of the token.
     /// @param _reserveRatio The scaling factor used to determine the price of tokens.
     /// @param _bcAddress The address of the ExponentialBondingCurve contract.
     /// @dev   If the ExponentialBondingCurve contract is upgradeable, `_bcAddress` should be the proxy address.
@@ -87,12 +82,10 @@ contract EXPToken is ERC20Burnable {
     constructor(
         string memory _name,
         string memory _symbol,
-        uint256 _initialCost,
         uint256 _reserveRatio,
         address _bcAddress,
         uint256 _reserveBalance
     ) ERC20(_name, _symbol) {
-        i_initialCost = _initialCost;
         i_reserveRatio = _reserveRatio;
         i_bondingCurve = ExponentialBondingCurve(_bcAddress);
         reserveBalance = _reserveBalance;
@@ -142,7 +135,7 @@ contract EXPToken is ERC20Burnable {
             revert EXPToken__BurnAmountExceedsBalance();
         }
 
-        uint256 salePrice = i_bondingCurve.getSaleReturn(totalSupply(), i_initialCost, amount);
+        uint256 salePrice = i_bondingCurve.calculateSaleReturn(totalSupply(), reserveBalance, amount, i_reserveRatio);
 
         // should not be possible
         if (address(this).balance < salePrice) {
