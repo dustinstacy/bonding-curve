@@ -11,12 +11,13 @@ import {console2} from "forge-std/console2.sol"; // remove from production
 /// @notice This contract implements a bonding curve that adjusts the price of tokens based on the total supply.
 ///         The curve is defined by a reserveRatio, which determines the steepness and bend of the curve.
 /// @dev    Math needs to be rigorously test for edge cases including zero values and overflow.
+/// @dev    Need to add access controls
 contract ExponentialBondingCurve is Initializable, OwnableUpgradeable, UUPSUpgradeable {
     /*///////////////////////////////////////////////////////////////
                             STATE VARIABLES
     ///////////////////////////////////////////////////////////////*/
     address public protocolFeeDestination;
-    uint256 public protocolFeePercent;
+    uint256 public protocolFeeBasisPoints;
 
     /// @dev Solidity does not support floating point numbers, so we use fixed point math.
     /// @dev Precision also acts as the number 1 commonly used in curve calculations.
@@ -25,6 +26,10 @@ contract ExponentialBondingCurve is Initializable, OwnableUpgradeable, UUPSUpgra
     /// @dev Precision for parts per million calculations.
     /// @dev This is used to convert the reserve ratio to a fraction.
     uint256 private constant PPM_PRECISION = 1e6;
+
+    /// @dev Precision for basis points calculations.
+    /// @dev This is used to convert the protocol fee to a fraction.
+    uint256 private constant BASIS_POINTS_PRECISION = 1e4;
 
     /*///////////////////////////////////////////////////////////////
                         INITIALIZER FUNCTIONS
@@ -49,16 +54,14 @@ contract ExponentialBondingCurve is Initializable, OwnableUpgradeable, UUPSUpgra
     /// @param currentSupply The current supply of continuous tokens (in 1e18 format).
     /// @param reserveTokenBalance The balance of reserve tokens (in wei).
     /// @param reserveTokensReceived The amount of reserve tokens received (in wei).
-    /// @param reserveRatioPPM The reserve ratio (in PRECISIONd format, such as 1e18).
+    /// @param reserveRatioPPM The reserve ratio in parts per million (PPM).
     /// @return tokensToReturn The amount of continuous tokens to mint (in 1e18 format).
-    /// @dev Need to incorporate a protocol fee calculation and transfer.
-    /// @dev Need to update variable names to be more descriptive.
     function calculatePurchaseReturn(
         uint256 currentSupply,
         uint256 reserveTokenBalance,
         uint256 reserveTokensReceived,
         uint256 reserveRatioPPM
-    ) public pure returns (uint256 tokensToReturn) {
+    ) public returns (uint256 tokensToReturn) {
         // Some double checks to ensure the inputs are valid
         // Need to remove these checks in production and replace with custom errors where necessary.
         require(currentSupply > 0, "Current supply must be greater than zero");
@@ -66,42 +69,25 @@ contract ExponentialBondingCurve is Initializable, OwnableUpgradeable, UUPSUpgra
         require(reserveTokensReceived > 0, "Token to return must be greater than zero");
         require(reserveRatioPPM > 0, "Reserve ratio must be greater than zero");
 
-        // Convert reserveRatioPPM to a fraction
+        // Convert reserveRatioPPM and ProtocolFeeBasisPoints to fractions
         uint256 reserveRatio = reserveRatioPPM * PRECISION / PPM_PRECISION;
-        uint256 fraction = (reserveTokensReceived * PRECISION / reserveTokenBalance);
-        uint256 base = PRECISION + fraction;
-        uint256 exp = (base * reserveRatio) / PRECISION;
-        uint256 purchaseReturn = currentSupply * exp / PRECISION;
+        uint256 protocolFeePercent = protocolFeeBasisPoints * PRECISION / BASIS_POINTS_PRECISION;
+
+        // Calculate the amount of tokens to return
+        uint256 result =
+            (((reserveTokensReceived * PRECISION / reserveTokenBalance) + PRECISION) * reserveRatio) / PRECISION;
+        uint256 rawPurchaseReturn = (currentSupply * result) / PRECISION;
+        uint256 fees = (rawPurchaseReturn * protocolFeePercent) / PRECISION;
+        uint256 purchaseReturn = rawPurchaseReturn - fees;
+
+        // Transfer protocol fees to the protocol fee destination
+        (bool success,) = protocolFeeDestination.call{value: fees}("");
+        if (!success) {
+            revert("Protocol fee transfer failed");
+        }
+
+        // Return the amount of tokens to mint
         return purchaseReturn;
-    }
-
-    /// @notice Calculates the amount of ether needed to purchase the desired amount of tokens.
-    /// @param currentSupply The current supply of continuous tokens (in 1e18 format).
-    /// @param reserveTokenBalance The balance of reserve tokens (in wei).
-    /// @param tokensToReturn The amount of continuous tokens to mint (in 1e18 format).
-    /// @param reserveRatioPPM The reserve ratio (in PRECISIONd format, such as 1e18).
-    /// @dev This function should take into account the protocol fee.
-    /// @dev Need to update variable names to be more descriptive.
-    function calculateReserveTokensNeeded(
-        uint256 currentSupply,
-        uint256 reserveTokenBalance,
-        uint256 tokensToReturn,
-        uint256 reserveRatioPPM
-    ) external pure returns (uint256 reserveTokensNeeded) {
-        // Some double checks to ensure the inputs are valid
-        // Need to remove these checks in production and replace with custom errors where necessary.
-        require(currentSupply > 0, "Current supply must be greater than zero");
-        require(reserveTokenBalance > 0, "Reserve token balance must be greater than zero");
-        require(tokensToReturn > 0, "Token to return must be greater than zero");
-        require(reserveRatioPPM > 0, "Reserve ratio must be greater than zero");
-
-        // Convert reserveRatioPPM to a fraction
-        uint256 reserveRatio = reserveRatioPPM * PRECISION / PPM_PRECISION;
-        uint256 exp = tokensToReturn * PRECISION / currentSupply;
-        uint256 fraction = (exp * PRECISION) / reserveRatio;
-        uint256 base = fraction - PRECISION;
-        reserveTokensNeeded = (base * reserveTokenBalance) / PRECISION;
-        return reserveTokensNeeded;
     }
 
     /// @notice Calculates the amount of ether that can be returned for the given amount of tokens.
@@ -117,7 +103,7 @@ contract ExponentialBondingCurve is Initializable, OwnableUpgradeable, UUPSUpgra
         uint256 reserveTokenBalance,
         uint256 tokensToBurn,
         uint256 reserveRatioPPM
-    ) external pure returns (uint256 saleValue) {
+    ) external returns (uint256 saleValue) {
         // Some double checks to ensure the inputs are valid
         // Need to remove these checks in production and replace with custom errors where necessary.
         require(currentSupply > 0, "Current supply must be greater than zero");
@@ -125,13 +111,25 @@ contract ExponentialBondingCurve is Initializable, OwnableUpgradeable, UUPSUpgra
         require(tokensToBurn > 0, "Token to return must be greater than zero");
         require(reserveRatioPPM > 0, "Reserve ratio must be greater than zero");
 
-        // Convert reserveRatioPPM to a fraction
+        // Convert reserveRatioPPM and ProtocolFeeBasisPoints to fractions
         uint256 reserveRatio = reserveRatioPPM * PRECISION / PPM_PRECISION;
+        uint256 protocolFeePercent = protocolFeeBasisPoints * PRECISION / BASIS_POINTS_PRECISION;
         uint256 newSupply = currentSupply - tokensToBurn;
-        uint256 fraction = (tokensToBurn * PRECISION / newSupply);
-        uint256 exp = fraction * PRECISION / reserveRatio;
-        uint256 newReserveTokenBalance = reserveTokenBalance * PRECISION / exp;
-        saleValue = reserveTokenBalance - newReserveTokenBalance;
+
+        // Calculate the amount of tokens to return
+        uint256 result = ((tokensToBurn * PRECISION / newSupply) * PRECISION) / reserveRatio;
+        uint256 newReserveTokenBalance = reserveTokenBalance * PRECISION / result;
+        uint256 rawSaleValue = reserveTokenBalance - newReserveTokenBalance;
+        uint256 fees = (rawSaleValue * protocolFeePercent) / PRECISION;
+        saleValue = rawSaleValue - fees;
+
+        // Transfer protocol fees to the protocol fee destination
+        (bool success,) = protocolFeeDestination.call{value: fees}("");
+        if (!success) {
+            revert("Protocol fee transfer failed");
+        }
+
+        // Return the amount of ether to send to the seller
         return saleValue;
     }
 
@@ -140,13 +138,13 @@ contract ExponentialBondingCurve is Initializable, OwnableUpgradeable, UUPSUpgra
     //////////////////////////////////////////////////////////////*/
 
     /// @param _feeDestination The address to send protocol fees to.
-    function setFeeDestination(address _feeDestination) public onlyOwner {
+    function setFeeDestination(address _feeDestination) public {
         protocolFeeDestination = _feeDestination;
     }
 
-    /// @param _feePercent The percentage of the transaction to send to the protocol fee destination.
-    function setProtocolFeePercent(uint256 _feePercent) public onlyOwner {
-        protocolFeePercent = _feePercent;
+    /// @param _basisPoints The percentage of the transaction to send to the protocol fee destination represented in basis points.
+    function setProtocolFeeBasisPoints(uint256 _basisPoints) public {
+        protocolFeeBasisPoints = _basisPoints;
     }
 
     /*//////////////////////////////////////////////////////////////
@@ -154,5 +152,5 @@ contract ExponentialBondingCurve is Initializable, OwnableUpgradeable, UUPSUpgra
     //////////////////////////////////////////////////////////////*/
 
     /// @param newImplementation The address of the new implementation contract.
-    function _authorizeUpgrade(address newImplementation) internal override onlyOwner {}
+    function _authorizeUpgrade(address newImplementation) internal override {}
 }

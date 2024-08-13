@@ -113,13 +113,6 @@ contract EXPToken is ERC20Burnable {
         emit TokensPurchased(msg.sender, msg.value, amount);
     }
 
-    /// @notice Returns the current price of a whole token.
-    /// @dev Is there a need/desire to implement a buyWholeToken function?
-    /// @dev Or is the query of the price sufficient for the user to determine the amount to send?
-    function getFullTokenPrice() external view returns (uint256) {
-        return i_bondingCurve.calculateReserveTokensNeeded(totalSupply(), reserveBalance, 1, i_reserveRatio);
-    }
-
     /// @param amount The amount of tokens to burn.
     /// @dev Need to implement a gas limit to prevent front-running attacks.
     /// @dev CEI is implemented here so is OZ nonReentrant modifier necessary?

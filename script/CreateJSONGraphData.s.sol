@@ -90,7 +90,6 @@ contract CreateJSONGraphData is Script {
 
     function createExponentialGraph()
         public
-        view
         returns (uint256[] memory tokenIds, uint256[] memory priceInWei, uint256[] memory prices)
     {
         tokenIds = new uint256[](amount);

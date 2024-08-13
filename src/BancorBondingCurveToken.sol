@@ -2,9 +2,9 @@
 pragma solidity ^0.8.24;
 
 import {ERC20Burnable, ERC20} from "@openzeppelin/contracts/token/ERC20/extensions/ERC20Burnable.sol";
-import {BancorCurve} from "src/BancorCurve.sol";
+import {BancorBondingCurve} from "src/BancorBondingCurve.sol";
 
-/// @title BancorCurveToken
+/// @title BancorBondingCurveToken
 /// @author Dustin Stacy
 /// @notice This contract implements a simple ERC20 token that can be bought and sold using an exponential bonding curve.
 ///         The price of the token is determined by the bonding curve, which adjusts based on the total supply.
@@ -23,19 +23,19 @@ import {BancorCurve} from "src/BancorCurve.sol";
 ///     This value will be set in Wei (or other reserve currency).
 ///     The host will have to be responsible for sending this value to the contract.
 
-contract BancorCurveToken is ERC20Burnable {
+contract BancorBondingCurveToken is ERC20Burnable {
     /*///////////////////////////////////////////////////////////////
                                 ERRORS
     ///////////////////////////////////////////////////////////////*/
 
     /// @dev Emitted when attempting to perform an action with an amount that must be more than zero.
-    error BancorCurveToken__AmountMustBeMoreThanZero();
+    error BancorBondingCurveToken__AmountMustBeMoreThanZero();
 
     /// @dev Emitted if the buyer does not send enough Ether to purchase the tokens.
-    error BancorCurveToken__InsufficientFundingForTransaction();
+    error BancorBondingCurveToken__InsufficientFundingForTransaction();
 
     /// @dev Emitted when attempting to burn an amount that exceeds the sender's balance.
-    error BancorCurveToken__BurnAmountExceedsBalance();
+    error BancorBondingCurveToken__BurnAmountExceedsBalance();
 
     /*///////////////////////////////////////////////////////////////
                              STATE VARIABLES
@@ -43,7 +43,7 @@ contract BancorCurveToken is ERC20Burnable {
 
     /// @notice Instance of a Bonding Curve contract used to determine the price of tokens.
     /// @dev In the case of an upgradeable implementation, this should be a proxy contract.
-    BancorCurve private immutable i_bondingCurve;
+    BancorBondingCurve private immutable i_bondingCurve;
 
     /// @notice i_reserveRatio is used to define the steepness of the bonding curve.
     ///         Represented in ppm, 1-1000000.
@@ -92,7 +92,7 @@ contract BancorCurveToken is ERC20Burnable {
     ) ERC20(_name, _symbol) {
         require(i_reserveRatio > 0 && i_reserveRatio <= MAX_RESERVE_RATIO, "Invalid reserve ratio.");
         i_reserveRatio = _reserveRatio;
-        i_bondingCurve = BancorCurve(_bcAddress);
+        i_bondingCurve = BancorBondingCurve(_bcAddress);
         reserveBalance = _reserveBalance;
     }
 
@@ -106,7 +106,7 @@ contract BancorCurveToken is ERC20Burnable {
     /// @dev Function will be updated to call getBuyPriceAfterFees function.
     function mintTokens() external payable {
         if (msg.value == 0) {
-            revert BancorCurveToken__AmountMustBeMoreThanZero();
+            revert BancorBondingCurveToken__AmountMustBeMoreThanZero();
         }
 
         /// @dev Update to getTotalPurchaseReturn function.
@@ -127,14 +127,14 @@ contract BancorCurveToken is ERC20Burnable {
     /// @dev CEI is implemented here so is OZ nonReentrant modifier necessary?
     function burnTokens(uint256 amount) external {
         if (amount == 0) {
-            revert BancorCurveToken__AmountMustBeMoreThanZero();
+            revert BancorBondingCurveToken__AmountMustBeMoreThanZero();
         }
 
         uint256 balance = balanceOf(msg.sender);
 
         // Check if the seller has enough tokens to sell.
         if (balance < amount) {
-            revert BancorCurveToken__BurnAmountExceedsBalance();
+            revert BancorBondingCurveToken__BurnAmountExceedsBalance();
         }
 
         /// @dev Update to getTotalSellPrice function.
@@ -143,7 +143,7 @@ contract BancorCurveToken is ERC20Burnable {
 
         // should not be possible
         if (address(this).balance < salePrice) {
-            revert BancorCurveToken__InsufficientFundingForTransaction();
+            revert BancorBondingCurveToken__InsufficientFundingForTransaction();
         }
 
         reserveBalance -= salePrice;

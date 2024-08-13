@@ -7,11 +7,11 @@ import {UUPSUpgradeable} from "@openzeppelin/contracts-upgradeable/proxy/utils/U
 import {Power} from "src/libraries/Power.sol";
 import {console2} from "forge-std/console2.sol"; // remove from production
 
-/// @title BancorCurve
+/// @title BancorBondingCurve
 /// @author Dustin Stacy
 /// @notice This contract implements a bonding curve that adjusts the price of tokens based on the total supply.
 ///         The curve is defined by a reserveRatio, which determines the steepness and bend of the curve.
-contract BancorCurve is Initializable, OwnableUpgradeable, UUPSUpgradeable {
+contract BancorBondingCurve is Initializable, OwnableUpgradeable, UUPSUpgradeable {
     /*///////////////////////////////////////////////////////////////
                             STATE VARIABLES
     ///////////////////////////////////////////////////////////////*/

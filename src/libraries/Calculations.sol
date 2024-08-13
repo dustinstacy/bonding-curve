@@ -20,7 +20,7 @@ library Calculations {
     uint256 private constant PRECISION = 1e18;
 
     /// @notice The number of basis points in 100%.
-    uint256 private constant BASIS_POINTS = 10000;
+    uint256 private constant BASIS_POINTS_PRECISION = 1e4;
 
     /*//////////////////////////////////////////////////////////////
                             FUNCTIONS
@@ -30,7 +30,7 @@ library Calculations {
     /// @dev Compensates for solidity's lack of floating point numbers.
     /// @param scalingFactor The scaling factor used to determine the price of tokens.
     function calculateScalingFactorPercent(uint256 scalingFactor) external pure returns (uint256) {
-        return scalingFactor * PRECISION / BASIS_POINTS;
+        return scalingFactor * PRECISION / BASIS_POINTS_PRECISION;
     }
 
     function calculatePriceIncrement(uint256 initialCost, uint256 scalingFactorPercent)
@@ -80,6 +80,6 @@ library Calculations {
 
     /// @return The `BASIS_POINTS` constant.
     function getBasisPoints() external pure returns (uint256) {
-        return BASIS_POINTS;
+        return BASIS_POINTS_PRECISION;
     }
 }
