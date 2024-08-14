@@ -34,9 +34,9 @@ contract LinearToken is ERC20Burnable {
     /// @dev In the case of an upgradeable implementation, this should be a proxy contract.
     LinearBondingCurve private immutable i_bondingCurve;
 
-    /// @notice The initial cost of the token.
-    /// @dev This value should be set in Wei (or other reserve currency).
-    uint256 public immutable i_initialCost;
+    /// @notice The maximum gas limit for transactions.
+    /// @dev This value should be set to prevent front-running attacks.
+    uint256 public maxGasLimit;
 
     /*///////////////////////////////////////////////////////////////
                                 EVENTS
@@ -49,6 +49,15 @@ contract LinearToken is ERC20Burnable {
     event TokensSold(address indexed seller, uint256 amountReceived, uint256 tokensBurnt);
 
     /*///////////////////////////////////////////////////////////////
+                            MODIFIERS
+    ///////////////////////////////////////////////////////////////*/
+
+    modifier validGasPrice() {
+        require(tx.gasprice <= maxGasLimit, "Transaction gas price cannot exceed maximum gas limit.");
+        _;
+    }
+
+    /*///////////////////////////////////////////////////////////////
                               CONSTRUCTOR
     ///////////////////////////////////////////////////////////////*/
 
@@ -58,6 +67,7 @@ contract LinearToken is ERC20Burnable {
     /// @dev   If the LinearBondingCurve contract is upgradeable, `_bcAddress` should be the proxy address.
     constructor(string memory _name, string memory _symbol, address _bcAddress) ERC20(_name, _symbol) {
         i_bondingCurve = LinearBondingCurve(_bcAddress);
+        maxGasLimit = i_bondingCurve.maxGasLimit();
     }
 
     /*///////////////////////////////////////////////////////////////
@@ -67,7 +77,7 @@ contract LinearToken is ERC20Burnable {
     /// @notice Allows a user to mint tokens by sending Ether to the contract.
     /// @dev The amount of tokens minted is determined by the bonding curve.
     /// @dev Need to implement a gas limit to prevent front-running attacks.
-    function mintTokens() external payable {
+    function mintTokens() external payable validGasPrice {
         if (msg.value == 0) {
             revert LinearToken__AmountMustBeMoreThanZero();
         }
@@ -85,7 +95,7 @@ contract LinearToken is ERC20Burnable {
     /// @param amount The amount of tokens to burn.
     /// @dev Need to implement a gas limit to prevent front-running attacks.
     /// @dev CEI is implemented here so is OZ nonReentrant modifier necessary?
-    function burnTokens(uint256 amount) external {
+    function burnTokens(uint256 amount) external validGasPrice {
         if (amount == 0) {
             revert LinearToken__AmountMustBeMoreThanZero();
         }

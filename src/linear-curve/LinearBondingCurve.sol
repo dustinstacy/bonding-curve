@@ -27,6 +27,10 @@ contract LinearBondingCurve is Initializable, OwnableUpgradeable, UUPSUpgradeabl
     /// @notice The initial cost of the token.
     uint256 public initialCost;
 
+    /// @notice The maximum gas limit for transactions.
+    /// @dev This value should be set to prevent front-running attacks.
+    uint256 public maxGasLimit;
+
     /// @dev Solidity does not support floating point numbers, so we use fixed point math.
     /// @dev Precision also acts as the number 1 commonly used in curve calculations.
     uint256 private constant PRECISION = 1e18;
@@ -184,6 +188,11 @@ contract LinearBondingCurve is Initializable, OwnableUpgradeable, UUPSUpgradeabl
     /// @param _initialCost The initial cost of the token.
     function setInitialCost(uint256 _initialCost) public onlyOwner {
         initialCost = _initialCost;
+    }
+
+    /// @param _maxGasLimit The maximum gas limit for transactions.
+    function setMaxGasLimit(uint256 _maxGasLimit) public {
+        maxGasLimit = _maxGasLimit;
     }
 
     /// @return The `PRECISION` constant.

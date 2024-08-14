@@ -36,6 +36,10 @@ contract ExponentialBondingCurve is Initializable, OwnableUpgradeable, UUPSUpgra
     /// @dev Value to represent the reserve ratio for use in calculations.
     uint256 private reserveRatio;
 
+    /// @notice The maximum gas limit for transactions.
+    /// @dev This value should be set to prevent front-running attacks.
+    uint256 public maxGasLimit;
+
     /// @dev Solidity does not support floating point numbers, so we use fixed point math.
     /// @dev Precision also acts as the number 1 commonly used in curve calculations.
     uint256 private constant PRECISION = 1e18;
@@ -144,6 +148,11 @@ contract ExponentialBondingCurve is Initializable, OwnableUpgradeable, UUPSUpgra
     function setReserveRatioPPM(uint256 _reserveRatioPPM) public {
         reserveRatioPPM = _reserveRatioPPM;
         reserveRatio = reserveRatioPPM * PRECISION / PPM_PRECISION;
+    }
+
+    /// @param _maxGasLimit The maximum gas limit for transactions.
+    function setMaxGasLimit(uint256 _maxGasLimit) public {
+        maxGasLimit = _maxGasLimit;
     }
 
     /// @return The `PRECISION` constant.

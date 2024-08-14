@@ -43,6 +43,10 @@ contract ExponentialToken is ERC20Burnable {
     /// @dev In the future, a decision will need to be made as to how to initialize this value.
     uint256 public reserveBalance;
 
+    /// @notice The maximum gas limit for transactions.
+    /// @dev This value should be set to prevent front-running attacks.
+    uint256 public maxGasLimit;
+
     /*///////////////////////////////////////////////////////////////
                                 EVENTS
     ///////////////////////////////////////////////////////////////*/
@@ -52,6 +56,15 @@ contract ExponentialToken is ERC20Burnable {
 
     /// @notice Event to log token sales.
     event TokensSold(address indexed seller, uint256 amountReceived, uint256 fees, uint256 tokensBurnt);
+
+    /*///////////////////////////////////////////////////////////////
+                            MODIFIERS
+    ///////////////////////////////////////////////////////////////*/
+
+    modifier validGasPrice() {
+        require(tx.gasprice <= maxGasLimit, "Transaction gas price cannot exceed maximum gas limit.");
+        _;
+    }
 
     /*///////////////////////////////////////////////////////////////
                               CONSTRUCTOR
@@ -68,6 +81,7 @@ contract ExponentialToken is ERC20Burnable {
         require(_bcAddress != address(0), "ExponentialToken: bonding curve address cannot be zero address");
         require(_reserveBalance == 0.001 ether);
         i_bondingCurve = ExponentialBondingCurve(_bcAddress);
+        maxGasLimit = i_bondingCurve.maxGasLimit();
         reserveBalance = _reserveBalance;
         _mint(msg.sender, 1e18);
     }
@@ -79,7 +93,7 @@ contract ExponentialToken is ERC20Burnable {
     /// @notice Allows a user to mint tokens by sending ether to the contract.
     /// @dev The amount of tokens minted is determined by the bonding curve.
     /// @dev Need to implement a gas limit to prevent front-running attacks.
-    function mintTokens() external payable {
+    function mintTokens() external payable validGasPrice {
         if (msg.value == 0) {
             revert ExponentialToken__AmountMustBeMoreThanZero();
         }
@@ -101,7 +115,7 @@ contract ExponentialToken is ERC20Burnable {
     /// @param amount The amount of tokens to burn.
     /// @dev Need to implement a gas limit to prevent front-running attacks.
     /// @dev CEI is implemented here so is OZ nonReentrant modifier necessary?
-    function burnTokens(uint256 amount) external {
+    function burnTokens(uint256 amount) external validGasPrice {
         if (amount == 0) {
             revert ExponentialToken__AmountMustBeMoreThanZero();
         }
