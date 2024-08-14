@@ -4,7 +4,6 @@ pragma solidity 0.8.24;
 import {Script, console2} from "forge-std/Script.sol";
 import {LinearBondingCurve} from "src/linear-curve/LinearBondingCurve.sol";
 import {ExponentialBondingCurve} from "src/exponential-curve/ExponentialBondingCurve.sol";
-import {Calculations} from "src/libraries/Calculations.sol";
 
 /// @title CreateJSONGraphData
 /// @author Dustin Stacy
