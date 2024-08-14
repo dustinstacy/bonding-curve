@@ -2,7 +2,7 @@
 pragma solidity ^0.8.24;
 
 import {ERC20Burnable, ERC20} from "@openzeppelin/contracts/token/ERC20/extensions/ERC20Burnable.sol";
-import {LinearBondingCurve} from "src/LinearBondingCurve.sol";
+import {LinearBondingCurve} from "src/linear-curve/LinearBondingCurve.sol";
 import {Calculations} from "src/libraries/Calculations.sol";
 
 /// @title LinearCurveToken

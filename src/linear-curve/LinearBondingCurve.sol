@@ -1,10 +1,9 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.24;
 
-import {Initializable} from "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
-import {OwnableUpgradeable} from "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
-import {UUPSUpgradeable} from "@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol";
-import {console2} from "forge-std/console2.sol"; // remove from production
+import {Initializable} from "lib/openzeppelin-contracts-upgradeable/contracts/proxy/utils/Initializable.sol";
+import {OwnableUpgradeable} from "lib/openzeppelin-contracts-upgradeable/contracts/access/OwnableUpgradeable.sol";
+import {UUPSUpgradeable} from "lib/openzeppelin-contracts-upgradeable/contracts/proxy/utils/UUPSUpgradeable.sol";
 
 /// @title LinearBondingCurve
 /// @author Dustin Stacy
@@ -125,9 +124,7 @@ contract LinearBondingCurve is Initializable, OwnableUpgradeable, UUPSUpgradeabl
             reserveTokensNeeded += remainingCurrentDiscreteTokenPrice;
             currentSupply += percentDiscreteTokenRemaining;
             currentDiscreteTokenPrice = initialCost + ((currentSupply / PRECISION) * tokenPriceIncrement);
-            console2.log("currentDiscreteTokenPrice", currentDiscreteTokenPrice);
             uint256 percentNextDiscreteTokenRemaining = (PRECISION - percentDiscreteTokenRemaining % PRECISION);
-            console2.log("percentNextDiscreteTokenRemaining", percentNextDiscreteTokenRemaining);
             remainingCurrentDiscreteTokenPrice =
                 (percentNextDiscreteTokenRemaining * currentDiscreteTokenPrice) / PRECISION;
             reserveTokensNeeded += remainingCurrentDiscreteTokenPrice;
@@ -170,8 +167,6 @@ contract LinearBondingCurve is Initializable, OwnableUpgradeable, UUPSUpgradeabl
 
         // Get amount remaining within current token price
         currentDiscreteTokenPrice = initialCost + (((currentSupply / PRECISION) - 1) * tokenPriceIncrement);
-        console2.log("currentSupply", currentSupply / PRECISION);
-        console2.log("currentDiscreteTokenPrice", currentDiscreteTokenPrice);
         percentDiscreteTokenRemaining = (PRECISION - currentSupply % PRECISION);
         remainingCurrentDiscreteTokenPrice = (percentDiscreteTokenRemaining * currentDiscreteTokenPrice) / PRECISION;
 

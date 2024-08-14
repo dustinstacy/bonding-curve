@@ -2,7 +2,7 @@
 pragma solidity ^0.8.24;
 
 import {Test, console2} from "forge-std/Test.sol";
-import {LinearBondingCurve} from "src/LinearBondingCurve.sol";
+import {LinearBondingCurve} from "src/linear-curve/LinearBondingCurve.sol";
 
 contract LinearBondingCurveTest is Test {
     LinearBondingCurve public linCurve;
@@ -26,8 +26,7 @@ contract LinearBondingCurveTest is Test {
 
         uint256 actualReturn = linCurve.calculatePurchaseReturn(supply, initialCost, value);
         uint256 expectedReturn = 1e18;
-
-        console2.log("Return: ", actualReturn, "Expected Return: ", expectedReturn);
+        
         assertEq(actualReturn, expectedReturn);
     }
 

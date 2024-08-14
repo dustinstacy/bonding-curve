@@ -5,7 +5,6 @@ import {Script, console2} from "forge-std/Script.sol";
 import {LinearBondingCurve} from "src/LinearBondingCurve.sol";
 import {ExponentialBondingCurve} from "src/ExponentialBondingCurve.sol";
 import {Calculations} from "src/libraries/Calculations.sol";
-import {MockV3Aggregator} from "test/mocks/MockV3Aggregator.sol";
 
 /// @title CreateJSONGraphData
 /// @author Dustin Stacy
@@ -22,7 +21,6 @@ import {MockV3Aggregator} from "test/mocks/MockV3Aggregator.sol";
 contract CreateJSONGraphData is Script {
     LinearBondingCurve public linCurve;
     ExponentialBondingCurve public expCurve;
-    MockV3Aggregator ethUSDPriceFeed;
 
     //curve variables
     uint256 supply = 0;
@@ -40,27 +38,19 @@ contract CreateJSONGraphData is Script {
 
     // File destination
     string private constant DESTINATION = "/script/data/graphData.json";
-    // Decimals needed for price feed
-    uint8 private constant DECIMALS = 8;
-    // Manually set price for ETH/USD instead of using Chainlink, can update as needed.
-    int256 private constant ETH_USD_PRICE = 2460;
 
     function run() public {
-        ethUSDPriceFeed = new MockV3Aggregator(DECIMALS, ETH_USD_PRICE);
-
         if (curve == 0) {
             linCurve = new LinearBondingCurve();
-            scalingFactor = Calculations.calculateScalingFactorPercent(scalingFactor);
-            priceIncrement = Calculations.calculatePriceIncrement(initialCost, scalingFactor);
-            initialCostAdjustment = Calculations.calculateInitialCostAdjustment(initialCost, priceIncrement);
-            (uint256[] memory tokenIds, uint256[] memory priceInWei, uint256[] memory prices) = createLinearGraph();
-            string memory json = _createJson(tokenIds, priceInWei, prices);
+            (uint256[] memory tokenIds, uint256[] memory priceInWei, uint256[] memory priceInUSD) = createLinearGraph();
+            string memory json = _createJson(tokenIds, priceInWei, priceInUSD);
             vm.writeFile(string.concat(vm.projectRoot(), DESTINATION), json);
             console2.log("Complete: The JSON file has been created at: ", DESTINATION);
         } else {
             expCurve = new ExponentialBondingCurve();
-            (uint256[] memory tokenIds, uint256[] memory priceInWei, uint256[] memory prices) = createExponentialGraph();
-            string memory json = _createJson(tokenIds, priceInWei, prices);
+            (uint256[] memory tokenIds, uint256[] memory priceInWei, uint256[] memory priceInUSD) =
+                createExponentialGraph();
+            string memory json = _createJson(tokenIds, priceInWei, priceInUSD);
             vm.writeFile(string.concat(vm.projectRoot(), DESTINATION), json);
             console2.log("Complete: The JSON file has been created at: ", DESTINATION);
         }
@@ -69,47 +59,50 @@ contract CreateJSONGraphData is Script {
     function createLinearGraph()
         public
         view
-        returns (uint256[] memory tokenIds, uint256[] memory priceInWei, uint256[] memory prices)
+        returns (uint256[] memory tokenIds, uint256[] memory priceInWei, uint256[] memory priceInUSD)
     {
         tokenIds = new uint256[](amount);
         priceInWei = new uint256[](amount);
-        prices = new uint256[](amount);
+        priceInUSD = new uint256[](amount);
 
         for (uint256 i = 0; i < amount; i++) {
-            uint256 tokenId = supply + i;
-            uint256 expectedPrice = linCurve.calculatePurchaseReturn(tokenId, initialCost, value);
-            uint256 convertedPrice = Calculations.calculateUSDValue(address(ethUSDPriceFeed), expectedPrice);
+            // Need to update this to work with the new bonding curve contracts.
+            // uint256 tokenId = supply + i;
+            // uint256 expectedPrice = linCurve.calculatePurchaseReturn(tokenId, initialCost, value);
+            // uint256 convertedPrice = Calculations.calculateUSDValue(address(ethUSDPriceFeed), expectedPrice);
 
-            tokenIds[i] = tokenId;
-            priceInWei[i] = expectedPrice;
-            prices[i] = convertedPrice;
+            // tokenIds[i] = tokenId;
+            // priceInWei[i] = expectedPrice;
+            // priceInUSD[i] = convertedPrice;
         }
 
-        return (tokenIds, priceInWei, prices);
+        return (tokenIds, priceInWei, priceInUSD);
     }
 
     function createExponentialGraph()
         public
-        returns (uint256[] memory tokenIds, uint256[] memory priceInWei, uint256[] memory prices)
+        view
+        returns (uint256[] memory tokenIds, uint256[] memory priceInWei, uint256[] memory priceInUSD)
     {
         tokenIds = new uint256[](amount);
         priceInWei = new uint256[](amount);
-        prices = new uint256[](amount);
+        priceInUSD = new uint256[](amount);
 
         for (uint256 i = 0; i < amount; i++) {
-            uint256 expectedPrice =
-                expCurve.calculatePurchaseReturn(supply + i, initialCost, scalingFactor, singleToken);
-            uint256 convertedPrice = Calculations.calculateUSDValue(address(ethUSDPriceFeed), expectedPrice);
+            // Need to update this to work with the new bonding curve contracts.
+            // uint256 expectedPrice =
+            //     expCurve.calculatePurchaseReturn(supply + i, initialCost, scalingFactor, singleToken);
+            // uint256 convertedPrice = Calculations.calculateUSDValue(address(ethUSDPriceFeed), expectedPrice);
 
-            tokenIds[i] = supply + i + 1;
-            priceInWei[i] = expectedPrice;
-            prices[i] = convertedPrice;
+            // tokenIds[i] = supply + i + 1;
+            // priceInWei[i] = expectedPrice;
+            // priceInUSD[i] = convertedPrice;
         }
 
-        return (tokenIds, priceInWei, prices);
+        return (tokenIds, priceInWei, priceInUSD);
     }
 
-    function _createJson(uint256[] memory tokens, uint256[] memory priceInWei, uint256[] memory prices)
+    function _createJson(uint256[] memory tokens, uint256[] memory priceInWei, uint256[] memory priceInUSD)
         internal
         pure
         returns (string memory)
@@ -121,12 +114,12 @@ contract CreateJSONGraphData is Script {
             json = string(
                 abi.encodePacked(
                     json,
-                    '    { "token": ',
+                    '    { "Token": ',
                     vm.toString(tokens[i]),
-                    ', "priceInWei": ',
+                    ', "Price In Wei": ',
                     vm.toString(priceInWei[i]),
-                    ', "price": ',
-                    vm.toString(prices[i]),
+                    ', "Price In USD": ',
+                    vm.toString(priceInUSD[i]),
                     " }"
                 )
             );
