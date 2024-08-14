@@ -7,11 +7,6 @@ import {ExponentialBondingCurve} from "src/exponential-curve/ExponentialBondingC
 /// @title ExponentialCurveToken
 /// @author Dustin Stacy
 /// @notice This contract implements a simple ERC20 token that can be bought and sold using an exponential bonding curve.
-///         The price of the token is determined by the bonding curve, which adjusts based on the total supply.
-/// @dev Similar to the Bancor curve, this curve is also based on a total reserve balance.
-///      Standardizing this value will ensure consistency across all implementations.
-///      This value will be set in Wei (or other reserve currency).
-///      The host will have to be responsible for sending this value to the contract.
 contract ExponentialToken is ERC20Burnable {
     /*///////////////////////////////////////////////////////////////
                                 ERRORS
@@ -34,13 +29,9 @@ contract ExponentialToken is ERC20Burnable {
     ///////////////////////////////////////////////////////////////*/
 
     /// @notice Instance of a Bonding Curve contract used to determine the price of tokens.
-    /// @dev In the case of an upgradeable implementation, this should be a proxy contract.
     ExponentialBondingCurve private immutable i_bondingCurve;
 
     /// @notice The total amount of Ether held in the contract.
-    /// @dev This value should be used to determine the reserve balance of the contract.
-    /// @dev For now it will be instantiated to a set value for testing purposes.
-    /// @dev In the future, a decision will need to be made as to how to initialize this value.
     uint256 public reserveBalance;
 
     /// @notice The maximum gas limit for transactions.
@@ -61,6 +52,7 @@ contract ExponentialToken is ERC20Burnable {
                             MODIFIERS
     ///////////////////////////////////////////////////////////////*/
 
+    /// @dev Modifier to check if the transaction gas price is below the maximum gas limit.
     modifier validGasPrice() {
         require(tx.gasprice <= maxGasLimit, "Transaction gas price cannot exceed maximum gas limit.");
         _;
@@ -73,8 +65,7 @@ contract ExponentialToken is ERC20Burnable {
     /// @param _name The name of the token.
     /// @param _symbol The symbol of the token.
     /// @param _bcAddress The address of the ExponentialBondingCurve contract.
-    /// @dev   If the ExponentialBondingCurve contract is upgradeable, `_bcAddress` should be the proxy address.
-    /// @dev   Need to implement a cleaner way to set the required reserve balance.
+    /// @dev   Need to implement a cleaner way to set the required reserve balance by enforcing the deployer to purchase the first token.
     constructor(string memory _name, string memory _symbol, address _bcAddress, uint256 _reserveBalance)
         ERC20(_name, _symbol)
     {
@@ -91,8 +82,6 @@ contract ExponentialToken is ERC20Burnable {
     ///////////////////////////////////////////////////////////////*/
 
     /// @notice Allows a user to mint tokens by sending ether to the contract.
-    /// @dev The amount of tokens minted is determined by the bonding curve.
-    /// @dev Need to implement a gas limit to prevent front-running attacks.
     function mintTokens() external payable validGasPrice {
         if (msg.value == 0) {
             revert ExponentialToken__AmountMustBeMoreThanZero();
@@ -112,15 +101,14 @@ contract ExponentialToken is ERC20Burnable {
         emit TokensPurchased(msg.sender, msg.value, fees, amount);
     }
 
+    /// @notice Allows a user to burn tokens and receive ether from the contract.
     /// @param amount The amount of tokens to burn.
-    /// @dev Need to implement a gas limit to prevent front-running attacks.
-    /// @dev CEI is implemented here so is OZ nonReentrant modifier necessary?
     function burnTokens(uint256 amount) external validGasPrice {
         if (amount == 0) {
             revert ExponentialToken__AmountMustBeMoreThanZero();
         }
 
-        /// Do we want to enforce this to prevent bricking the contract?
+        // Do we want to enforce this to prevent bricking the contract?
         if (totalSupply() - amount < 1e18) {
             revert ExponentialToken__SupplyCannotBeReducedBelowOne();
         }

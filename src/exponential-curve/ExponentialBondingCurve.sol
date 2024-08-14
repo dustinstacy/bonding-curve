@@ -78,15 +78,16 @@ contract ExponentialBondingCurve is Initializable, OwnableUpgradeable, UUPSUpgra
     /// @return purchaseReturn The amount of continuous tokens to mint (in 1e18 format).
     /// @return fees The amount of protocol fees to send to the protocol fee destination (in wei).
     function calculatePurchaseReturn(uint256 currentSupply, uint256 reserveTokenBalance, uint256 reserveTokensReceived)
-        public
+        external
         returns (uint256 purchaseReturn, uint256 fees)
     {
+        fees = (reserveTokensReceived * protocolFeePercent) / PRECISION;
+        uint256 remainingReserveTokens = reserveTokensReceived - fees;
+
         // Calculate the amount of tokens to return
         uint256 result =
-            (((reserveTokensReceived * PRECISION / reserveTokenBalance) + PRECISION) * reserveRatio) / PRECISION;
-        uint256 rawPurchaseReturn = (currentSupply * result) / PRECISION;
-        fees = (rawPurchaseReturn * protocolFeePercent) / PRECISION;
-        purchaseReturn = rawPurchaseReturn - fees;
+            (((remainingReserveTokens * PRECISION / reserveTokenBalance) + PRECISION) * reserveRatio) / PRECISION;
+        purchaseReturn = (currentSupply * result) / PRECISION;
 
         // Transfer protocol fees to the protocol fee destination
         (bool success,) = protocolFeeDestination.call{value: fees}("");
@@ -102,9 +103,6 @@ contract ExponentialBondingCurve is Initializable, OwnableUpgradeable, UUPSUpgra
     /// @param currentSupply The current supply of continuous tokens (in 1e18 format).
     /// @param reserveTokenBalance The balance of reserve tokens (in wei).
     /// @param tokensToBurn The amount of continuous tokens to mint (in 1e18 format).
-    /// @dev Need to add a sell penalty to the calculation.
-    /// @dev Do protocol fees apply to the sale of tokens as well?
-    /// @dev Need to update variable names to be more descriptive.
     function calculateSaleReturn(uint256 currentSupply, uint256 reserveTokenBalance, uint256 tokensToBurn)
         external
         returns (uint256 saleValue, uint256 fees)
@@ -130,7 +128,7 @@ contract ExponentialBondingCurve is Initializable, OwnableUpgradeable, UUPSUpgra
     }
 
     /*//////////////////////////////////////////////////////////////
-                            PUBLIC FUNCTIONS
+                            SETTER FUNCTIONS
     //////////////////////////////////////////////////////////////*/
 
     /// @param _feeDestination The address to send protocol fees to.
@@ -154,6 +152,10 @@ contract ExponentialBondingCurve is Initializable, OwnableUpgradeable, UUPSUpgra
     function setMaxGasLimit(uint256 _maxGasLimit) public {
         maxGasLimit = _maxGasLimit;
     }
+
+    /*//////////////////////////////////////////////////////////////
+                            GETTER FUNCTIONS
+    //////////////////////////////////////////////////////////////*/
 
     /// @return The `PRECISION` constant.
     function getPrecision() external pure returns (uint256) {
