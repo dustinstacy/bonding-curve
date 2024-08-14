@@ -9,16 +9,31 @@ import {UUPSUpgradeable} from "lib/openzeppelin-contracts-upgradeable/contracts/
 /// @author Dustin Stacy
 /// @notice This contract implements a bonding curve that adjusts the price of tokens based on the total supply.
 ///         The price of tokens increases linearly with the supply.
+/// @dev    Math needs to be rigorously test for edge cases including zero values and overflow.
+/// @dev    Need to add access controls
 contract LinearBondingCurve is Initializable, OwnableUpgradeable, UUPSUpgradeable {
     /*///////////////////////////////////////////////////////////////
                             STATE VARIABLES
     ///////////////////////////////////////////////////////////////*/
+    /// @notice The address to send protocol fees to.
     address public protocolFeeDestination;
-    uint256 public protocolFeePercent;
+
+    /// @notice The percentage of the transaction to send to the protocol fee destination in basis points.
+    uint256 public protocolFeeBasisPoints;
+
+    /// @dev Value to represent the protocol fee as a percentage for use in calculations.
+    uint256 private protocolFeePercent;
+
+    /// @notice The initial cost of the token.
+    uint256 public initialCost;
 
     /// @dev Solidity does not support floating point numbers, so we use fixed point math.
     /// @dev Precision also acts as the number 1 commonly used in curve calculations.
     uint256 private constant PRECISION = 1e18;
+
+    /// @dev Precision for basis points calculations.
+    /// @dev This is used to convert the protocol fee to a fraction.
+    uint256 private constant BASIS_POINTS_PRECISION = 1e4;
 
     /*///////////////////////////////////////////////////////////////
                         INITIALIZER FUNCTIONS
@@ -41,25 +56,18 @@ contract LinearBondingCurve is Initializable, OwnableUpgradeable, UUPSUpgradeabl
 
     /// @notice Calculates the amount of tokens that can be purchased with the given value.
     /// @param currentSupply The current currentSupply of tokens.
-    /// @param initialCost The initial cost of the token.
     /// @param value The amount of ether sent to purchase tokens.
-    /// @dev Need to incorporate a fee calculation into the return value.
     /// @dev Currently tested for precision down to the wei.
     /// @dev This function is gas inefficient and needs to be optimized.
-    function calculatePurchaseReturn(uint256 currentSupply, uint256 initialCost, uint256 value)
-        external
-        pure
-        returns (uint256 rawPurchaseReturn)
-    {
+    function calculatePurchaseReturn(uint256 currentSupply, uint256 value) external returns (uint256 purchaseReturn) {
         require(initialCost > 0, "Initial cost must be greater than zero");
         require(value > 0, "Value must be greater than zero");
-        // Placeholder until scaling introduced
-        uint256 tokenPriceIncrement = initialCost;
 
         // Variables to store the current token prices
         uint256 currentDiscreteTokenPrice;
         uint256 remainingCurrentDiscreteTokenPrice;
         uint256 percentDiscreteTokenRemaining;
+        uint256 rawPurchaseReturn;
 
         // Check if initial supply is zero for correct initialization
         if (currentSupply == 0) {
@@ -67,7 +75,7 @@ contract LinearBondingCurve is Initializable, OwnableUpgradeable, UUPSUpgradeabl
             currentDiscreteTokenPrice = initialCost;
         } else {
             // Get amount remaining within current token price
-            currentDiscreteTokenPrice = initialCost + (((currentSupply / PRECISION) * tokenPriceIncrement));
+            currentDiscreteTokenPrice = initialCost + (((currentSupply / PRECISION) * initialCost));
             percentDiscreteTokenRemaining = (PRECISION - currentSupply % PRECISION);
             remainingCurrentDiscreteTokenPrice = (percentDiscreteTokenRemaining * currentDiscreteTokenPrice) / PRECISION;
         }
@@ -79,7 +87,7 @@ contract LinearBondingCurve is Initializable, OwnableUpgradeable, UUPSUpgradeabl
                 value -= remainingCurrentDiscreteTokenPrice;
                 rawPurchaseReturn += percentDiscreteTokenRemaining; // Partial token purchased
                 currentSupply += percentDiscreteTokenRemaining; // Move to the next token
-                currentDiscreteTokenPrice = initialCost + ((currentSupply / PRECISION) * tokenPriceIncrement);
+                currentDiscreteTokenPrice = initialCost + ((currentSupply / PRECISION) * initialCost);
                 remainingCurrentDiscreteTokenPrice = currentDiscreteTokenPrice;
                 percentDiscreteTokenRemaining = (PRECISION - currentSupply % PRECISION);
             } else if (value < currentDiscreteTokenPrice) {
@@ -90,69 +98,29 @@ contract LinearBondingCurve is Initializable, OwnableUpgradeable, UUPSUpgradeabl
                 value -= remainingCurrentDiscreteTokenPrice;
                 rawPurchaseReturn += PRECISION; // Whole token purchased
                 currentSupply += PRECISION; // Move to the next token
-                currentDiscreteTokenPrice = initialCost + ((currentSupply / PRECISION) * tokenPriceIncrement);
+                currentDiscreteTokenPrice = initialCost + ((currentSupply / PRECISION) * initialCost);
                 remainingCurrentDiscreteTokenPrice = currentDiscreteTokenPrice;
             }
         }
 
-        return rawPurchaseReturn;
-    }
+        uint256 fees = (rawPurchaseReturn * protocolFeePercent) / PRECISION;
+        purchaseReturn = rawPurchaseReturn - fees;
 
-    /// @notice Calculates the amount of ether needed to purchase the next full token.
-    /// @param currentSupply supply of tokens.
-    /// @param initialCost The initial cost of the token.
-    /// @dev Could just boil down to current supply * initial cost + token price increment?
-    /// @dev This function should take into account the protocol fee.
-    function calculateReserveTokensNeeded(uint256 currentSupply, uint256 initialCost)
-        external
-        pure
-        returns (uint256 reserveTokensNeeded)
-    {
-        // Placeholder until scaling introduced
-        uint256 tokenPriceIncrement = initialCost;
-
-        // Variables to store the current token prices
-        uint256 currentDiscreteTokenPrice;
-        uint256 remainingCurrentDiscreteTokenPrice;
-        uint256 percentDiscreteTokenRemaining;
-
-        currentDiscreteTokenPrice = initialCost + (((currentSupply / PRECISION) * tokenPriceIncrement));
-        percentDiscreteTokenRemaining = (PRECISION - currentSupply % PRECISION);
-        remainingCurrentDiscreteTokenPrice = (percentDiscreteTokenRemaining * currentDiscreteTokenPrice) / PRECISION;
-
-        if (remainingCurrentDiscreteTokenPrice < currentDiscreteTokenPrice) {
-            reserveTokensNeeded += remainingCurrentDiscreteTokenPrice;
-            currentSupply += percentDiscreteTokenRemaining;
-            currentDiscreteTokenPrice = initialCost + ((currentSupply / PRECISION) * tokenPriceIncrement);
-            uint256 percentNextDiscreteTokenRemaining = (PRECISION - percentDiscreteTokenRemaining % PRECISION);
-            remainingCurrentDiscreteTokenPrice =
-                (percentNextDiscreteTokenRemaining * currentDiscreteTokenPrice) / PRECISION;
-            reserveTokensNeeded += remainingCurrentDiscreteTokenPrice;
-        } else {
-            reserveTokensNeeded = currentDiscreteTokenPrice;
+        // Transfer protocol fees to the protocol fee destination
+        (bool success,) = protocolFeeDestination.call{value: fees}("");
+        if (!success) {
+            revert("Protocol fee transfer failed");
         }
 
-        return reserveTokensNeeded;
+        return purchaseReturn;
     }
 
     /// @notice Calculates the amount of ether that can be returned for the given amount of tokens.
     /// @param currentSupply supply of tokens.
-    /// @param initialCost The initial cost of the token.
     /// @param amount The amount of tokens to sell.
     /// @dev Need to add a sell penalty to the calculation.
     /// @dev Do protocol fees apply to the sale of tokens as well?
-    function calculateSaleReturn(uint256 currentSupply, uint256 initialCost, uint256 amount)
-        external
-        pure
-        returns (uint256)
-    {
-        require(amount > 0, "Amount must be greater than zero");
-        require(currentSupply > 0, "Current supply must be greater than zero");
-        require(amount <= currentSupply, "Amount must be less than or equal to the current supply");
-
-        // Placeholder until scaling introduced
-        uint256 tokenPriceIncrement = initialCost;
-
+    function calculateSaleReturn(uint256 currentSupply, uint256 amount) external returns (uint256 saleReturn) {
         // Variables to store the current token prices
         uint256 currentDiscreteTokenPrice;
         uint256 remainingCurrentDiscreteTokenPrice;
@@ -162,29 +130,38 @@ contract LinearBondingCurve is Initializable, OwnableUpgradeable, UUPSUpgradeabl
             if (currentSupply <= PRECISION) {
                 return (initialCost * amount / PRECISION);
             }
-            return initialCost + (((currentSupply / PRECISION)) * tokenPriceIncrement);
+            return initialCost + (((currentSupply / PRECISION)) * initialCost);
         }
 
         // Get amount remaining within current token price
-        currentDiscreteTokenPrice = initialCost + (((currentSupply / PRECISION) - 1) * tokenPriceIncrement);
+        currentDiscreteTokenPrice = initialCost + (((currentSupply / PRECISION) - 1) * initialCost);
         percentDiscreteTokenRemaining = (PRECISION - currentSupply % PRECISION);
         remainingCurrentDiscreteTokenPrice = (percentDiscreteTokenRemaining * currentDiscreteTokenPrice) / PRECISION;
 
-        uint256 saleReturn;
+        uint256 rawSaleReturn;
         uint256 tokensRemaining = amount;
 
         while (tokensRemaining > 0) {
             if (tokensRemaining < percentDiscreteTokenRemaining) {
-                saleReturn += (tokensRemaining * remainingCurrentDiscreteTokenPrice) / PRECISION;
+                rawSaleReturn += (tokensRemaining * remainingCurrentDiscreteTokenPrice) / PRECISION;
                 break;
             } else {
-                saleReturn += remainingCurrentDiscreteTokenPrice;
+                rawSaleReturn += remainingCurrentDiscreteTokenPrice;
                 tokensRemaining -= percentDiscreteTokenRemaining;
                 currentSupply -= percentDiscreteTokenRemaining;
-                currentDiscreteTokenPrice = initialCost + ((currentSupply / PRECISION) * tokenPriceIncrement);
+                currentDiscreteTokenPrice = initialCost + ((currentSupply / PRECISION) * initialCost);
                 remainingCurrentDiscreteTokenPrice = currentDiscreteTokenPrice;
                 percentDiscreteTokenRemaining = (PRECISION - currentSupply % PRECISION);
             }
+        }
+
+        uint256 fees = (rawSaleReturn * protocolFeePercent) / PRECISION;
+        saleReturn = rawSaleReturn - fees;
+
+        // Transfer protocol fees to the protocol fee destination
+        (bool success,) = protocolFeeDestination.call{value: fees}("");
+        if (!success) {
+            revert("Protocol fee transfer failed");
         }
 
         return saleReturn;
@@ -204,9 +181,19 @@ contract LinearBondingCurve is Initializable, OwnableUpgradeable, UUPSUpgradeabl
         protocolFeePercent = _feePercent;
     }
 
+    /// @param _initialCost The initial cost of the token.
+    function setInitialCost(uint256 _initialCost) public onlyOwner {
+        initialCost = _initialCost;
+    }
+
     /// @return The `PRECISION` constant.
     function getPrecision() public pure returns (uint256) {
         return PRECISION;
+    }
+
+    /// @return The `BASIS_POINTS_PRECISION` constant.
+    function getBasisPointsPrecision() public pure returns (uint256) {
+        return BASIS_POINTS_PRECISION;
     }
 
     /*//////////////////////////////////////////////////////////////

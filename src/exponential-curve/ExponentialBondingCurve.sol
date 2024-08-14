@@ -21,6 +21,9 @@ contract ExponentialBondingCurve is Initializable, OwnableUpgradeable, UUPSUpgra
     /// @notice The percentage of the transaction to send to the protocol fee destination represented in basis points.
     uint256 public protocolFeeBasisPoints;
 
+    /// @dev Value to represent the protocol fee as a percentage for use in calculations.
+    uint256 private protocolFeePercent;
+
     /// @notice reserveRatio is used to define the steepness of the bonding curve.
     ///         Represented in ppm, 1-1000000.
     ///         1/3 corresponds to y= multiple * x^2
@@ -29,6 +32,9 @@ contract ExponentialBondingCurve is Initializable, OwnableUpgradeable, UUPSUpgra
     ///         With lower values, the price of the token will increase more rapidly.
     ///         With higher values, the price of the token will increase more slowly.
     uint256 public reserveRatioPPM;
+
+    /// @dev Value to represent the reserve ratio for use in calculations.
+    uint256 private reserveRatio;
 
     /// @dev Solidity does not support floating point numbers, so we use fixed point math.
     /// @dev Precision also acts as the number 1 commonly used in curve calculations.
@@ -41,12 +47,6 @@ contract ExponentialBondingCurve is Initializable, OwnableUpgradeable, UUPSUpgra
     /// @dev Precision for basis points calculations.
     /// @dev This is used to convert the protocol fee to a fraction.
     uint256 private constant BASIS_POINTS_PRECISION = 1e4;
-
-    /// @dev Value to represent the reserve ratio for use in calculations.
-    uint256 private reserveRatio;
-
-    /// @dev Value to represent the protocol fee as a percentage for use in calculations.
-    uint256 private protocolFeePercent;
 
     /*///////////////////////////////////////////////////////////////
                         INITIALIZER FUNCTIONS
@@ -144,6 +144,21 @@ contract ExponentialBondingCurve is Initializable, OwnableUpgradeable, UUPSUpgra
     function setReserveRatioPPM(uint256 _reserveRatioPPM) public {
         reserveRatioPPM = _reserveRatioPPM;
         reserveRatio = reserveRatioPPM * PRECISION / PPM_PRECISION;
+    }
+
+    /// @return The `PRECISION` constant.
+    function getPrecision() external pure returns (uint256) {
+        return PRECISION;
+    }
+
+    /// @return The `PPM_PRECISION` constant.
+    function getPPMPrecision() external pure returns (uint256) {
+        return PPM_PRECISION;
+    }
+
+    /// @return The `BASIS_POINTS_PRECISION` constant.
+    function getBasisPointsPrecision() external pure returns (uint256) {
+        return BASIS_POINTS_PRECISION;
     }
 
     /*//////////////////////////////////////////////////////////////

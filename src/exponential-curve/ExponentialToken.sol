@@ -8,7 +8,6 @@ import {ExponentialBondingCurve} from "src/exponential-curve/ExponentialBondingC
 /// @author Dustin Stacy
 /// @notice This contract implements a simple ERC20 token that can be bought and sold using an exponential bonding curve.
 ///         The price of the token is determined by the bonding curve, which adjusts based on the total supply.
-///         The bonding curve is defined by a scaling factor, which determines the steepness of the curve.
 /// @dev Similar to the Bancor curve, this curve is also based on a total reserve balance.
 ///      Standardizing this value will ensure consistency across all implementations.
 ///      This value will be set in Wei (or other reserve currency).
