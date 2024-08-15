@@ -9,14 +9,24 @@ contract LinearBondingCurveTest is Test {
 
     // Test Variables
     uint256 supply;
+    uint256 reserverBalance;
     uint256 value;
     uint256 amount;
 
     // Update tests to incorporate fees!
 
-    // function setUp() public {
-    //     linCurve = new LinearBondingCurve();
-    // }
+    function setUp() public {
+        linCurve = new LinearBondingCurve();
+        linCurve.setInitialCost(1 ether);
+    }
+
+    function test_SolveForN() public {
+        supply = 1e18;
+        reserverBalance = 1e18;
+        value = 25e17;
+
+        (uint256 test, uint256 fees) = linCurve.calculatePurchaseReturn(supply, reserverBalance, value);
+    }
 
     // function test_LIN_BC_MintFirstWholeToken() public {
     //     supply = 0;

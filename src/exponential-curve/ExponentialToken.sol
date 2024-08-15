@@ -65,6 +65,7 @@ contract ExponentialToken is ERC20Burnable {
     /// @param _name The name of the token.
     /// @param _symbol The symbol of the token.
     /// @param _bcAddress The address of the ExponentialBondingCurve contract.
+    /// @param _reserveBalance The initial reserve balance of the contract.
     /// @dev   Need to implement a cleaner way to set the required reserve balance by enforcing the deployer to purchase the first token.
     constructor(string memory _name, string memory _symbol, address _bcAddress, uint256 _reserveBalance)
         ERC20(_name, _symbol)

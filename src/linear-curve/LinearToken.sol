@@ -32,6 +32,9 @@ contract LinearToken is ERC20Burnable {
     /// @dev In the case of an upgradeable implementation, this should be a proxy contract.
     LinearBondingCurve private immutable i_bondingCurve;
 
+    /// @notice The total amount of Ether held in the contract.
+    uint256 public reserveBalance;
+
     /// @notice The maximum gas limit for transactions.
     /// @dev This value should be set to prevent front-running attacks.
     uint256 public maxGasLimit;
@@ -63,10 +66,14 @@ contract LinearToken is ERC20Burnable {
     /// @param _name The name of the token.
     /// @param _symbol The symbol of the token.
     /// @param _bcAddress The address of the LinearBondingCurve contract.
+    /// @param _reserveBalance The initial reserve balance of the contract.
     /// @dev   Need to implement a cleaner way to set the initial supply by enforcing the deployer to purchase the first token.
-    constructor(string memory _name, string memory _symbol, address _bcAddress) ERC20(_name, _symbol) {
+    constructor(string memory _name, string memory _symbol, address _bcAddress, uint256 _reserveBalance)
+        ERC20(_name, _symbol)
+    {
         i_bondingCurve = LinearBondingCurve(_bcAddress);
         maxGasLimit = i_bondingCurve.maxGasLimit();
+        reserveBalance = _reserveBalance;
         _mint(msg.sender, 1e18);
     }
 
@@ -81,7 +88,11 @@ contract LinearToken is ERC20Burnable {
         }
 
         // Calculate the amount of tokens to mint
-        (uint256 amount, uint256 fees) = i_bondingCurve.calculatePurchaseReturn(totalSupply(), msg.value);
+        (uint256 amount, uint256 fees) =
+            i_bondingCurve.calculatePurchaseReturn(totalSupply(), reserveBalance, msg.value);
+
+        // Update the reserve balance.
+        reserveBalance += (msg.value - fees);
 
         // Mint tokens to the buyer
         _mint(msg.sender, amount);
@@ -109,7 +120,8 @@ contract LinearToken is ERC20Burnable {
         }
 
         // Calculate the amount of Ether to return to the seller
-        (uint256 salePrice, uint256 fees) = i_bondingCurve.calculateSaleReturn(totalSupply(), amount);
+        (uint256 salePrice, uint256 fees) = i_bondingCurve.calculateSaleReturn(totalSupply(), reserveBalance, amount);
+        reserveBalance -= salePrice;
 
         // Burn tokens from the seller
         burnFrom(msg.sender, amount);
