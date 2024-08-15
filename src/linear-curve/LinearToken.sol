@@ -94,6 +94,12 @@ contract LinearToken is ERC20Burnable {
         // Update the reserve balance.
         reserveBalance += (msg.value - fees);
 
+        // Transfer protocol fees to the protocol fee destination
+        (bool success,) = i_bondingCurve.protocolFeeDestination().call{value: fees}("");
+        if (!success) {
+            revert("Protocol fee transfer failed");
+        }
+
         // Mint tokens to the buyer
         _mint(msg.sender, amount);
 
@@ -125,6 +131,12 @@ contract LinearToken is ERC20Burnable {
 
         // Burn tokens from the seller
         burnFrom(msg.sender, amount);
+
+        // Transfer protocol fees to the protocol fee destination
+        (bool success,) = i_bondingCurve.protocolFeeDestination().call{value: fees}("");
+        if (!success) {
+            revert("Protocol fee transfer failed");
+        }
 
         // Transfer Ether to the seller
         payable(msg.sender).transfer(salePrice);

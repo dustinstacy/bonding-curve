@@ -65,70 +65,43 @@ contract LinearBondingCurve is Initializable, OwnableUpgradeable, UUPSUpgradeabl
     /// @param reserveTokensReceived The amount of reserve tokens received (in wei).
     /// @return purchaseReturn The amount of continuous tokens to mint (in 1e18 format).
     /// @return fees The amount of protocol fees to send to the protocol fee destination (in wei).
-    /// @dev This function is gas inefficient and needs to be optimized.
+    ///
+    /// Gas Report     | min             | avg   | median | max   | # calls |
+    ///                | 4661            | 6661  | 6661   | 8661  | 4       |
+    ///
     function calculatePurchaseReturn(uint256 currentSupply, uint256 reserveBalance, uint256 reserveTokensReceived)
         external
+        view
         returns (uint256 purchaseReturn, uint256 fees)
     {
-        // Calculate protocol fees
-        fees = (reserveTokensReceived * protocolFeePercent) / PRECISION;
+        // Calculate protocol fees CHECK!
+        fees = ((reserveTokensReceived * PRECISION / (protocolFeePercent + PRECISION)) * protocolFeePercent) / PRECISION;
         uint256 remainingReserveTokens = reserveTokensReceived - fees;
 
-        uint256 newReserveBalance = reserveBalance + remainingReserveTokens;
-        uint256 n = currentSupply / PRECISION;
+        // CHECK!
+        uint256 n = (currentSupply / PRECISION) + 1;
+        uint256 currentFragmentBalance = _totalCost(n) - reserveBalance;
+        uint256 currentFragment = ((currentFragmentBalance * PRECISION) / n) / PRECISION;
 
-        while (totalCost(n) <= newReserveBalance) {
+        if (remainingReserveTokens < currentFragmentBalance) {
+            purchaseReturn = (remainingReserveTokens * PRECISION) / (_totalCost(n) - _totalCost(n - 1));
+            return (purchaseReturn, fees);
+        }
+
+        remainingReserveTokens -= currentFragmentBalance;
+        purchaseReturn += currentFragment;
+        n++;
+
+        while (_totalCost(n) - _totalCost(n - 1) <= remainingReserveTokens) {
+            purchaseReturn += PRECISION;
+            remainingReserveTokens -= _totalCost(n) - _totalCost(n - 1);
             n++;
         }
 
-        uint256 remainingBalance = newReserveBalance - totalCost(n - 1);
-        uint256 remainingFragment = (remainingBalance * PRECISION) / n;
-        purchaseReturn = (n - 1) * PRECISION + remainingFragment;
-
-        // // Variables to store the current token prices
-        // uint256 currentDiscreteTokenPrice;
-        // uint256 remainingCurrentDiscreteTokenPrice;
-        // uint256 percentDiscreteTokenRemaining;
-
-        // // Get amount remaining within current token price
-        // currentDiscreteTokenPrice = initialCost + (((currentSupply / PRECISION) * initialCost));
-        // percentDiscreteTokenRemaining = (PRECISION - currentSupply % PRECISION);
-        // remainingCurrentDiscreteTokenPrice = (percentDiscreteTokenRemaining * currentDiscreteTokenPrice) / PRECISION;
-
-        // // Loop through the remainingReserveTokens to calculate the amount of tokens that can be purchased
-        // while (remainingReserveTokens > 0) {
-        //     if (remainingCurrentDiscreteTokenPrice < currentDiscreteTokenPrice) {
-        //         remainingReserveTokens -= remainingCurrentDiscreteTokenPrice;
-        //         purchaseReturn += percentDiscreteTokenRemaining; // Partial token purchased
-        //         currentSupply += percentDiscreteTokenRemaining; // Move to the next token
-        //         currentDiscreteTokenPrice = initialCost + ((currentSupply / PRECISION) * initialCost);
-        //         remainingCurrentDiscreteTokenPrice = currentDiscreteTokenPrice;
-        //         percentDiscreteTokenRemaining = (PRECISION - currentSupply % PRECISION);
-        //     } else if (remainingReserveTokens < currentDiscreteTokenPrice) {
-        //         purchaseReturn += (remainingReserveTokens * PRECISION / remainingCurrentDiscreteTokenPrice);
-        //         currentSupply += (remainingReserveTokens * PRECISION / remainingCurrentDiscreteTokenPrice);
-        //         break;
-        //     } else {
-        //         remainingReserveTokens -= remainingCurrentDiscreteTokenPrice;
-        //         purchaseReturn += PRECISION; // Whole token purchased
-        //         currentSupply += PRECISION; // Move to the next token
-        //         currentDiscreteTokenPrice = initialCost + ((currentSupply / PRECISION) * initialCost);
-        //         remainingCurrentDiscreteTokenPrice = currentDiscreteTokenPrice;
-        //     }
-        // }
-
-        // Transfer protocol fees to the protocol fee destination
-        (bool success,) = protocolFeeDestination.call{value: fees}("");
-        if (!success) {
-            revert("Protocol fee transfer failed");
-        }
+        uint256 remainingFragment = (remainingReserveTokens * PRECISION) / (_totalCost(n) - _totalCost(n - 1));
+        purchaseReturn += remainingFragment;
 
         return (purchaseReturn, fees);
-    }
-
-    /// @notice Function to calculate the total cost of tokens given the number of tokens.
-    function totalCost(uint256 n) public view returns (uint256) {
-        return (n * (n + 1) * initialCost) / 2;
     }
 
     /// @notice Calculates the amount of ether that can be returned for the given amount of tokens.
@@ -139,43 +112,11 @@ contract LinearBondingCurve is Initializable, OwnableUpgradeable, UUPSUpgradeabl
         external
         returns (uint256 saleReturn, uint256 fees)
     {
-        // Variables to store the current token prices
-        uint256 currentDiscreteTokenPrice;
-        uint256 remainingCurrentDiscreteTokenPrice;
-        uint256 percentDiscreteTokenRemaining;
-
-        // Variables to calculate the sale return
-        uint256 rawSaleReturn;
-        uint256 tokensRemaining = amount;
-
-        // Get amount remaining within current token price
-        currentDiscreteTokenPrice = initialCost + (((currentSupply / PRECISION) - 1) * initialCost);
-        percentDiscreteTokenRemaining = (PRECISION - currentSupply % PRECISION);
-        remainingCurrentDiscreteTokenPrice = (percentDiscreteTokenRemaining * currentDiscreteTokenPrice) / PRECISION;
-
-        while (tokensRemaining > 0) {
-            if (tokensRemaining < percentDiscreteTokenRemaining) {
-                rawSaleReturn += (tokensRemaining * remainingCurrentDiscreteTokenPrice) / PRECISION;
-                break;
-            } else {
-                rawSaleReturn += remainingCurrentDiscreteTokenPrice;
-                tokensRemaining -= percentDiscreteTokenRemaining;
-                currentSupply -= percentDiscreteTokenRemaining;
-                currentDiscreteTokenPrice = initialCost + ((currentSupply / PRECISION) * initialCost);
-                remainingCurrentDiscreteTokenPrice = currentDiscreteTokenPrice;
-                percentDiscreteTokenRemaining = (PRECISION - currentSupply % PRECISION);
-            }
-        }
-
+        // Calculate the raw sale return
+        uint256 rawSaleReturn = 0;
         // Calculate protocol fees
         fees = (rawSaleReturn * protocolFeePercent) / PRECISION;
         saleReturn = rawSaleReturn - fees;
-
-        // Transfer protocol fees to the protocol fee destination
-        (bool success,) = protocolFeeDestination.call{value: fees}("");
-        if (!success) {
-            revert("Protocol fee transfer failed");
-        }
 
         return (saleReturn, fees);
     }
@@ -185,13 +126,14 @@ contract LinearBondingCurve is Initializable, OwnableUpgradeable, UUPSUpgradeabl
     //////////////////////////////////////////////////////////////*/
 
     /// @param _feeDestination The address to send protocol fees to.
-    function setFeeDestination(address _feeDestination) public {
+    function setProtocolFeeDestination(address _feeDestination) public {
         protocolFeeDestination = _feeDestination;
     }
 
-    /// @param _feePercent The percentage of the transaction to send to the protocol fee destination.
-    function setProtocolFeePercent(uint256 _feePercent) public {
-        protocolFeePercent = _feePercent;
+    /// @param _basisPoints The percentage of the transaction to send to the protocol fee destination.
+    function setProtocolFeeBasisPoints(uint256 _basisPoints) public {
+        protocolFeeBasisPoints = _basisPoints;
+        protocolFeePercent = protocolFeeBasisPoints * PRECISION / BASIS_POINTS_PRECISION;
     }
 
     /// @param _initialCost The initial cost of the token.
@@ -224,4 +166,9 @@ contract LinearBondingCurve is Initializable, OwnableUpgradeable, UUPSUpgradeabl
 
     /// @param newImplementation The address of the new implementation contract.
     function _authorizeUpgrade(address newImplementation) internal override {}
+
+    /// @notice Function to calculate the total cost of tokens given the number of tokens.
+    function _totalCost(uint256 n) internal view returns (uint256) {
+        return (n * (n + 1) * initialCost) / 2;
+    }
 }

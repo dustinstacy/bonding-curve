@@ -132,7 +132,7 @@ contract ExponentialBondingCurve is Initializable, OwnableUpgradeable, UUPSUpgra
     //////////////////////////////////////////////////////////////*/
 
     /// @param _feeDestination The address to send protocol fees to.
-    function setFeeDestination(address _feeDestination) public {
+    function setProtocolFeeDestination(address _feeDestination) public {
         protocolFeeDestination = _feeDestination;
     }
 
