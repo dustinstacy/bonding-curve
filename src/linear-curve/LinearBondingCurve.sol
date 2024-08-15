@@ -74,30 +74,36 @@ contract LinearBondingCurve is Initializable, OwnableUpgradeable, UUPSUpgradeabl
         view
         returns (uint256 purchaseReturn, uint256 fees)
     {
-        // Calculate protocol fees CHECK!
+        // Calculate Protocol Fees.
         fees = ((reserveTokensReceived * PRECISION / (protocolFeePercent + PRECISION)) * protocolFeePercent) / PRECISION;
         uint256 remainingReserveTokens = reserveTokensReceived - fees;
 
-        // CHECK!
+        // Determine next token.
         uint256 n = (currentSupply / PRECISION) + 1;
+
+        // Calculate the current token fragment.
         uint256 currentFragmentBalance = _totalCost(n) - reserveBalance;
         uint256 currentFragment = ((currentFragmentBalance * PRECISION) / n) / PRECISION;
 
+        // If the reserve tokens are less than the current fragment balance, return portion of the current fragment.
         if (remainingReserveTokens < currentFragmentBalance) {
             purchaseReturn = (remainingReserveTokens * PRECISION) / (_totalCost(n) - _totalCost(n - 1));
             return (purchaseReturn, fees);
         }
 
+        // Calibrate variables for the next token price threshold.
         remainingReserveTokens -= currentFragmentBalance;
         purchaseReturn += currentFragment;
         n++;
 
+        // Iterate through the curve until the remaining reserve tokens are less than the next token price threshold.
         while (_totalCost(n) - _totalCost(n - 1) <= remainingReserveTokens) {
             purchaseReturn += PRECISION;
             remainingReserveTokens -= _totalCost(n) - _totalCost(n - 1);
             n++;
         }
 
+        // Calculate the remaining fragment if the remaining reserve tokens are less than the next token price threshold.
         uint256 remainingFragment = (remainingReserveTokens * PRECISION) / (_totalCost(n) - _totalCost(n - 1));
         purchaseReturn += remainingFragment;
 
