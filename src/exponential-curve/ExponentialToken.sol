@@ -95,6 +95,12 @@ contract ExponentialToken is ERC20Burnable {
         // Update the reserve balance.
         reserveBalance += (msg.value - fees);
 
+        // Transfer protocol fees to the protocol fee destination
+        (bool success,) = i_bondingCurve.protocolFeeDestination().call{value: fees}("");
+        if (!success) {
+            revert("Protocol fee transfer failed");
+        }
+
         // Mint tokens to the buyer
         _mint(msg.sender, amount);
 
@@ -123,6 +129,12 @@ contract ExponentialToken is ERC20Burnable {
         // Calculate the amount of Ether to return to the seller.
         (uint256 salePrice, uint256 fees) = i_bondingCurve.calculateSaleReturn(totalSupply(), reserveBalance, amount);
         reserveBalance -= salePrice;
+
+        // Transfer protocol fees to the protocol fee destination
+        (bool success,) = i_bondingCurve.protocolFeeDestination().call{value: fees}("");
+        if (!success) {
+            revert("Protocol fee transfer failed");
+        }
 
         // Burn tokens from the seller.
         burnFrom(msg.sender, amount);

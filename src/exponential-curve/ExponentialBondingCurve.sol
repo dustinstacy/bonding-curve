@@ -4,6 +4,7 @@ pragma solidity ^0.8.24;
 import {Initializable} from "lib/openzeppelin-contracts-upgradeable/contracts/proxy/utils/Initializable.sol";
 import {OwnableUpgradeable} from "lib/openzeppelin-contracts-upgradeable/contracts/access/OwnableUpgradeable.sol";
 import {UUPSUpgradeable} from "lib/openzeppelin-contracts-upgradeable/contracts/proxy/utils/UUPSUpgradeable.sol";
+import {console} from "forge-std/console.sol";
 
 /// @title ExponentialBondingCurve
 /// @author Dustin Stacy
@@ -79,21 +80,18 @@ contract ExponentialBondingCurve is Initializable, OwnableUpgradeable, UUPSUpgra
     /// @return fees The amount of protocol fees to send to the protocol fee destination (in wei).
     function calculatePurchaseReturn(uint256 currentSupply, uint256 reserveTokenBalance, uint256 reserveTokensReceived)
         external
+        view
         returns (uint256 purchaseReturn, uint256 fees)
     {
-        fees = (reserveTokensReceived * protocolFeePercent) / PRECISION;
+        fees = ((reserveTokensReceived * PRECISION / (protocolFeePercent + PRECISION)) * protocolFeePercent) / PRECISION;
+        console.log("fees: ", fees);
         uint256 remainingReserveTokens = reserveTokensReceived - fees;
+        console.log("remainingReserveTokens: ", remainingReserveTokens);
 
         // Calculate the amount of tokens to return
         uint256 result =
             (((remainingReserveTokens * PRECISION / reserveTokenBalance) + PRECISION) * reserveRatio) / PRECISION;
         purchaseReturn = (currentSupply * result) / PRECISION;
-
-        // Transfer protocol fees to the protocol fee destination
-        (bool success,) = protocolFeeDestination.call{value: fees}("");
-        if (!success) {
-            revert("Protocol fee transfer failed");
-        }
 
         // Return the amount of tokens to mint
         return (purchaseReturn, fees);
@@ -105,6 +103,7 @@ contract ExponentialBondingCurve is Initializable, OwnableUpgradeable, UUPSUpgra
     /// @param tokensToBurn The amount of continuous tokens to mint (in 1e18 format).
     function calculateSaleReturn(uint256 currentSupply, uint256 reserveTokenBalance, uint256 tokensToBurn)
         external
+        view
         returns (uint256 saleValue, uint256 fees)
     {
         // Calculate the new supply after burning tokens
@@ -116,12 +115,6 @@ contract ExponentialBondingCurve is Initializable, OwnableUpgradeable, UUPSUpgra
         uint256 rawSaleValue = reserveTokenBalance - newReserveTokenBalance;
         fees = (rawSaleValue * protocolFeePercent) / PRECISION;
         saleValue = rawSaleValue - fees;
-
-        // Transfer protocol fees to the protocol fee destination
-        (bool success,) = protocolFeeDestination.call{value: fees}("");
-        if (!success) {
-            revert("Protocol fee transfer failed");
-        }
 
         // Return the amount of ether to send to the seller
         return (saleValue, fees);
