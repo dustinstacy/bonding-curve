@@ -22,7 +22,7 @@ contract LinearBondingCurve is Initializable, OwnableUpgradeable, UUPSUpgradeabl
     /// @notice The percentage of the transaction to send to the protocol fee destination in basis points.
     uint256 public protocolFeeBasisPoints;
 
-    /// @dev Value to represent the protocol fee as a percentage for use in calculations.
+    /// @notice Value to represent the protocol fee as a percentage for use in calculations.
     uint256 private protocolFeePercent;
 
     /// @notice The initial cost of the token.
@@ -32,11 +32,12 @@ contract LinearBondingCurve is Initializable, OwnableUpgradeable, UUPSUpgradeabl
     /// @dev This value should be set to prevent front-running attacks.
     uint256 public maxGasLimit;
 
+    /// @notice Precision for calculations.
     /// @dev Solidity does not support floating point numbers, so we use fixed point math.
     /// @dev Precision also acts as the number 1 commonly used in curve calculations.
     uint256 private constant PRECISION = 1e18;
 
-    /// @dev Precision for basis points calculations.
+    /// @notice Precision for basis points calculations.
     /// @dev This is used to convert the protocol fee to a fraction.
     uint256 private constant BASIS_POINTS_PRECISION = 1e4;
 
@@ -77,13 +78,18 @@ contract LinearBondingCurve is Initializable, OwnableUpgradeable, UUPSUpgradeabl
         // Calculate Protocol Fees.
         fees = ((reserveTokensReceived * PRECISION / (protocolFeePercent + PRECISION)) * protocolFeePercent) / PRECISION;
         uint256 remainingReserveTokens = reserveTokensReceived - fees;
+        console.log("fees: %d", fees);
 
         // Determine the next token threshold.
         uint256 n = (currentSupply / PRECISION) + 1;
+        console.log("n: %d", n - 1);
+        console.log("totalCost(n): %d", _totalCost(n) - _totalCost(n - 1));
 
         // Calculate the current token fragment.
         uint256 currentFragmentBalance = _totalCost(n) - reserveBalance;
-        uint256 currentFragment = ((currentFragmentBalance * PRECISION) / n) / PRECISION;
+        console.log("currentFragmentBalance: %d", currentFragmentBalance);
+        uint256 currentFragment = (currentFragmentBalance * PRECISION / (_totalCost(n) - _totalCost(n - 1)));
+        console.log("currentFragment: %d", currentFragment);
 
         // If the reserve tokens are less than the current fragment balance, return portion of the current fragment.
         if (remainingReserveTokens < currentFragmentBalance) {
