@@ -67,7 +67,7 @@ contract LinearBondingCurve is Initializable, OwnableUpgradeable, UUPSUpgradeabl
     /// @return fees The amount of protocol fees to send to the protocol fee destination (in wei).
     ///
     /// Gas Report     | min             | avg   | median | max   | # calls |
-    ///                | 4661            | 6661  | 6661   | 8661  | 4       |
+    ///                | 4726            | 6813  | 4726   | 11161 | 5       |
     ///
     function calculatePurchaseReturn(uint256 currentSupply, uint256 reserveBalance, uint256 reserveTokensReceived)
         external
@@ -78,7 +78,7 @@ contract LinearBondingCurve is Initializable, OwnableUpgradeable, UUPSUpgradeabl
         fees = ((reserveTokensReceived * PRECISION / (protocolFeePercent + PRECISION)) * protocolFeePercent) / PRECISION;
         uint256 remainingReserveTokens = reserveTokensReceived - fees;
 
-        // Determine next token.
+        // Determine the next token threshold.
         uint256 n = (currentSupply / PRECISION) + 1;
 
         // Calculate the current token fragment.
@@ -104,8 +104,7 @@ contract LinearBondingCurve is Initializable, OwnableUpgradeable, UUPSUpgradeabl
         }
 
         // Calculate the remaining fragment if the remaining reserve tokens are less than the next token price threshold.
-        uint256 remainingFragment = (remainingReserveTokens * PRECISION) / (_totalCost(n) - _totalCost(n - 1));
-        purchaseReturn += remainingFragment;
+        purchaseReturn += (remainingReserveTokens * PRECISION) / (_totalCost(n) - _totalCost(n - 1));
 
         return (purchaseReturn, fees);
     }
@@ -114,12 +113,45 @@ contract LinearBondingCurve is Initializable, OwnableUpgradeable, UUPSUpgradeabl
     /// @param currentSupply supply of tokens.
     /// @param reserveBalance The balance of reserve tokens (in wei).
     /// @param amount The amount of tokens to sell.
+    ///
+    /// Gas Report     | min             | avg   | median | max   | # calls |
+    ///                | 6695            | 7345  | 7345   | 7995  | 2       |
+    ///
     function calculateSaleReturn(uint256 currentSupply, uint256 reserveBalance, uint256 amount)
         external
+        view
         returns (uint256 saleReturn, uint256 fees)
     {
-        // Calculate the raw sale return
-        uint256 rawSaleReturn = 0;
+        uint256 rawSaleReturn;
+
+        // Determine the current token threshold.
+        uint256 n = (currentSupply / PRECISION);
+
+        // Calculate the current token fragment.
+        uint256 remainingCurrentTokenBalance = reserveBalance - _totalCost(n);
+        uint256 remainingCurrentTokenFragment = ((remainingCurrentTokenBalance * PRECISION) / (n + 1)) / PRECISION;
+
+        // If the amount of tokens to sell is less than the current token fragment, return a portion of the current fragment.
+        if (amount < remainingCurrentTokenFragment) {
+            rawSaleReturn = amount * PRECISION / _totalCost(n + 1);
+            fees = (rawSaleReturn * protocolFeePercent) / PRECISION;
+            return (saleReturn, fees);
+        }
+
+        // Calibrate variables for the next token price threshold.
+        amount -= remainingCurrentTokenFragment;
+        rawSaleReturn += remainingCurrentTokenBalance;
+
+        // Iterate through the curve until the remaining amount of tokens to sell is less than the next token price threshold.
+        while (amount >= PRECISION) {
+            rawSaleReturn += (_totalCost(n) - _totalCost(n - 1));
+            amount -= PRECISION;
+            n--;
+        }
+
+        // Calculate the remaining fragment if the remaining amount of tokens to sell is less than the next token price threshold.
+        rawSaleReturn += (amount * _totalCost(n)) / PRECISION;
+
         // Calculate protocol fees
         fees = (rawSaleReturn * protocolFeePercent) / PRECISION;
         saleReturn = rawSaleReturn - fees;

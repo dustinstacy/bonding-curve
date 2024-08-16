@@ -81,16 +81,27 @@ contract LinearBondingCurveTest is Test {
         assertEq(fees, expectedFees);
     }
 
-    // function test_CalculateSaleReturn() public {
-    //     supply = 2e18;
-    //     reserverBalance = 3e18;
-    //     amount = 1e18;
+    function test_CalculateSaleReturn() public {
+        supply = 2e18;
+        reserverBalance = 3e18;
+        amount = 1e18;
 
-    //     uint256 expectedSaleValue = 1.8 ether;
-    //     uint256 expectedFees = 0.2 ether;
+        uint256 expectedSaleValue = 1.98 ether;
+        uint256 expectedFees = 0.02 ether;
 
-    //     (uint256 returnedSaleValue, uint256 fees) = linCurve.calculateSaleReturn(supply, reserverBalance, value);
-    //     assertEq(returnedSaleValue, expectedSaleValue);
-    //     assertEq(fees, expectedFees);
-    // }
+        (uint256 returnedSaleValue, uint256 fees) = linCurve.calculateSaleReturn(supply, reserverBalance, amount);
+        assertEq(returnedSaleValue, expectedSaleValue);
+        assertEq(fees, expectedFees);
+
+        supply = 75e17;
+        reserverBalance = 32e18;
+        amount = 35e17;
+
+        uint256 expectedSaleValueTwo = 21.78 ether;
+        uint256 expectedFeesTwo = 0.22 ether;
+
+        (uint256 returnedSaleValueTwo, uint256 feesTwo) = linCurve.calculateSaleReturn(supply, reserverBalance, amount);
+        assertEq(returnedSaleValueTwo, expectedSaleValueTwo);
+        assertEq(feesTwo, expectedFeesTwo);
+    }
 }
