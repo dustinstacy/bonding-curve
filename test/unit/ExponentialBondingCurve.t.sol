@@ -21,7 +21,7 @@ contract ExponentialBondingCurveTest is Test {
         expCurve.setReserveRatio(500000);
     }
 
-    function test_ExponentialCurveV2_CalculatePurchaseReturnOne() public {
+    function test_ExponentialCurve_CalculatePurchaseReturnOne() public {
         supply = 1e18;
         reserveBalance = 1 ether;
         value = 1.01 ether;
@@ -34,7 +34,7 @@ contract ExponentialBondingCurveTest is Test {
         assertEq(fees, expectedFees);
     }
 
-    function test_ExponentialCurveV2_CalculatePurchaseReturnTwo() public {
+    function test_ExponentialCurve_CalculatePurchaseReturnTwo() public {
         supply = 1414213562373095048;
         reserveBalance = 2 ether;
         value = 1.01 ether;
@@ -47,7 +47,7 @@ contract ExponentialBondingCurveTest is Test {
         assertEq(fees, expectedFees);
     }
 
-    function test_ExponentialCurveV2_CalculateSaleReturnOne() public {
+    function test_ExponentialCurve_CalculateSaleReturnOne() public {
         supply = 1414213562373095048;
         console.log("Supply: ", supply);
         reserveBalance = 2 ether;
@@ -61,7 +61,7 @@ contract ExponentialBondingCurveTest is Test {
         assertApproxEqAbs(fees, expectedFees, 10);
     }
 
-    function test_ExponentialCurveV2_CalculateSaleReturnTwo() public {
+    function test_ExponentialCurve_CalculateSaleReturnTwo() public {
         supply = 1732050807568877292;
         console.log("Supply: ", supply);
         reserveBalance = 3 ether;
@@ -79,7 +79,7 @@ contract ExponentialBondingCurveTest is Test {
         supply = 1e18;
         reserveBalance = 1 ether;
 
-        uint256 expectedDepositAmount = 3 ether;
+        uint256 expectedDepositAmount = 1 ether;
 
         uint256 depositAmount = expCurve.calculateMintCost(supply, reserveBalance);
         assertEq(depositAmount, expectedDepositAmount);

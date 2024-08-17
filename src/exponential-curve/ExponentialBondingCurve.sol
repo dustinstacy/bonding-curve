@@ -113,6 +113,11 @@ contract ExponentialBondingCurve is Initializable, OwnableUpgradeable, UUPSUpgra
     /// @param currentSupply The current supply of continuous tokens (in 1e18 format).
     /// @param reserveTokenBalance The balance of reserve tokens (in wei).
     /// @return depositAmount The amount of reserve tokens needed to mint a continuous token (in wei).
+    /// @dev This function is very gas intensive and should be used with caution.
+    ///
+    /// Gas Report     | min             | avg    | median | max     | # calls |
+    ///                | 690082          | 867621 | 846733 | 1066050 | 3       |
+    ///
     function calculateMintCost(uint256 currentSupply, uint256 reserveTokenBalance)
         external
         view
