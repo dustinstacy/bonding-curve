@@ -78,18 +78,13 @@ contract LinearBondingCurve is Initializable, OwnableUpgradeable, UUPSUpgradeabl
         // Calculate Protocol Fees.
         fees = ((reserveTokensReceived * PRECISION / (protocolFeePercent + PRECISION)) * protocolFeePercent) / PRECISION;
         uint256 remainingReserveTokens = reserveTokensReceived - fees;
-        console.log("fees: %d", fees);
 
         // Determine the next token threshold.
         uint256 n = (currentSupply / PRECISION) + 1;
-        console.log("n: %d", n - 1);
-        console.log("totalCost(n): %d", _totalCost(n) - _totalCost(n - 1));
 
         // Calculate the current token fragment.
         uint256 currentFragmentBalance = _totalCost(n) - reserveBalance;
-        console.log("currentFragmentBalance: %d", currentFragmentBalance);
         uint256 currentFragment = (currentFragmentBalance * PRECISION / (_totalCost(n) - _totalCost(n - 1)));
-        console.log("currentFragment: %d", currentFragment);
 
         // If the reserve tokens are less than the current fragment balance, return portion of the current fragment.
         if (remainingReserveTokens < currentFragmentBalance) {
@@ -163,6 +158,44 @@ contract LinearBondingCurve is Initializable, OwnableUpgradeable, UUPSUpgradeabl
         saleReturn = rawSaleReturn - fees;
 
         return (saleReturn, fees);
+    }
+
+    function calculateMintCost(uint256 currentSupply, uint256 reserveBalance)
+        external
+        view
+        returns (uint256 depositAmount)
+    {
+        // We want to mint exactly 1 token, scaled by PRECISION
+        uint256 targetReturn = PRECISION;
+
+        // Determine the next token threshold.
+        uint256 n = (currentSupply / PRECISION) + 1;
+
+        console.log("TotalCost:", _totalCost(n + 1) - _totalCost(n));
+
+        // Calculate the current token fragment.
+        uint256 currentFragmentBalance = _totalCost(n) - reserveBalance;
+        console.log("CurrentFragmentBalance:", currentFragmentBalance);
+        uint256 currentFragment = (currentFragmentBalance * PRECISION / (_totalCost(n) - _totalCost(n - 1)));
+
+        if (currentFragment == targetReturn) {
+            return depositAmount = currentFragmentBalance;
+        }
+
+        // Calibrate variables for the next token price threshold.
+        depositAmount += currentFragmentBalance;
+        targetReturn -= currentFragment;
+        n++;
+
+        console.log("TargetReturn:", targetReturn);
+        console.log("totalCost:", _totalCost(n) - _totalCost(n - 1));
+
+        uint256 remainingFragment = ((_totalCost(n) - _totalCost(n - 1)) * targetReturn) / PRECISION;
+
+        console.log("RemainingFragment:", remainingFragment);
+
+        depositAmount += remainingFragment;
+        console.log("DepositAmount:", depositAmount);
     }
 
     /*//////////////////////////////////////////////////////////////

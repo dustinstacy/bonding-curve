@@ -123,7 +123,8 @@ contract ExponentialBondingCurve is Initializable, OwnableUpgradeable, UUPSUpgra
         view
         returns (uint256 depositAmount)
     {
-        uint256 targetReturn = PRECISION; // We want to mint exactly 1 token, scaled by PRECISION
+        // We want to mint exactly 1 token, scaled by PRECISION
+        uint256 targetReturn = PRECISION;
 
         // Binary search for the deposit amount
         uint256 low = 0;

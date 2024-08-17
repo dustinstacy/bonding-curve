@@ -175,4 +175,37 @@ contract LinearBondingCurveTest is Test {
         assertEq(returnedSaleValue, expectedSaleValue);
         assertEq(fees, expectedFees);
     }
+
+    function test_CalculateMintCost() public {
+        supply = 1e18;
+        reserverBalance = 1 ether;
+
+        uint256 expectedCost = 2 ether;
+
+        uint256 cost = linCurve.calculateMintCost(supply, reserverBalance);
+        assertEq(cost, expectedCost);
+    }
+
+    function test_CalculateMintCostTwo() public {
+        supply = 1568e17;
+        reserverBalance = 12371.6 ether;
+
+        uint256 expectedCost = 157800000000000000000;
+
+        uint256 cost = linCurve.calculateMintCost(supply, reserverBalance);
+        assertEq(cost, expectedCost);
+    }
+
+    function test_CalculateMintCostThree() public {
+        supply = 1568e17;
+        reserverBalance = 12371.6 ether;
+        value = 157800000000000000000 + 1578000000000000000;
+
+        uint256 expectedCurveTokens = 1e18;
+        uint256 expectedFees = 1578000000000000000;
+
+        (uint256 returnedCurveTokens, uint256 fees) = linCurve.calculatePurchaseReturn(supply, reserverBalance, value);
+        assertEq(returnedCurveTokens, expectedCurveTokens);
+        assertEq(fees, expectedFees);
+    }
 }
