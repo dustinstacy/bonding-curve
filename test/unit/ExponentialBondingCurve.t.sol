@@ -74,4 +74,73 @@ contract ExponentialBondingCurveTest is Test {
         assertApproxEqAbs(returnedValue, expectedValue, 10);
         assertApproxEqAbs(fees, expectedFees, 10);
     }
+
+    function test_calculateMintCost() public {
+        supply = 1e18;
+        reserveBalance = 1 ether;
+
+        uint256 expectedDepositAmount = 3 ether;
+
+        uint256 depositAmount = expCurve.calculateMintCost(supply, reserveBalance);
+        assertEq(depositAmount, expectedDepositAmount);
+    }
+
+    function test_calculateMintCostTwo() public {
+        supply = 1e18;
+        reserveBalance = 1 ether;
+        value = 3.03 ether;
+
+        uint256 expectedCurveTokens = 1e18;
+        uint256 expectedFees = 0.03 ether;
+
+        (uint256 returnedCurveTokens, uint256 fees) = expCurve.getPurchaseReturn(supply, reserveBalance, value);
+        assertApproxEqAbs(returnedCurveTokens, expectedCurveTokens, 10);
+        assertApproxEqAbs(fees, expectedFees, 10);
+    }
+
+    function test_calculateMintCostThree() public {
+        supply = 2345e18;
+        reserveBalance = 4535215 ether;
+
+        uint256 expectedDepositAmount = 3868811937570751178619;
+
+        uint256 depositAmount = expCurve.calculateMintCost(supply, reserveBalance);
+        assertEq(depositAmount, expectedDepositAmount);
+    }
+
+    function test_calculateMintCostFour() public {
+        supply = 2345e18;
+        reserveBalance = 4535215 ether;
+        value = 3868811937570751178619 + 38688119375707511786;
+
+        uint256 expectedCurveTokens = 1e18;
+        uint256 expectedFees = 38688119375707511786;
+
+        (uint256 returnedCurveTokens, uint256 fees) = expCurve.getPurchaseReturn(supply, reserveBalance, value);
+        assertEq(returnedCurveTokens, expectedCurveTokens);
+        assertEq(fees, expectedFees);
+    }
+
+    function test_calculateMintCostFive() public {
+        supply = 251e17;
+        reserveBalance = 0.00234 ether;
+
+        uint256 expectedDepositAmount = 190168410025238;
+
+        uint256 depositAmount = expCurve.calculateMintCost(supply, reserveBalance);
+        assertEq(depositAmount, expectedDepositAmount);
+    }
+
+    function test_calculateMintCostSix() public {
+        supply = 251e17;
+        reserveBalance = 0.00234 ether;
+        value = 190168410025238 + 1901684100252;
+
+        uint256 expectedCurveTokens = 1e18;
+        uint256 expectedFees = 1901684100252;
+
+        (uint256 returnedCurveTokens, uint256 fees) = expCurve.getPurchaseReturn(supply, reserveBalance, value);
+        assertApproxEqAbs(returnedCurveTokens, expectedCurveTokens, 1e5);
+        assertApproxEqAbs(fees, expectedFees, 1e5);
+    }
 }

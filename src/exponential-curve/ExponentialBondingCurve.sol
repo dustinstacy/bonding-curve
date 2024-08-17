@@ -109,6 +109,38 @@ contract ExponentialBondingCurve is Initializable, OwnableUpgradeable, UUPSUpgra
         return (saleValue, fees);
     }
 
+    /// @notice Function to calculate the amount of reserve tokens needed to mint a continuous token.
+    /// @param currentSupply The current supply of continuous tokens (in 1e18 format).
+    /// @param reserveTokenBalance The balance of reserve tokens (in wei).
+    /// @return depositAmount The amount of reserve tokens needed to mint a continuous token (in wei).
+    function calculateMintCost(uint256 currentSupply, uint256 reserveTokenBalance)
+        external
+        view
+        returns (uint256 depositAmount)
+    {
+        uint256 targetReturn = PRECISION; // We want to mint exactly 1 token, scaled by PRECISION
+
+        // Binary search for the deposit amount
+        uint256 low = 0;
+        uint256 high = reserveTokenBalance;
+        uint256 mid;
+
+        while (high - low > 1) {
+            mid = (low + high) / 2;
+
+            // Calculate the return for depositing 'mid' amount of reserve tokens
+            uint256 returnAmount = calculatePurchaseReturn(currentSupply, reserveTokenBalance, reserveRatio, mid);
+
+            if (returnAmount < targetReturn) {
+                low = mid;
+            } else {
+                high = mid;
+            }
+        }
+
+        depositAmount = high;
+    }
+
     /*//////////////////////////////////////////////////////////////
                             SETTER FUNCTIONS
     //////////////////////////////////////////////////////////////*/
