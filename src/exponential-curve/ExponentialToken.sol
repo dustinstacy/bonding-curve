@@ -89,8 +89,7 @@ contract ExponentialToken is ERC20Burnable {
         }
 
         // Calculate the amount of tokens to mint.
-        (uint256 amount, uint256 fees) =
-            i_bondingCurve.calculatePurchaseReturn(totalSupply(), reserveBalance, msg.value);
+        (uint256 amount, uint256 fees) = i_bondingCurve.getPurchaseReturn(totalSupply(), reserveBalance, msg.value);
 
         // Update the reserve balance.
         reserveBalance += (msg.value - fees);
@@ -115,11 +114,6 @@ contract ExponentialToken is ERC20Burnable {
             revert ExponentialToken__AmountMustBeMoreThanZero();
         }
 
-        // Do we want to enforce this to prevent bricking the contract?
-        if (totalSupply() - amount < 1e18) {
-            revert ExponentialToken__SupplyCannotBeReducedBelowOne();
-        }
-
         // Check if the seller has enough tokens to burn.
         uint256 balance = balanceOf(msg.sender);
         if (balance < amount) {
@@ -127,7 +121,7 @@ contract ExponentialToken is ERC20Burnable {
         }
 
         // Calculate the amount of Ether to return to the seller.
-        (uint256 salePrice, uint256 fees) = i_bondingCurve.calculateSaleReturn(totalSupply(), reserveBalance, amount);
+        (uint256 salePrice, uint256 fees) = i_bondingCurve.getSaleReturn(totalSupply(), reserveBalance, amount);
         reserveBalance -= salePrice;
 
         // Transfer protocol fees to the protocol fee destination
