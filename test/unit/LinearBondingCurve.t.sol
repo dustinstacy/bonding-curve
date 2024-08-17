@@ -186,6 +186,18 @@ contract LinearBondingCurveTest is Test {
         assertEq(cost, expectedCost);
     }
 
+    function test_CaclutateMintCost() public {
+        supply = 1e18;
+        reserverBalance = 0.001 ether;
+
+        linCurve.setInitialCost(0.001 ether);
+
+        uint256 expectedCost = 0.002 ether;
+
+        uint256 cost = linCurve.calculateMintCost(supply, reserverBalance);
+        assertEq(cost, expectedCost);
+    }
+
     function test_CalculateMintCostTwo() public {
         supply = 1568e17;
         reserverBalance = 12371.6 ether;

@@ -63,7 +63,7 @@
                 // Extract data for the chart and table
                 const tokens = jsonData.data.map(entry => entry.token);
                 const pricesInWei = jsonData.data.map(entry => entry.priceInWei);
-                const prices = jsonData.data.map(entry => entry.price);
+                const prices = jsonData.data.map(entry => entry.priceInUSD);
 
                 // Create the chart
                 const canvas = document.getElementById('priceChart');

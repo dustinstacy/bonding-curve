@@ -171,11 +171,8 @@ contract LinearBondingCurve is Initializable, OwnableUpgradeable, UUPSUpgradeabl
         // Determine the next token threshold.
         uint256 n = (currentSupply / PRECISION) + 1;
 
-        console.log("TotalCost:", _totalCost(n + 1) - _totalCost(n));
-
         // Calculate the current token fragment.
         uint256 currentFragmentBalance = _totalCost(n) - reserveBalance;
-        console.log("CurrentFragmentBalance:", currentFragmentBalance);
         uint256 currentFragment = (currentFragmentBalance * PRECISION / (_totalCost(n) - _totalCost(n - 1)));
 
         if (currentFragment == targetReturn) {
@@ -187,15 +184,9 @@ contract LinearBondingCurve is Initializable, OwnableUpgradeable, UUPSUpgradeabl
         targetReturn -= currentFragment;
         n++;
 
-        console.log("TargetReturn:", targetReturn);
-        console.log("totalCost:", _totalCost(n) - _totalCost(n - 1));
-
         uint256 remainingFragment = ((_totalCost(n) - _totalCost(n - 1)) * targetReturn) / PRECISION;
 
-        console.log("RemainingFragment:", remainingFragment);
-
         depositAmount += remainingFragment;
-        console.log("DepositAmount:", depositAmount);
     }
 
     /*//////////////////////////////////////////////////////////////
