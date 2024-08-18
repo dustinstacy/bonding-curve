@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-pragma solidity ^0.8.24;
+pragma solidity ^0.8.26;
 
 import {ERC20Burnable, ERC20} from "@openzeppelin/contracts/token/ERC20/extensions/ERC20Burnable.sol";
 import {ExponentialBondingCurve} from "src/exponential-curve/ExponentialBondingCurve.sol";
@@ -124,19 +124,22 @@ contract ExponentialToken is ERC20Burnable {
         (uint256 salePrice, uint256 fees) = i_bondingCurve.getSaleReturn(totalSupply(), reserveBalance, amount);
         reserveBalance -= salePrice;
 
-        // Transfer protocol fees to the protocol fee destination
-        (bool success,) = i_bondingCurve.protocolFeeDestination().call{value: fees}("");
-        if (!success) {
-            revert("Protocol fee transfer failed");
-        }
-
         // Burn tokens from the seller.
         burnFrom(msg.sender, amount);
 
-        // Transfer Ether to the seller.
-        payable(msg.sender).transfer(salePrice);
-
         // Emit an event to log the sale.
         emit TokensSold(msg.sender, salePrice, fees, amount);
+
+        // Transfer protocol fees to the protocol fee destination
+        (bool received,) = i_bondingCurve.protocolFeeDestination().call{value: fees}("");
+        if (!received) {
+            revert("Protocol fee transfer failed");
+        }
+
+        // Transfer Ether to the seller.
+        (bool sent,) = payable(msg.sender).call{value: salePrice}("");
+        if (!sent) {
+            revert("Token sale transfer failed");
+        }
     }
 }

@@ -1,11 +1,10 @@
 // SPDX-License-Identifier: MIT
-pragma solidity ^0.8.24;
+pragma solidity ^0.8.26;
 
 import {Initializable} from "lib/openzeppelin-contracts-upgradeable/contracts/proxy/utils/Initializable.sol";
 import {OwnableUpgradeable} from "lib/openzeppelin-contracts-upgradeable/contracts/access/OwnableUpgradeable.sol";
 import {UUPSUpgradeable} from "lib/openzeppelin-contracts-upgradeable/contracts/proxy/utils/UUPSUpgradeable.sol";
 import {BancorFormula} from "src/exponential-curve/BancorFormula.sol";
-import {console} from "forge-std/console.sol";
 
 /// @title ExponentialBondingCurve
 /// @author Dustin Stacy
@@ -153,6 +152,7 @@ contract ExponentialBondingCurve is Initializable, OwnableUpgradeable, UUPSUpgra
 
     /// @param _feeDestination The address to send protocol fees to.
     function setProtocolFeeDestination(address _feeDestination) public {
+        require(_feeDestination != address(0), "ExponentialBondingCurve: Fee destination cannot be the zero address");
         protocolFeeDestination = _feeDestination;
     }
 

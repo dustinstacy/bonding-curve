@@ -2,6 +2,7 @@
 src = "src"
 out = "out"
 libs = ["lib"]
+solc_version = "0.8.26"
 fs_permissions = [
   {access = "read-write", path = "./script/data"}
 ]
@@ -15,6 +16,7 @@ remappings = [
 runs = 100
 
 gas_reports = ["ExponentialBondingCurve", "ExponentialToken", "LinearBondingCurve", "LinearToken"]
+
 
 
 

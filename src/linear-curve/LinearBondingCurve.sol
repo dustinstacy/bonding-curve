@@ -1,10 +1,9 @@
 // SPDX-License-Identifier: MIT
-pragma solidity ^0.8.24;
+pragma solidity ^0.8.26;
 
 import {Initializable} from "lib/openzeppelin-contracts-upgradeable/contracts/proxy/utils/Initializable.sol";
 import {OwnableUpgradeable} from "lib/openzeppelin-contracts-upgradeable/contracts/access/OwnableUpgradeable.sol";
 import {UUPSUpgradeable} from "lib/openzeppelin-contracts-upgradeable/contracts/proxy/utils/UUPSUpgradeable.sol";
-import {console} from "forge-std/console.sol";
 
 /// @title LinearBondingCurve
 /// @author Dustin Stacy
@@ -123,7 +122,7 @@ contract LinearBondingCurve is Initializable, OwnableUpgradeable, UUPSUpgradeabl
         view
         returns (uint256 saleReturn, uint256 fees)
     {
-        uint256 rawSaleReturn;
+        uint256 rawSaleReturn = 0;
 
         // Determine the current token threshold.
         uint256 n = (currentSupply / PRECISION);
@@ -195,6 +194,7 @@ contract LinearBondingCurve is Initializable, OwnableUpgradeable, UUPSUpgradeabl
 
     /// @param _feeDestination The address to send protocol fees to.
     function setProtocolFeeDestination(address _feeDestination) public {
+        require(_feeDestination != address(0), "LinearBondingCurve: protocol fee destination cannot be zero address");
         protocolFeeDestination = _feeDestination;
     }
 

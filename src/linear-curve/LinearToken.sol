@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-pragma solidity ^0.8.24;
+pragma solidity ^0.8.26;
 
 import {ERC20Burnable, ERC20} from "@openzeppelin/contracts/token/ERC20/extensions/ERC20Burnable.sol";
 import {LinearBondingCurve} from "src/linear-curve/LinearBondingCurve.sol";
@@ -94,6 +94,9 @@ contract LinearToken is ERC20Burnable {
         // Update the reserve balance.
         reserveBalance += (msg.value - fees);
 
+        // Emit an event to log the purchase.
+        emit TokensPurchased(msg.sender, msg.value, fees, amount);
+
         // Transfer protocol fees to the protocol fee destination
         (bool success,) = i_bondingCurve.protocolFeeDestination().call{value: fees}("");
         if (!success) {
@@ -102,9 +105,6 @@ contract LinearToken is ERC20Burnable {
 
         // Mint tokens to the buyer
         _mint(msg.sender, amount);
-
-        // Emit an event to log the purchase.
-        emit TokensPurchased(msg.sender, msg.value, fees, amount);
     }
 
     /// @notice Allows a user to burn tokens and receive Ether from the contract.
@@ -132,16 +132,19 @@ contract LinearToken is ERC20Burnable {
         // Burn tokens from the seller
         burnFrom(msg.sender, amount);
 
+        // Emit an event to log the sale
+        emit TokensSold(msg.sender, salePrice, fees, amount);
+
         // Transfer protocol fees to the protocol fee destination
-        (bool success,) = i_bondingCurve.protocolFeeDestination().call{value: fees}("");
-        if (!success) {
+        (bool received,) = i_bondingCurve.protocolFeeDestination().call{value: fees}("");
+        if (!received) {
             revert("Protocol fee transfer failed");
         }
 
         // Transfer Ether to the seller
-        payable(msg.sender).transfer(salePrice);
-
-        // Emit an event to log the sale
-        emit TokensSold(msg.sender, salePrice, fees, amount);
+        (bool sent,) = payable(msg.sender).call{value: salePrice}("");
+        if (!sent) {
+            revert("Token sale transfer failed");
+        }
     }
 }
