@@ -12,6 +12,12 @@ contract LinearToken is ERC20Burnable {
                                 ERRORS
     ///////////////////////////////////////////////////////////////*/
 
+    /// @dev Emitted when attempting to mint the initial token after tokens have already been minted.
+    error LinearToken__TokensHaveAlreadyBeenMinted();
+
+    /// @dev Emitted when the buyer does not send the correct amount of Ether to mint the initial token.
+    error LinearToken__IncorrectAmountOfEtherSent();
+
     /// @dev Emitted when attempting to perform an action with an amount that must be more than zero.
     error LinearToken__AmountMustBeMoreThanZero();
 
@@ -22,7 +28,7 @@ contract LinearToken is ERC20Burnable {
     error LinearToken__BurnAmountExceedsBalance();
 
     /// @dev Emitted when attempting to reduce the total supply below one.
-    error ExponentialToken__SupplyCannotBeReducedBelowOne();
+    error LinearToken__SupplyCannotBeReducedBelowOne();
 
     /*///////////////////////////////////////////////////////////////
                              STATE VARIABLES
@@ -66,20 +72,27 @@ contract LinearToken is ERC20Burnable {
     /// @param _name The name of the token.
     /// @param _symbol The symbol of the token.
     /// @param _bcAddress The address of the LinearBondingCurve contract.
-    /// @param _reserveBalance The initial reserve balance of the contract.
     /// @dev   Need to implement a cleaner way to set the initial supply by enforcing the deployer to purchase the first token.
-    constructor(string memory _name, string memory _symbol, address _bcAddress, uint256 _reserveBalance)
-        ERC20(_name, _symbol)
-    {
+    constructor(string memory _name, string memory _symbol, address _bcAddress) ERC20(_name, _symbol) {
         i_bondingCurve = LinearBondingCurve(_bcAddress);
         maxGasLimit = i_bondingCurve.maxGasLimit();
-        reserveBalance = _reserveBalance;
-        _mint(msg.sender, 1e18);
     }
 
     /*///////////////////////////////////////////////////////////////
                           EXTERNAL FUNCTIONS
     ///////////////////////////////////////////////////////////////*/
+
+    /// @notice Allows the host to mint the initial token.
+    function hostMint() external payable {
+        if (totalSupply() > 0) {
+            revert LinearToken__TokensHaveAlreadyBeenMinted();
+        }
+        if (msg.value != i_bondingCurve.initialCost()) {
+            revert LinearToken__IncorrectAmountOfEtherSent();
+        }
+        reserveBalance += msg.value;
+        _mint(msg.sender, 1e18);
+    }
 
     /// @notice Allows a user to mint tokens by sending Ether to the contract.
     function mintTokens() external payable validGasPrice {
@@ -116,7 +129,7 @@ contract LinearToken is ERC20Burnable {
 
         /// Do we want to enforce this to prevent bricking the contract?
         if (totalSupply() - amount < 1e18) {
-            revert ExponentialToken__SupplyCannotBeReducedBelowOne();
+            revert LinearToken__SupplyCannotBeReducedBelowOne();
         }
 
         // Check if the seller has enough tokens to burn.

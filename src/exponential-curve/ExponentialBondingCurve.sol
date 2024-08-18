@@ -21,6 +21,9 @@ contract ExponentialBondingCurve is Initializable, OwnableUpgradeable, UUPSUpgra
     /// @notice The percentage of the transaction to send to the protocol fee destination represented in basis points.
     uint256 public protocolFeeBasisPoints;
 
+    /// @notice The balance of reserve tokens to initialize the bonding curve token with.
+    uint256 public initialReserve;
+
     /// @dev Value to represent the reserve ratio for use in calculations.
     uint32 public reserveRatio;
 

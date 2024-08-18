@@ -12,6 +12,12 @@ contract ExponentialToken is ERC20Burnable {
                                 ERRORS
     ///////////////////////////////////////////////////////////////*/
 
+    /// @dev Emitted when attempting to mint the initial token after tokens have already been minted.
+    error ExponentialToken__TokensHaveAlreadyBeenMinted();
+
+    /// @dev Emitted when the buyer does not send the correct amount of Ether to mint the initial token.
+    error ExponentialToken__IncorrectAmountOfEtherSent();
+
     /// @dev Emitted when attempting to perform an action with an amount that must be more than zero.
     error ExponentialToken__AmountMustBeMoreThanZero();
 
@@ -76,8 +82,21 @@ contract ExponentialToken is ERC20Burnable {
                           EXTERNAL FUNCTIONS
     ///////////////////////////////////////////////////////////////*/
 
+    /// @notice Allows the host to mint the initial token.
+    function hostMint() external payable {
+        if (totalSupply() > 0) {
+            revert ExponentialToken__TokensHaveAlreadyBeenMinted();
+        }
+        if (msg.value != i_bondingCurve.initialReserve()) {
+            revert ExponentialToken__IncorrectAmountOfEtherSent();
+        }
+        reserveBalance += msg.value;
+        _mint(msg.sender, 1e18);
+    }
+
     /// @notice Allows a user to mint tokens by sending ether to the contract.
     function mintTokens() external payable validGasPrice {
+        require(totalSupply() > 0, "ExponentialToken: host token has not been minted yet");
         if (msg.value == 0) {
             revert ExponentialToken__AmountMustBeMoreThanZero();
         }
