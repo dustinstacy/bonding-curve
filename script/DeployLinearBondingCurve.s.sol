@@ -3,7 +3,7 @@ pragma solidity ^0.8.26;
 
 import {LinearBondingCurve} from "src/linear-curve/LinearBondingCurve.sol";
 import {Script} from "forge-std/Script.sol";
-import {HelperConfig} from "script/HelperConfig.sol";
+import {HelperConfig} from "script/HelperConfig.s.sol";
 import {ERC1967Proxy} from "@openzeppelin/contracts/proxy/ERC1967/ERC1967Proxy.sol";
 
 /// @title DeployLinearBondingCurve
@@ -21,8 +21,13 @@ contract DeployLinearBondingCurve is Script {
         helperConfig = new HelperConfig();
         HelperConfig.CurveConfig memory config = helperConfig.getConfig();
 
+        vm.startBroadcast();
+        // Deploy the LinearBondingCurve implementation contract.
+        LinearBondingCurve bondingCurve = new LinearBondingCurve();
+
+        // Encode the parameters for the LinearBondingCurve contract.
         bytes memory data = abi.encodeWithSelector(
-            LinearBondingCurve.initialize.selector,
+            bondingCurve.initialize.selector,
             config.owner,
             config.protocolFeeDestination,
             config.protocolFeePercent,
@@ -30,10 +35,6 @@ contract DeployLinearBondingCurve is Script {
             config.initialReserve,
             config.maxGasLimit
         );
-
-        vm.startBroadcast();
-        // Deploy the LinearBondingCurve contract.
-        LinearBondingCurve bondingCurve = new LinearBondingCurve();
         // Deploy the ERC1967Proxy contract and set the LinearBondingCurve contract as the implementation.
         ERC1967Proxy proxyContract = new ERC1967Proxy(address(bondingCurve), data);
         proxy = address(proxyContract);

@@ -2,6 +2,7 @@
 pragma solidity ^0.8.26;
 
 import {Script} from "forge-std/Script.sol";
+import {console} from "forge-std/console.sol";
 
 abstract contract CodeConstants {
     /* Chain IDs */
@@ -35,9 +36,7 @@ contract HelperConfig is Script, CodeConstants {
     }
 
     function getConfigByChainId(uint256 chainId) public returns (CurveConfig memory) {
-        if (curveConfigs[chainId].owner != FOUNDRY_DEFAULT_SENDER) {
-            return curveConfigs[chainId];
-        } else if (chainId == LOCAL_CHAIN_ID) {
+        if (chainId == LOCAL_CHAIN_ID) {
             return getOrCreateAnvilConfig();
         } else {
             revert HelperConfig__InvalidChainId();
@@ -55,7 +54,7 @@ contract HelperConfig is Script, CodeConstants {
             protocolFeePercent: 100, // 1%
             feeSharePercent: 100, // 1%
             initialReserve: 0.0001 ether,
-            reserveRatio: 475000, // 47.5%
+            reserveRatio: 500000, // 50.0%
             maxGasLimit: 1000000 // 1M Gwei
         });
 

@@ -3,9 +3,21 @@ pragma solidity ^0.8.26;
 
 import {Test, console} from "forge-std/Test.sol";
 import {LinearBondingCurve} from "src/linear-curve/LinearBondingCurve.sol";
+import {HelperConfig} from "script/HelperConfig.s.sol";
+import {DeployLinearBondingCurve} from "script/DeployLinearBondingCurve.s.sol";
+import {CodeConstants} from "script/HelperConfig.s.sol";
 
-contract LinearBondingCurveTest is Test {
+contract LinearBondingCurveTest is Test, CodeConstants {
     LinearBondingCurve public linCurve;
+    HelperConfig public helperConfig;
+
+    // Curve Variables;
+    address owner;
+    address protocolFeeDestination;
+    uint256 protocolFeePercent;
+    uint256 feeSharePercent;
+    uint256 initialReserve;
+    uint256 maxGasLimit;
 
     // Test Variables
     uint256 supply;
@@ -14,10 +26,20 @@ contract LinearBondingCurveTest is Test {
     uint256 amount;
 
     function setUp() public {
-        linCurve = new LinearBondingCurve();
-        linCurve.setInitialCost(1 ether);
-        linCurve.setProtocolFeeDestination(address(linCurve));
-        linCurve.setProtocolFeeBasisPoints(100);
+        DeployLinearBondingCurve deployer = new DeployLinearBondingCurve();
+        (address proxy, HelperConfig helper) = deployer.deployCurve();
+        HelperConfig.CurveConfig memory config = helper.getConfig();
+
+        owner = config.owner;
+        protocolFeeDestination = config.protocolFeeDestination;
+        protocolFeePercent = config.protocolFeePercent;
+        feeSharePercent = config.feeSharePercent;
+        initialReserve = config.initialReserve;
+        maxGasLimit = config.maxGasLimit;
+
+        linCurve = LinearBondingCurve(payable(proxy));
+        vm.prank(FOUNDRY_DEFAULT_SENDER);
+        linCurve.setInitialReserve(1 ether);
     }
 
     function test_LinearCurve_Fees() public {
@@ -35,7 +57,8 @@ contract LinearBondingCurveTest is Test {
         assertEq(fees, expectedFees);
 
         // 2% fee
-        linCurve.setProtocolFeeBasisPoints(200);
+        vm.prank(FOUNDRY_DEFAULT_SENDER);
+        linCurve.setProtocolFeePercent(200);
         value = 2.04 ether;
 
         uint256 expectedFeesTwo = 0.04 ether;
@@ -46,7 +69,8 @@ contract LinearBondingCurveTest is Test {
         assertEq(feesTwo, expectedFeesTwo);
 
         // 3% fee
-        linCurve.setProtocolFeeBasisPoints(300);
+        vm.prank(FOUNDRY_DEFAULT_SENDER);
+        linCurve.setProtocolFeePercent(300);
         value = 2.06 ether;
 
         uint256 expectedFeesThree = 0.06 ether;
@@ -57,7 +81,8 @@ contract LinearBondingCurveTest is Test {
         assertEq(feesThree, expectedFeesThree);
 
         // 7.85% fee
-        linCurve.setProtocolFeeBasisPoints(785);
+        vm.prank(FOUNDRY_DEFAULT_SENDER);
+        linCurve.setProtocolFeePercent(785);
         value = 2.157 ether;
 
         uint256 expectedFeesFour = 0.157 ether;
@@ -99,7 +124,8 @@ contract LinearBondingCurveTest is Test {
         reserverBalance = 0.001 ether;
         value = 0.00202 ether;
 
-        linCurve.setInitialCost(0.001 ether);
+        vm.prank(FOUNDRY_DEFAULT_SENDER);
+        linCurve.setInitialReserve(0.001 ether);
 
         uint256 expectedCurveTokens = 1e18;
         uint256 expectedFees = 0.00002 ether;
@@ -127,7 +153,7 @@ contract LinearBondingCurveTest is Test {
         reserverBalance = 3 ether;
         amount = 1e18;
 
-        uint256 expectedSaleValue = 1.98 ether;
+        uint256 expectedSaleValue = 2 ether;
         uint256 expectedFees = 0.02 ether;
 
         (uint256 returnedSaleValue, uint256 fees) = linCurve.calculateSaleReturn(supply, reserverBalance, amount);
@@ -140,7 +166,7 @@ contract LinearBondingCurveTest is Test {
         reserverBalance = 32 ether;
         amount = 35e17;
 
-        uint256 expectedSaleValue = 21.78 ether;
+        uint256 expectedSaleValue = 22 ether;
         uint256 expectedFees = 0.22 ether;
 
         (uint256 returnedSaleValue, uint256 fees) = linCurve.calculateSaleReturn(supply, reserverBalance, amount);
@@ -153,9 +179,10 @@ contract LinearBondingCurveTest is Test {
         reserverBalance = 0.003 ether;
         amount = 1e18;
 
-        linCurve.setInitialCost(0.001 ether);
+        vm.prank(FOUNDRY_DEFAULT_SENDER);
+        linCurve.setInitialReserve(0.001 ether);
 
-        uint256 expectedSaleValue = 0.00198 ether;
+        uint256 expectedSaleValue = 0.002 ether;
         uint256 expectedFees = 0.00002 ether;
 
         (uint256 returnedSaleValue, uint256 fees) = linCurve.calculateSaleReturn(supply, reserverBalance, amount);
@@ -168,7 +195,7 @@ contract LinearBondingCurveTest is Test {
         reserverBalance = 500000500000 ether;
         amount = 1e18;
 
-        uint256 expectedSaleValue = 990000 ether;
+        uint256 expectedSaleValue = 1000000 ether;
         uint256 expectedFees = 10000 ether;
 
         (uint256 returnedSaleValue, uint256 fees) = linCurve.calculateSaleReturn(supply, reserverBalance, amount);
@@ -190,7 +217,8 @@ contract LinearBondingCurveTest is Test {
         supply = 1e18;
         reserverBalance = 0.001 ether;
 
-        linCurve.setInitialCost(0.001 ether);
+        vm.prank(FOUNDRY_DEFAULT_SENDER);
+        linCurve.setInitialReserve(0.001 ether);
 
         uint256 expectedCost = 0.002 ether;
 

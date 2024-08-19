@@ -3,22 +3,42 @@ pragma solidity ^0.8.26;
 
 import {Test, console} from "forge-std/Test.sol";
 import {ExponentialBondingCurve} from "src/exponential-curve/ExponentialBondingCurve.sol";
+import {HelperConfig} from "script/HelperConfig.s.sol";
+import {DeployExponentialBondingCurve} from "script/DeployExponentialBondingCurve.s.sol";
 
 contract ExponentialBondingCurveTest is Test {
     ExponentialBondingCurve public expCurve;
+    HelperConfig public helperConfig;
 
-    // Test Variables;
+    // Curve Variables;
+    address owner;
+    address protocolFeeDestination;
+    uint256 protocolFeePercent;
+    uint256 feeSharePercent;
+    uint256 initialReserve;
+    uint32 reserveRatio;
+    uint256 maxGasLimit;
+
+    // Test Variables
     uint256 supply;
     uint256 reserveBalance;
     uint256 value;
     uint256 amount;
 
     function setUp() public {
-        expCurve = new ExponentialBondingCurve();
-        expCurve.setProtocolFeeDestination(address(expCurve));
-        expCurve.setProtocolFeeBasisPoints(100);
-        // Acts like linear curve. Maybe no need for seperate curve?
-        expCurve.setReserveRatio(500000);
+        DeployExponentialBondingCurve deployer = new DeployExponentialBondingCurve();
+        (address proxy, HelperConfig helper) = deployer.deployCurve();
+        HelperConfig.CurveConfig memory config = helper.getConfig();
+
+        owner = config.owner;
+        protocolFeeDestination = config.protocolFeeDestination;
+        protocolFeePercent = config.protocolFeePercent;
+        feeSharePercent = config.feeSharePercent;
+        initialReserve = config.initialReserve;
+        reserveRatio = config.reserveRatio;
+        maxGasLimit = config.maxGasLimit;
+
+        expCurve = ExponentialBondingCurve(payable(proxy));
     }
 
     function test_ExponentialCurve_CalculatePurchaseReturnOne() public {
@@ -49,11 +69,10 @@ contract ExponentialBondingCurveTest is Test {
 
     function test_ExponentialCurve_CalculateSaleReturnOne() public {
         supply = 1414213562373095048;
-        console.log("Supply: ", supply);
         reserveBalance = 2 ether;
         amount = 414213562373095048;
 
-        uint256 expectedValue = 0.99 ether;
+        uint256 expectedValue = 1 ether;
         uint256 expectedFees = 0.01 ether;
 
         (uint256 returnedValue, uint256 fees) = expCurve.getSaleReturn(supply, reserveBalance, amount);
@@ -63,11 +82,10 @@ contract ExponentialBondingCurveTest is Test {
 
     function test_ExponentialCurve_CalculateSaleReturnTwo() public {
         supply = 1732050807568877292;
-        console.log("Supply: ", supply);
         reserveBalance = 3 ether;
         amount = 317837245195782244;
 
-        uint256 expectedValue = 0.99 ether;
+        uint256 expectedValue = 1 ether;
         uint256 expectedFees = 0.01 ether;
 
         (uint256 returnedValue, uint256 fees) = expCurve.getSaleReturn(supply, reserveBalance, amount);
@@ -75,7 +93,7 @@ contract ExponentialBondingCurveTest is Test {
         assertApproxEqAbs(fees, expectedFees, 10);
     }
 
-    function test_calculateMintCost() public {
+    function test_ExponentialCurveCalculateMintCost() public {
         supply = 1e18;
         reserveBalance = 1 ether;
 
@@ -85,7 +103,7 @@ contract ExponentialBondingCurveTest is Test {
         assertEq(depositAmount, expectedDepositAmount);
     }
 
-    function test_calculateMintCostTwo() public {
+    function test_ExponentialCurveCalculateMintCostTwo() public {
         supply = 1e18;
         reserveBalance = 1 ether;
         value = 3.03 ether;
@@ -98,7 +116,7 @@ contract ExponentialBondingCurveTest is Test {
         assertApproxEqAbs(fees, expectedFees, 10);
     }
 
-    function test_calculateMintCostThree() public {
+    function test_ExponentialCurveCalculateMintCostThree() public {
         supply = 2345e18;
         reserveBalance = 4535215 ether;
 
@@ -108,7 +126,7 @@ contract ExponentialBondingCurveTest is Test {
         assertEq(depositAmount, expectedDepositAmount);
     }
 
-    function test_calculateMintCostFour() public {
+    function test_ExponentialCurveCalculateMintCostFour() public {
         supply = 2345e18;
         reserveBalance = 4535215 ether;
         value = 3868811937570751178619 + 38688119375707511786;
@@ -121,7 +139,7 @@ contract ExponentialBondingCurveTest is Test {
         assertEq(fees, expectedFees);
     }
 
-    function test_calculateMintCostFive() public {
+    function test_ExponentialCurveCalculateMintCostFive() public {
         supply = 251e17;
         reserveBalance = 0.00234 ether;
 
@@ -131,7 +149,7 @@ contract ExponentialBondingCurveTest is Test {
         assertEq(depositAmount, expectedDepositAmount);
     }
 
-    function test_calculateMintCostSix() public {
+    function test_ExponentialCurveCalculateMintCostSix() public {
         supply = 251e17;
         reserveBalance = 0.00234 ether;
         value = 190168410025238 + 1901684100252;

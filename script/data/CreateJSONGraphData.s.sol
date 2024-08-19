@@ -43,7 +43,7 @@ contract CreateJSONGraphData is Script {
     function run() public {
         if (curve == 0) {
             linCurve = new LinearBondingCurve();
-            linCurve.setInitialCost(initialCost);
+            linCurve.setInitialReserve(initialCost);
             (uint256[] memory tokenIds, uint256[] memory priceInWei, uint256[] memory priceInUSD) = createLinearGraph();
             string memory json = _createJson(tokenIds, priceInWei, priceInUSD);
             vm.writeFile(string.concat(vm.projectRoot(), DESTINATION), json);
