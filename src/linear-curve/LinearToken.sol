@@ -12,9 +12,6 @@ contract LinearToken is ERC20Burnable {
                                 ERRORS
     ///////////////////////////////////////////////////////////////*/
 
-    /// @dev Emitted when attempting to mint the initial token after tokens have already been minted.
-    error LinearToken__TokensHaveAlreadyBeenMinted();
-
     /// @dev Emitted when the buyer does not send the correct amount of Ether to mint the initial token.
     error LinearToken__IncorrectAmountOfEtherSent();
 
@@ -41,9 +38,8 @@ contract LinearToken is ERC20Burnable {
     /// @notice The total amount of Ether held in the contract.
     uint256 public reserveBalance;
 
-    /// @notice The maximum gas limit for transactions.
-    /// @dev This value should be set to prevent front-running attacks.
-    uint256 public maxGasLimit;
+    /// @notice The total amount of fees collected by the contract.
+    uint256 public collectedFees;
 
     /*///////////////////////////////////////////////////////////////
                                 EVENTS
@@ -61,7 +57,7 @@ contract LinearToken is ERC20Burnable {
 
     /// @dev Modifier to check if the transaction gas price is below the maximum gas limit.
     modifier validGasPrice() {
-        require(tx.gasprice <= maxGasLimit, "Transaction gas price cannot exceed maximum gas limit.");
+        require(tx.gasprice <= i_bondingCurve.maxGasLimit(), "Transaction gas price cannot exceed maximum gas limit.");
         _;
     }
 
@@ -72,27 +68,22 @@ contract LinearToken is ERC20Burnable {
     /// @param _name The name of the token.
     /// @param _symbol The symbol of the token.
     /// @param _bcAddress The address of the LinearBondingCurve contract.
-    /// @dev   Need to implement a cleaner way to set the initial supply by enforcing the deployer to purchase the first token.
-    constructor(string memory _name, string memory _symbol, address _bcAddress) ERC20(_name, _symbol) {
+    constructor(string memory _name, string memory _symbol, address _bcAddress) payable ERC20(_name, _symbol) {
+        // Check if the bonding curve address is not the zero address and set the bonding curve instance.
+        require(_bcAddress != address(0), "ExponentialToken: bonding curve address cannot be zero address");
         i_bondingCurve = LinearBondingCurve(_bcAddress);
-        maxGasLimit = i_bondingCurve.maxGasLimit();
-    }
 
-    /*///////////////////////////////////////////////////////////////
-                          EXTERNAL FUNCTIONS
-    ///////////////////////////////////////////////////////////////*/
-
-    /// @notice Allows the host to mint the initial token.
-    function hostMint() external payable {
-        if (totalSupply() > 0) {
-            revert LinearToken__TokensHaveAlreadyBeenMinted();
-        }
-        if (msg.value != i_bondingCurve.initialCost()) {
+        // Mint the initial token to the contract creator.
+        if (msg.value != i_bondingCurve.initialReserve()) {
             revert LinearToken__IncorrectAmountOfEtherSent();
         }
         reserveBalance += msg.value;
         _mint(msg.sender, 1e18);
     }
+
+    /*///////////////////////////////////////////////////////////////
+                          EXTERNAL FUNCTIONS
+    ///////////////////////////////////////////////////////////////*/
 
     /// @notice Allows a user to mint tokens by sending Ether to the contract.
     function mintTokens() external payable validGasPrice {
@@ -107,9 +98,6 @@ contract LinearToken is ERC20Burnable {
         // Update the reserve balance.
         reserveBalance += (msg.value - fees);
 
-        // Emit an event to log the purchase.
-        emit TokensPurchased(msg.sender, msg.value, fees, amount);
-
         // Transfer protocol fees to the protocol fee destination
         (bool success,) = i_bondingCurve.protocolFeeDestination().call{value: fees}("");
         if (!success) {
@@ -118,6 +106,9 @@ contract LinearToken is ERC20Burnable {
 
         // Mint tokens to the buyer
         _mint(msg.sender, amount);
+
+        // Emit an event to log the purchase.
+        emit TokensPurchased(msg.sender, msg.value, fees, amount);
     }
 
     /// @notice Allows a user to burn tokens and receive Ether from the contract.
@@ -141,6 +132,14 @@ contract LinearToken is ERC20Burnable {
         // Calculate the amount of Ether to return to the seller
         (uint256 salePrice, uint256 fees) = i_bondingCurve.calculateSaleReturn(totalSupply(), reserveBalance, amount);
         reserveBalance -= salePrice;
+        salePrice -= fees;
+
+        // Calculate the share of fees to be collected by the contract.
+        if (i_bondingCurve.feeSharePercent() != 0) {
+            uint256 feeShare = (fees * i_bondingCurve.feeSharePercent()) / 1e18;
+            collectedFees += feeShare;
+            fees -= feeShare;
+        }
 
         // Burn tokens from the seller
         burnFrom(msg.sender, amount);

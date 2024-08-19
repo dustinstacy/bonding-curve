@@ -12,9 +12,6 @@ contract ExponentialToken is ERC20Burnable {
                                 ERRORS
     ///////////////////////////////////////////////////////////////*/
 
-    /// @dev Emitted when attempting to mint the initial token after tokens have already been minted.
-    error ExponentialToken__TokensHaveAlreadyBeenMinted();
-
     /// @dev Emitted when the buyer does not send the correct amount of Ether to mint the initial token.
     error ExponentialToken__IncorrectAmountOfEtherSent();
 
@@ -40,9 +37,8 @@ contract ExponentialToken is ERC20Burnable {
     /// @notice The total amount of Ether held in the contract.
     uint256 public reserveBalance;
 
-    /// @notice The maximum gas limit for transactions.
-    /// @dev This value should be set to prevent front-running attacks.
-    uint256 public maxGasLimit;
+    /// @notice The total amount of fees collected by the contract.
+    uint256 public collectedFees;
 
     /*///////////////////////////////////////////////////////////////
                                 EVENTS
@@ -60,7 +56,7 @@ contract ExponentialToken is ERC20Burnable {
 
     /// @dev Modifier to check if the transaction gas price is below the maximum gas limit.
     modifier validGasPrice() {
-        require(tx.gasprice <= maxGasLimit, "Transaction gas price cannot exceed maximum gas limit.");
+        require(tx.gasprice <= i_bondingCurve.maxGasLimit(), "Transaction gas price cannot exceed maximum gas limit.");
         _;
     }
 
@@ -71,22 +67,12 @@ contract ExponentialToken is ERC20Burnable {
     /// @param _name The name of the token.
     /// @param _symbol The symbol of the token.
     /// @param _bcAddress The address of the ExponentialBondingCurve contract.
-    constructor(string memory _name, string memory _symbol, address _bcAddress) ERC20(_name, _symbol) {
+    constructor(string memory _name, string memory _symbol, address _bcAddress) payable ERC20(_name, _symbol) {
+        // Check if the bonding curve address is not the zero address and set the bonding curve instance.
         require(_bcAddress != address(0), "ExponentialToken: bonding curve address cannot be zero address");
         i_bondingCurve = ExponentialBondingCurve(_bcAddress);
-        maxGasLimit = i_bondingCurve.maxGasLimit();
-        _mint(msg.sender, 1e18);
-    }
 
-    /*///////////////////////////////////////////////////////////////
-                          EXTERNAL FUNCTIONS
-    ///////////////////////////////////////////////////////////////*/
-
-    /// @notice Allows the host to mint the initial token.
-    function hostMint() external payable {
-        if (totalSupply() > 0) {
-            revert ExponentialToken__TokensHaveAlreadyBeenMinted();
-        }
+        // Mint the initial token to the contract creator.
         if (msg.value != i_bondingCurve.initialReserve()) {
             revert ExponentialToken__IncorrectAmountOfEtherSent();
         }
@@ -94,9 +80,12 @@ contract ExponentialToken is ERC20Burnable {
         _mint(msg.sender, 1e18);
     }
 
-    /// @notice Allows a user to mint tokens by sending ether to the contract.
+    /*///////////////////////////////////////////////////////////////
+                          EXTERNAL FUNCTIONS
+    ///////////////////////////////////////////////////////////////*/
+
+    /// @notice Allows a user to mint tokens by sending Ether to the contract.
     function mintTokens() external payable validGasPrice {
-        require(totalSupply() > 0, "ExponentialToken: host token has not been minted yet");
         if (msg.value == 0) {
             revert ExponentialToken__AmountMustBeMoreThanZero();
         }
@@ -127,6 +116,11 @@ contract ExponentialToken is ERC20Burnable {
             revert ExponentialToken__AmountMustBeMoreThanZero();
         }
 
+        /// Do we want to enforce this to prevent bricking the contract?
+        if (totalSupply() - amount < 1e18) {
+            revert ExponentialToken__SupplyCannotBeReducedBelowOne();
+        }
+
         // Check if the seller has enough tokens to burn.
         uint256 balance = balanceOf(msg.sender);
         if (balance < amount) {
@@ -135,7 +129,17 @@ contract ExponentialToken is ERC20Burnable {
 
         // Calculate the amount of Ether to return to the seller.
         (uint256 salePrice, uint256 fees) = i_bondingCurve.getSaleReturn(totalSupply(), reserveBalance, amount);
+
+        // Update the sale price and reserve balance.
         reserveBalance -= salePrice;
+        salePrice -= fees;
+
+        // Calculate the share of fees to be collected by the contract.
+        if (i_bondingCurve.feeSharePercent() != 0) {
+            uint256 feeShare = (fees * i_bondingCurve.feeSharePercent()) / 1e18;
+            collectedFees += feeShare;
+            fees -= feeShare;
+        }
 
         // Burn tokens from the seller.
         burnFrom(msg.sender, amount);

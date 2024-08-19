@@ -9,8 +9,6 @@ import {UUPSUpgradeable} from "lib/openzeppelin-contracts-upgradeable/contracts/
 /// @author Dustin Stacy
 /// @notice This contract implements a bonding curve that adjusts the price of tokens based on the total supply.
 ///         The price of tokens increases linearly with the supply.
-/// @dev    Math needs to be rigorously test for edge cases including zero values and overflow.
-/// @dev    Need to add access controls
 contract LinearBondingCurve is Initializable, OwnableUpgradeable, UUPSUpgradeable {
     /*///////////////////////////////////////////////////////////////
                             STATE VARIABLES
@@ -18,14 +16,14 @@ contract LinearBondingCurve is Initializable, OwnableUpgradeable, UUPSUpgradeabl
     /// @notice The address to send protocol fees to.
     address public protocolFeeDestination;
 
-    /// @notice The percentage of the transaction to send to the protocol fee destination in basis points.
-    uint256 public protocolFeeBasisPoints;
+    /// @notice The percentage of the transaction value to send to the protocol fee destination.
+    uint256 public protocolFeePercent;
 
-    /// @notice Value to represent the protocol fee as a percentage for use in calculations.
-    uint256 private protocolFeePercent;
+    /// @dev The percentage of the collected fees to share with the token contract.
+    uint256 public feeSharePercent;
 
-    /// @notice The initial cost of the token.
-    uint256 public initialCost;
+    /// @notice The balance of reserve tokens to initialize the bonding curve token with.
+    uint256 public initialReserve;
 
     /// @notice The maximum gas limit for transactions.
     /// @dev This value should be set to prevent front-running attacks.
@@ -40,6 +38,9 @@ contract LinearBondingCurve is Initializable, OwnableUpgradeable, UUPSUpgradeabl
     /// @dev This is used to convert the protocol fee to a fraction.
     uint256 private constant BASIS_POINTS_PRECISION = 1e4;
 
+    /// @dev The maximum value for basis points.
+    uint256 private constant MAX_BASIS_POINTS = 1e5;
+
     /*///////////////////////////////////////////////////////////////
                         INITIALIZER FUNCTIONS
     ///////////////////////////////////////////////////////////////*/
@@ -49,12 +50,40 @@ contract LinearBondingCurve is Initializable, OwnableUpgradeable, UUPSUpgradeabl
         _disableInitializers();
     }
 
-    /// @dev Initializes the contract with the owner address.
-    function initialize() public initializer {
-        __Ownable_init(msg.sender);
+    /// @notice Initializes the bonding curve with the given parameters.
+    /// @param _owner The owner of the contract.
+    /// @param _protocolFeeDestination The address to send protocol fees to.
+    /// @param _protocolFeePercent The protocol fee percentage represented in basis points.
+    /// @param _feeSharePercent The collected fee share percentage represented in basis points.
+    /// @param _initialReserve The balance of reserve tokens to initialize the bonding curve token with.
+    /// @param _maxGasLimit The maximum gas limit for transactions.
+    function initialize(
+        address _owner,
+        address _protocolFeeDestination,
+        uint256 _protocolFeePercent,
+        uint256 _feeSharePercent,
+        uint256 _initialReserve,
+        uint256 _maxGasLimit
+    ) public initializer {
+        require(
+            _owner != address(0) && _protocolFeeDestination != address(0) && _protocolFeePercent > 0
+                && _protocolFeePercent < MAX_BASIS_POINTS && _feeSharePercent < MAX_BASIS_POINTS && _initialReserve > 0
+                && _maxGasLimit > 0,
+            "LinearBondingCurve: Invalid parameters"
+        );
+        __Ownable_init(_owner);
         __UUPSUpgradeable_init();
-    }
+        protocolFeeDestination = _protocolFeeDestination;
+        protocolFeePercent = _protocolFeePercent * PRECISION / BASIS_POINTS_PRECISION;
+        initialReserve = _initialReserve;
+        maxGasLimit = _maxGasLimit;
 
+        if (_feeSharePercent > 0) {
+            feeSharePercent = _feeSharePercent * PRECISION / BASIS_POINTS_PRECISION;
+        } else {
+            feeSharePercent = 0;
+        }
+    }
     /*//////////////////////////////////////////////////////////////
                             EXTERNAL FUNCTIONS
     //////////////////////////////////////////////////////////////*/
@@ -113,6 +142,8 @@ contract LinearBondingCurve is Initializable, OwnableUpgradeable, UUPSUpgradeabl
     /// @param currentSupply supply of tokens.
     /// @param reserveBalance The balance of reserve tokens (in wei).
     /// @param amount The amount of tokens to sell.
+    /// @return saleReturn The amount of ether to return to the seller.
+    /// @return fees The amount of protocol fees to send to the protocol fee destination.
     ///
     /// Gas Report     | min             | avg   | median | max   | # calls |
     ///                | 6695            | 7345  | 7345   | 7995  | 2       |
@@ -122,8 +153,6 @@ contract LinearBondingCurve is Initializable, OwnableUpgradeable, UUPSUpgradeabl
         view
         returns (uint256 saleReturn, uint256 fees)
     {
-        uint256 rawSaleReturn = 0;
-
         // Determine the current token threshold.
         uint256 n = (currentSupply / PRECISION);
 
@@ -133,28 +162,27 @@ contract LinearBondingCurve is Initializable, OwnableUpgradeable, UUPSUpgradeabl
 
         // If the amount of tokens to sell is less than the current token fragment, return a portion of the current fragment.
         if (amount < remainingCurrentTokenFragment) {
-            rawSaleReturn = amount * PRECISION / _totalCost(n + 1);
-            fees = (rawSaleReturn * protocolFeePercent) / PRECISION;
+            saleReturn = amount * PRECISION / _totalCost(n + 1);
+            fees = (saleReturn * protocolFeePercent) / PRECISION;
             return (saleReturn, fees);
         }
 
         // Calibrate variables for the next token price threshold.
         amount -= remainingCurrentTokenFragment;
-        rawSaleReturn += remainingCurrentTokenBalance;
+        saleReturn += remainingCurrentTokenBalance;
 
         // Iterate through the curve until the remaining amount of tokens to sell is less than the next token price threshold.
         while (amount >= PRECISION) {
-            rawSaleReturn += (_totalCost(n) - _totalCost(n - 1));
+            saleReturn += (_totalCost(n) - _totalCost(n - 1));
             amount -= PRECISION;
             n--;
         }
 
         // Calculate the remaining fragment if the remaining amount of tokens to sell is less than the next token price threshold.
-        rawSaleReturn += (amount * _totalCost(n)) / PRECISION;
+        saleReturn += (amount * _totalCost(n)) / PRECISION;
 
         // Calculate protocol fees
-        fees = (rawSaleReturn * protocolFeePercent) / PRECISION;
-        saleReturn = rawSaleReturn - fees;
+        fees = (saleReturn * protocolFeePercent) / PRECISION;
 
         return (saleReturn, fees);
     }
@@ -193,24 +221,28 @@ contract LinearBondingCurve is Initializable, OwnableUpgradeable, UUPSUpgradeabl
     //////////////////////////////////////////////////////////////*/
 
     /// @param _feeDestination The address to send protocol fees to.
-    function setProtocolFeeDestination(address _feeDestination) public {
+    function setProtocolFeeDestination(address _feeDestination) public onlyOwner {
         require(_feeDestination != address(0), "LinearBondingCurve: protocol fee destination cannot be zero address");
         protocolFeeDestination = _feeDestination;
     }
 
-    /// @param _basisPoints The percentage of the transaction to send to the protocol fee destination.
-    function setProtocolFeeBasisPoints(uint256 _basisPoints) public {
-        protocolFeeBasisPoints = _basisPoints;
-        protocolFeePercent = protocolFeeBasisPoints * PRECISION / BASIS_POINTS_PRECISION;
+    /// @param _basisPoints The percentage of the transaction to send to the protocol fee destination represented in basis points.
+    function setProtocolFeePercent(uint256 _basisPoints) external onlyOwner {
+        protocolFeePercent = _basisPoints * PRECISION / BASIS_POINTS_PRECISION;
     }
 
-    /// @param _initialCost The initial cost of the token.
-    function setInitialCost(uint256 _initialCost) public {
-        initialCost = _initialCost;
+    /// @param _basisPoints The collected fee share percentage for selling tokens represented in basis points.
+    function setFeeSharePercent(uint256 _basisPoints) external onlyOwner {
+        feeSharePercent = _basisPoints * PRECISION / BASIS_POINTS_PRECISION;
+    }
+
+    /// @param _initialReserve The balance of reserve tokens to initialize the bonding curve token with.
+    function setInitialReserve(uint256 _initialReserve) public onlyOwner {
+        initialReserve = _initialReserve;
     }
 
     /// @param _maxGasLimit The maximum gas limit for transactions.
-    function setMaxGasLimit(uint256 _maxGasLimit) public {
+    function setMaxGasLimit(uint256 _maxGasLimit) public onlyOwner {
         maxGasLimit = _maxGasLimit;
     }
 
@@ -228,6 +260,11 @@ contract LinearBondingCurve is Initializable, OwnableUpgradeable, UUPSUpgradeabl
         return BASIS_POINTS_PRECISION;
     }
 
+    /// @return The `MAX_BASIS_POINTS` constant.
+    function getMaxBasisPoints() public pure returns (uint256) {
+        return MAX_BASIS_POINTS;
+    }
+
     /*//////////////////////////////////////////////////////////////
                             INTERNAL FUNCTIONS
     //////////////////////////////////////////////////////////////*/
@@ -237,6 +274,6 @@ contract LinearBondingCurve is Initializable, OwnableUpgradeable, UUPSUpgradeabl
 
     /// @notice Function to calculate the total cost of tokens given the number of tokens.
     function _totalCost(uint256 n) internal view returns (uint256) {
-        return (n * (n + 1) * initialCost) / 2;
+        return (n * (n + 1) * initialReserve) / 2;
     }
 }
