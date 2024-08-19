@@ -10,7 +10,7 @@ contract DeployLinearToken is Script {
     /// @dev Executes the deployment of the LinearToken contract.
     /// @param name The name of the token.
     /// @param symbol The symbol of the token.
-    /// @param curveAddress The address of the LinearBondingCurve contract.
+    /// @param curveAddress The address of the LinearBondingCurve proxy.
     /// @return token The deployed LinearToken contract instance.
     function run(string memory name, string memory symbol, address curveAddress) external returns (LinearToken token) {
         // Start broadcasting deployment transactions

@@ -6,21 +6,15 @@ import {ExponentialBondingCurve} from "src/exponential-curve/ExponentialBondingC
 import {ExponentialToken} from "src/exponential-curve/ExponentialToken.sol";
 
 contract LaunchToken is Script {
-    function run(string memory name, string memory symbol) external payable {
-        // address of the most recently deployed bonding curve
-        address mostRecentlyDeployed;
+    function run(string memory name, string memory symbol) external payable returns (address) {
+        // Address of deployed ExponentialBondingCurve proxy. Needs to be set before running this script.
+        address proxyAddress;
 
         vm.startBroadcast();
-        ExponentialBondingCurve curve = ExponentialBondingCurve(mostRecentlyDeployed);
-        ExponentialToken token = new ExponentialToken(name, symbol, address(curve));
-        mintFirstToken(token, msg.value);
+        ExponentialToken token = new ExponentialToken{value: msg.value}(name, symbol, proxyAddress);
         vm.stopBroadcast();
-    }
 
-    function mintFirstToken(ExponentialToken token, uint256 value) public payable {
-        vm.startBroadcast();
-        token.hostMint{value: value}();
-        vm.stopBroadcast();
+        return address(token);
     }
 }
 

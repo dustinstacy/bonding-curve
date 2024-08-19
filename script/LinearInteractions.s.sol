@@ -6,21 +6,15 @@ import {LinearBondingCurve} from "src/linear-curve/LinearBondingCurve.sol";
 import {LinearToken} from "src/linear-curve/LinearToken.sol";
 
 contract LaunchToken is Script {
-    function run(string memory name, string memory symbol) external payable {
-        // address of the most recently deployed bonding curve
-        address mostRecentlyDeployed;
+    function run(string memory name, string memory symbol) external payable returns (address) {
+        // Address of deployed LinearBondingCurve proxy. Needs to be set before running this script.
+        address proxyAddress;
 
         vm.startBroadcast();
-        LinearBondingCurve curve = LinearBondingCurve(mostRecentlyDeployed);
-        LinearToken token = new LinearToken(name, symbol, address(curve));
-        mintFirstToken(token, msg.value);
+        LinearToken token = new LinearToken{value: msg.value}(name, symbol, proxyAddress);
         vm.stopBroadcast();
-    }
 
-    function mintFirstToken(LinearToken token, uint256 value) public payable {
-        vm.startBroadcast();
-        token.hostMint{value: value}();
-        vm.stopBroadcast();
+        return address(token);
     }
 }
 

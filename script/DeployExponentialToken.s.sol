@@ -10,7 +10,7 @@ contract DeployExponentialToken is Script {
     /// @dev Executes the deployment of the ExponentialToken contract.
     /// @param name The name of the token.
     /// @param symbol The symbol of the token.
-    /// @param curveAddress The address of the ExponentialBondingCurve contract.
+    /// @param curveAddress The address of the ExponentialBondingCurve proxy.
     /// @return token The deployed ExponentialToken contract instance.
     function run(string memory name, string memory symbol, address curveAddress)
         external
