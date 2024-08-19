@@ -67,7 +67,11 @@ contract ExponentialToken is ERC20Burnable {
     /// @param _name The name of the token.
     /// @param _symbol The symbol of the token.
     /// @param _bcAddress The address of the ExponentialBondingCurve contract.
-    constructor(string memory _name, string memory _symbol, address _bcAddress) payable ERC20(_name, _symbol) {
+    /// @param _host The address of the host account.
+    constructor(string memory _name, string memory _symbol, address _bcAddress, address _host)
+        payable
+        ERC20(_name, _symbol)
+    {
         // Check if the bonding curve address is not the zero address and set the bonding curve instance.
         require(_bcAddress != address(0), "ExponentialToken: bonding curve address cannot be zero address");
         i_bondingCurve = ExponentialBondingCurve(_bcAddress);
@@ -77,7 +81,7 @@ contract ExponentialToken is ERC20Burnable {
             revert ExponentialToken__IncorrectAmountOfEtherSent();
         }
         reserveBalance += msg.value;
-        _mint(msg.sender, 1e18);
+        _mint(_host, 1e18);
     }
 
     /*///////////////////////////////////////////////////////////////
@@ -158,5 +162,14 @@ contract ExponentialToken is ERC20Burnable {
         if (!sent) {
             revert("Token sale transfer failed");
         }
+    }
+
+    /*///////////////////////////////////////////////////////////////
+                          GETTER FUNCTIONS
+    ///////////////////////////////////////////////////////////////*/
+
+    /// @notice Returns the address of the ExponentialBondingCurve proxy contract.
+    function getBondingCurveProxyAddress() external view returns (address) {
+        return address(i_bondingCurve);
     }
 }
