@@ -93,7 +93,7 @@ contract CreateJSONGraphData is Script {
 
         for (uint256 i = 0; i < amount; i++) {
             supply += PRECISION;
-            uint256 expectedPrice = expCurve.calculateMintCost(supply, reserveBalance);
+            (uint256 expectedPrice,) = expCurve.getMintCost(supply, reserveBalance);
             uint256 convertedPrice = Calculations.calculateUSDValue(ethUSDPrice, expectedPrice);
 
             tokenIds[i] = supply / PRECISION;

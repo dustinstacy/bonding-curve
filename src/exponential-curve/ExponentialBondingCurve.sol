@@ -111,7 +111,7 @@ contract ExponentialBondingCurve is Initializable, OwnableUpgradeable, UUPSUpgra
     ///                | 18854           | 18979 | 18979  | 19105 | 2       |
     ///
     function getPurchaseReturn(uint256 currentSupply, uint256 reserveTokenBalance, uint256 reserveTokensReceived)
-        external
+        public
         view
         returns (uint256 purchaseReturn, uint256 fees)
     {
@@ -159,25 +159,25 @@ contract ExponentialBondingCurve is Initializable, OwnableUpgradeable, UUPSUpgra
     /// Gas Report     | min             | avg    | median | max     | # calls |
     ///                | 690082          | 867621 | 846733 | 1066050 | 3       |
     ///
-    function calculateMintCost(uint256 currentSupply, uint256 reserveTokenBalance)
+    function getMintCost(uint256 currentSupply, uint256 reserveTokenBalance)
         external
         view
-        returns (uint256 depositAmount)
+        returns (uint256 depositAmount, uint256 fees)
     {
         // We want to mint exactly 1 token, scaled by PRECISION
         uint256 targetReturn = PRECISION;
 
         // Binary search for the deposit amount
         uint256 low = 0;
-        uint256 high = reserveTokenBalance;
+        uint256 high = reserveTokenBalance * 10;
         uint256 mid;
 
         while (high - low > 1) {
             mid = (low + high) / 2;
 
             // Calculate the return for depositing 'mid' amount of reserve tokens
-            uint256 returnAmount = calculatePurchaseReturn(currentSupply, reserveTokenBalance, reserveRatio, mid);
-
+            (uint256 returnAmount, uint256 returnFees) = getPurchaseReturn(currentSupply, reserveTokenBalance, mid);
+            fees = returnFees;
             if (returnAmount < targetReturn) {
                 low = mid;
             } else {
@@ -192,7 +192,7 @@ contract ExponentialBondingCurve is Initializable, OwnableUpgradeable, UUPSUpgra
     /// @param currentSupply The current supply of continuous tokens (in 1e18 format).
     /// @param reserveTokenBalance The balance of reserve tokens (in wei).
     /// @return tokenPrice The current price of the continuous token (in wei).
-    function calculateTokenPrice(uint256 currentSupply, uint256 reserveTokenBalance)
+    function getTokenPrice(uint256 currentSupply, uint256 reserveTokenBalance)
         external
         view
         returns (uint256 tokenPrice)

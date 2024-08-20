@@ -25,6 +25,10 @@ contract ExponentialBondingCurveTest is Test {
     uint256 value;
     uint256 amount;
 
+    // Constants
+    uint256 public constant PRECISION = 1e18;
+    uint256 public constant BASIS_POINTS_PRECISION = 1e4;
+
     function setUp() public {
         DeployExponentialBondingCurve deployer = new DeployExponentialBondingCurve();
         (address proxy, HelperConfig helper) = deployer.deployCurve();
@@ -32,7 +36,7 @@ contract ExponentialBondingCurveTest is Test {
 
         owner = config.owner;
         protocolFeeDestination = config.protocolFeeDestination;
-        protocolFeePercent = config.protocolFeePercent;
+        protocolFeePercent = (config.protocolFeePercent * PRECISION) / BASIS_POINTS_PRECISION;
         feeSharePercent = config.feeSharePercent;
         initialReserve = config.initialReserve;
         reserveRatio = config.reserveRatio;
@@ -93,73 +97,76 @@ contract ExponentialBondingCurveTest is Test {
         assertApproxEqAbs(fees, expectedFees, 10);
     }
 
-    function test_ExponentialCurveCalculateMintCost() public {
+    function test_ExponentialCurveCalculateMintCostOne() public {
         supply = 1e18;
         reserveBalance = 1 ether;
 
-        uint256 expectedDepositAmount = 1 ether;
+        uint256 expectedDepositAmount = 3.03 ether;
+        uint256 expectedFees = 0.03 ether;
 
-        uint256 depositAmount = expCurve.calculateMintCost(supply, reserveBalance);
-        assertEq(depositAmount, expectedDepositAmount);
+        (uint256 depositAmount, uint256 depositFees) = expCurve.getMintCost(supply, reserveBalance);
+        assertApproxEqAbs(depositAmount, expectedDepositAmount, 10);
+        assertApproxEqAbs(depositFees, expectedFees, 10);
+
+        uint256 expectedCurveTokens = 1e18;
+
+        (uint256 returnedCurveTokens, uint256 fees) = expCurve.getPurchaseReturn(supply, reserveBalance, depositAmount);
+        assertApproxEqAbs(returnedCurveTokens, expectedCurveTokens, 1e5);
+        assertApproxEqAbs(fees, depositFees, 10);
     }
 
     function test_ExponentialCurveCalculateMintCostTwo() public {
-        supply = 1e18;
-        reserveBalance = 1 ether;
-        value = 3.03 ether;
+        supply = 2345e18;
+        reserveBalance = 4535215 ether;
+
+        uint256 expectedDepositAmount = 3907500056946458690405;
+        uint256 expectedFees = 38688119375707511786;
+
+        (uint256 depositAmount, uint256 depositFees) = expCurve.getMintCost(supply, reserveBalance);
+        assertApproxEqAbs(depositAmount, expectedDepositAmount, 10);
+        assertApproxEqAbs(depositFees, expectedFees, 10);
 
         uint256 expectedCurveTokens = 1e18;
-        uint256 expectedFees = 0.03 ether;
 
-        (uint256 returnedCurveTokens, uint256 fees) = expCurve.getPurchaseReturn(supply, reserveBalance, value);
-        assertApproxEqAbs(returnedCurveTokens, expectedCurveTokens, 10);
-        assertApproxEqAbs(fees, expectedFees, 10);
+        (uint256 returnedCurveTokens, uint256 fees) = expCurve.getPurchaseReturn(supply, reserveBalance, depositAmount);
+        assertApproxEqAbs(returnedCurveTokens, expectedCurveTokens, 1e5);
+        assertApproxEqAbs(fees, depositFees, 10);
     }
 
     function test_ExponentialCurveCalculateMintCostThree() public {
-        supply = 2345e18;
-        reserveBalance = 4535215 ether;
+        supply = 251e17;
+        reserveBalance = 0.00234 ether;
 
-        uint256 expectedDepositAmount = 3868811937570751178619;
+        uint256 expectedDepositAmount = 192070094125490;
+        uint256 expectedFees = 1901684100252;
 
-        uint256 depositAmount = expCurve.calculateMintCost(supply, reserveBalance);
-        assertEq(depositAmount, expectedDepositAmount);
+        (uint256 depositAmount, uint256 depositFees) = expCurve.getMintCost(supply, reserveBalance);
+        assertApproxEqAbs(depositAmount, expectedDepositAmount, 10);
+        assertApproxEqAbs(depositFees, expectedFees, 10);
+
+        uint256 expectedCurveTokens = 1e18;
+
+        (uint256 returnedCurveTokens, uint256 fees) = expCurve.getPurchaseReturn(supply, reserveBalance, depositAmount);
+        assertApproxEqAbs(returnedCurveTokens, expectedCurveTokens, 1e5);
+        assertApproxEqAbs(fees, depositFees, 10);
     }
 
     function test_ExponentialCurveCalculateMintCostFour() public {
-        supply = 2345e18;
-        reserveBalance = 4535215 ether;
-        value = 3868811937570751178619 + 38688119375707511786;
+        supply = 1e18;
+        reserveBalance = 0.0001 ether;
+
+        uint256 expectedDepositAmount = 0.000303 ether;
+        uint256 expectedFees = 0.000003 ether;
+
+        (uint256 depositAmount, uint256 depositFees) = expCurve.getMintCost(supply, reserveBalance);
+        assertApproxEqAbs(depositAmount, expectedDepositAmount, 10);
+        assertApproxEqAbs(depositFees, expectedFees, 10);
 
         uint256 expectedCurveTokens = 1e18;
-        uint256 expectedFees = 38688119375707511786;
 
-        (uint256 returnedCurveTokens, uint256 fees) = expCurve.getPurchaseReturn(supply, reserveBalance, value);
-        assertEq(returnedCurveTokens, expectedCurveTokens);
-        assertEq(fees, expectedFees);
-    }
-
-    function test_ExponentialCurveCalculateMintCostFive() public {
-        supply = 251e17;
-        reserveBalance = 0.00234 ether;
-
-        uint256 expectedDepositAmount = 190168410025238;
-
-        uint256 depositAmount = expCurve.calculateMintCost(supply, reserveBalance);
-        assertEq(depositAmount, expectedDepositAmount);
-    }
-
-    function test_ExponentialCurveCalculateMintCostSix() public {
-        supply = 251e17;
-        reserveBalance = 0.00234 ether;
-        value = 190168410025238 + 1901684100252;
-
-        uint256 expectedCurveTokens = 1e18;
-        uint256 expectedFees = 1901684100252;
-
-        (uint256 returnedCurveTokens, uint256 fees) = expCurve.getPurchaseReturn(supply, reserveBalance, value);
+        (uint256 returnedCurveTokens, uint256 fees) = expCurve.getPurchaseReturn(supply, reserveBalance, depositAmount);
         assertApproxEqAbs(returnedCurveTokens, expectedCurveTokens, 1e5);
-        assertApproxEqAbs(fees, expectedFees, 1e5);
+        assertApproxEqAbs(fees, depositFees, 10);
     }
 
     function test_ExponentialCurveCalculateTokenPrice() public {
@@ -168,7 +175,7 @@ contract ExponentialBondingCurveTest is Test {
 
         uint256 expectedPrice = 1 ether;
 
-        uint256 price = expCurve.calculateTokenPrice(supply, reserveBalance);
+        uint256 price = expCurve.getTokenPrice(supply, reserveBalance);
         assertEq(price, expectedPrice);
     }
 
@@ -178,7 +185,7 @@ contract ExponentialBondingCurveTest is Test {
 
         uint256 expectedPrice = 3 ether;
 
-        uint256 price = expCurve.calculateTokenPrice(supply, reserveBalance);
+        uint256 price = expCurve.getTokenPrice(supply, reserveBalance);
         assertApproxEqAbs(price, expectedPrice, 10);
     }
 
@@ -197,7 +204,7 @@ contract ExponentialBondingCurveTest is Test {
         uint256 newSupply = supply + returnedCurveTokens;
         uint256 newReserveBalance = reserveBalance + value - fees;
 
-        uint256 price = expCurve.calculateTokenPrice(newSupply, newReserveBalance);
+        uint256 price = expCurve.getTokenPrice(newSupply, newReserveBalance);
         assertApproxEqAbs(value - fees, price, 10);
     }
 }
