@@ -15,6 +15,14 @@ contract DeployLinearToken is Script {
     }
 }
 
-contract MintToken is Script {}
+contract MintLinearToken is Script {
+    function run(address contractAddress) external payable {
+        LinearToken(contractAddress).mintTokens{value: msg.value}();
+    }
+}
 
-contract BurnToken is Script {}
+contract BurnLinearToken is Script {
+    function run(address contractAddress, uint256 amount) external {
+        LinearToken(contractAddress).burnTokens(amount);
+    }
+}

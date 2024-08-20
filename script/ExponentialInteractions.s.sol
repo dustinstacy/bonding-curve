@@ -15,6 +15,14 @@ contract DeployExponentialToken is Script {
     }
 }
 
-contract MintToken is Script {}
+contract MintExponentialToken is Script {
+    function run(address contractAddress) external payable {
+        ExponentialToken(contractAddress).mintTokens{value: msg.value}();
+    }
+}
 
-contract BurnToken is Script {}
+contract BurnExponentialToken is Script {
+    function run(address contractAddress, uint256 amount) external {
+        ExponentialToken(contractAddress).burnTokens(amount);
+    }
+}

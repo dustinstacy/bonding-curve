@@ -28,8 +28,19 @@ contract HelperConfig is Script, CodeConstants {
         uint256 maxGasLimit;
     }
 
-    CurveConfig public localCurveConfig;
-    mapping(uint256 chainId => CurveConfig) public curveConfigs;
+    CurveConfig public activeCurveConfig;
+
+    constructor() {
+        if (block.chainid == MERLIN_TESTNET_CHAIN_ID) {
+            activeCurveConfig = getMerlinTestnetConfig();
+        } else if (block.chainid == ETH_SEPOLIA_CHAIN_ID) {
+            activeCurveConfig = getEthSepoliaConfig();
+        } else if (block.chainid == LOCAL_CHAIN_ID) {
+            activeCurveConfig = getOrCreateAnvilConfig();
+        } else {
+            revert HelperConfig__InvalidChainId();
+        }
+    }
 
     function getConfig() public returns (CurveConfig memory) {
         return getConfigByChainId(block.chainid);
@@ -43,12 +54,36 @@ contract HelperConfig is Script, CodeConstants {
         }
     }
 
+    function getMerlinTestnetConfig() public pure returns (CurveConfig memory) {
+        return CurveConfig({
+            owner: 0x3ef270a74CaAe5Ca4b740a66497085abBf236655, // update to dao address
+            protocolFeeDestination: 0x3ef270a74CaAe5Ca4b740a66497085abBf236655, // update to dao address
+            protocolFeePercent: 100, // 1%
+            feeSharePercent: 100, // 1%
+            initialReserve: 0.0001 ether,
+            reserveRatio: 500000, // 50.0%
+            maxGasLimit: 1000000 // 1M Gwei
+        });
+    }
+
+    function getEthSepoliaConfig() public pure returns (CurveConfig memory) {
+        return CurveConfig({
+            owner: 0x3ef270a74CaAe5Ca4b740a66497085abBf236655, // update to dao address
+            protocolFeeDestination: 0x3ef270a74CaAe5Ca4b740a66497085abBf236655, // update to dao address
+            protocolFeePercent: 100, // 1%
+            feeSharePercent: 100, // 1%
+            initialReserve: 0.0001 ether,
+            reserveRatio: 500000, // 50.0%
+            maxGasLimit: 1000000 // 1M Gwei
+        });
+    }
+
     function getOrCreateAnvilConfig() public returns (CurveConfig memory) {
-        if (localCurveConfig.owner != address(0)) {
-            return localCurveConfig;
+        if (activeCurveConfig.owner != address(0)) {
+            return activeCurveConfig;
         }
 
-        localCurveConfig = CurveConfig({
+        activeCurveConfig = CurveConfig({
             owner: FOUNDRY_DEFAULT_SENDER, // update to dao address
             protocolFeeDestination: FOUNDRY_DEFAULT_SENDER, // update to dao address
             protocolFeePercent: 100, // 1%
@@ -58,6 +93,6 @@ contract HelperConfig is Script, CodeConstants {
             maxGasLimit: 1000000 // 1M Gwei
         });
 
-        return localCurveConfig;
+        return activeCurveConfig;
     }
 }
