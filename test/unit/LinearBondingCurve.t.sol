@@ -20,7 +20,7 @@ contract LinearBondingCurveTest is Test {
 
     // Test Variables
     uint256 supply;
-    uint256 reserverBalance;
+    uint256 reserveBalance;
     uint256 value;
     uint256 amount;
 
@@ -43,7 +43,7 @@ contract LinearBondingCurveTest is Test {
 
     function test_LinearCurve_Fees() public {
         supply = 1e18;
-        reserverBalance = 1 ether;
+        reserveBalance = 1 ether;
         value = 2.02 ether;
 
         uint256 expectedCurveTokens = 1e18;
@@ -51,7 +51,7 @@ contract LinearBondingCurveTest is Test {
         // 1% fee
         uint256 expectedFees = 0.02 ether;
 
-        (uint256 returnedCurveTokens, uint256 fees) = linCurve.calculatePurchaseReturn(supply, reserverBalance, value);
+        (uint256 returnedCurveTokens, uint256 fees) = linCurve.calculatePurchaseReturn(supply, reserveBalance, value);
         assertEq(returnedCurveTokens, expectedCurveTokens);
         assertEq(fees, expectedFees);
 
@@ -63,7 +63,7 @@ contract LinearBondingCurveTest is Test {
         uint256 expectedFeesTwo = 0.04 ether;
 
         (uint256 returnedCurveTokensTwo, uint256 feesTwo) =
-            linCurve.calculatePurchaseReturn(supply, reserverBalance, value);
+            linCurve.calculatePurchaseReturn(supply, reserveBalance, value);
         assertEq(returnedCurveTokensTwo, expectedCurveTokens);
         assertEq(feesTwo, expectedFeesTwo);
 
@@ -75,7 +75,7 @@ contract LinearBondingCurveTest is Test {
         uint256 expectedFeesThree = 0.06 ether;
 
         (uint256 returnedCurveTokensThree, uint256 feesThree) =
-            linCurve.calculatePurchaseReturn(supply, reserverBalance, value);
+            linCurve.calculatePurchaseReturn(supply, reserveBalance, value);
         assertEq(returnedCurveTokensThree, expectedCurveTokens);
         assertEq(feesThree, expectedFeesThree);
 
@@ -87,40 +87,40 @@ contract LinearBondingCurveTest is Test {
         uint256 expectedFeesFour = 0.157 ether;
 
         (uint256 returnedCurveTokensFour, uint256 feesFour) =
-            linCurve.calculatePurchaseReturn(supply, reserverBalance, value);
+            linCurve.calculatePurchaseReturn(supply, reserveBalance, value);
         assertEq(returnedCurveTokensFour, expectedCurveTokens);
         assertEq(feesFour, expectedFeesFour);
     }
 
     function test_LinearCurve_CalculatePurchaseReturnOne() public {
         supply = 1e18;
-        reserverBalance = 1 ether;
+        reserveBalance = 1 ether;
         value = 2.02 ether;
 
         uint256 expectedCurveTokens = 1e18;
         uint256 expectedFees = 0.02 ether;
 
-        (uint256 returnedCurveTokens, uint256 fees) = linCurve.calculatePurchaseReturn(supply, reserverBalance, value);
+        (uint256 returnedCurveTokens, uint256 fees) = linCurve.calculatePurchaseReturn(supply, reserveBalance, value);
         assertEq(returnedCurveTokens, expectedCurveTokens);
         assertEq(fees, expectedFees);
     }
 
     function test_LinearCurve_CalculatePurchaseReturnTwo() public {
         supply = 25e17;
-        reserverBalance = 4.5 ether;
+        reserveBalance = 4.5 ether;
         value = 10.1 ether;
 
         uint256 expectedCurveTokens = 24e17;
         uint256 expectedFees = 0.1 ether;
 
-        (uint256 returnedCurveTokens, uint256 fees) = linCurve.calculatePurchaseReturn(supply, reserverBalance, value);
+        (uint256 returnedCurveTokens, uint256 fees) = linCurve.calculatePurchaseReturn(supply, reserveBalance, value);
         assertEq(returnedCurveTokens, expectedCurveTokens);
         assertEq(fees, expectedFees);
     }
 
     function test_LinearCurve_CalculatePurchaseReturnThree() public {
         supply = 1e18;
-        reserverBalance = 0.001 ether;
+        reserveBalance = 0.001 ether;
         value = 0.00202 ether;
 
         vm.prank(owner);
@@ -129,53 +129,53 @@ contract LinearBondingCurveTest is Test {
         uint256 expectedCurveTokens = 1e18;
         uint256 expectedFees = 0.00002 ether;
 
-        (uint256 returnedCurveTokens, uint256 fees) = linCurve.calculatePurchaseReturn(supply, reserverBalance, value);
+        (uint256 returnedCurveTokens, uint256 fees) = linCurve.calculatePurchaseReturn(supply, reserveBalance, value);
         assertEq(returnedCurveTokens, expectedCurveTokens);
         assertEq(fees, expectedFees);
     }
 
     function test_LinearCurve_CalculatePurchaseReturnFour() public {
         supply = 1000000e18;
-        reserverBalance = 500000500000 ether;
+        reserveBalance = 500000500000 ether;
         value = 1010001.01 ether;
 
         uint256 expectedCurveTokens = 1e18;
         uint256 expectedFees = 10000.01 ether;
 
-        (uint256 returnedCurveTokens, uint256 fees) = linCurve.calculatePurchaseReturn(supply, reserverBalance, value);
+        (uint256 returnedCurveTokens, uint256 fees) = linCurve.calculatePurchaseReturn(supply, reserveBalance, value);
         assertEq(returnedCurveTokens, expectedCurveTokens);
         assertEq(fees, expectedFees);
     }
 
     function test_LinearCurve_CalculateSaleReturnOne() public {
         supply = 2e18;
-        reserverBalance = 3 ether;
+        reserveBalance = 3 ether;
         amount = 1e18;
 
         uint256 expectedSaleValue = 2 ether;
         uint256 expectedFees = 0.02 ether;
 
-        (uint256 returnedSaleValue, uint256 fees) = linCurve.calculateSaleReturn(supply, reserverBalance, amount);
+        (uint256 returnedSaleValue, uint256 fees) = linCurve.calculateSaleReturn(supply, reserveBalance, amount);
         assertEq(returnedSaleValue, expectedSaleValue);
         assertEq(fees, expectedFees);
     }
 
     function test_LinearCurve_CalculateSaleReturnTwo() public {
         supply = 75e17;
-        reserverBalance = 32 ether;
+        reserveBalance = 32 ether;
         amount = 35e17;
 
         uint256 expectedSaleValue = 22 ether;
         uint256 expectedFees = 0.22 ether;
 
-        (uint256 returnedSaleValue, uint256 fees) = linCurve.calculateSaleReturn(supply, reserverBalance, amount);
+        (uint256 returnedSaleValue, uint256 fees) = linCurve.calculateSaleReturn(supply, reserveBalance, amount);
         assertEq(returnedSaleValue, expectedSaleValue);
         assertEq(fees, expectedFees);
     }
 
     function test_LinearCurve_CalculateSaleReturnThree() public {
         supply = 2e18;
-        reserverBalance = 0.003 ether;
+        reserveBalance = 0.003 ether;
         amount = 1e18;
 
         vm.prank(owner);
@@ -184,67 +184,120 @@ contract LinearBondingCurveTest is Test {
         uint256 expectedSaleValue = 0.002 ether;
         uint256 expectedFees = 0.00002 ether;
 
-        (uint256 returnedSaleValue, uint256 fees) = linCurve.calculateSaleReturn(supply, reserverBalance, amount);
+        (uint256 returnedSaleValue, uint256 fees) = linCurve.calculateSaleReturn(supply, reserveBalance, amount);
         assertEq(returnedSaleValue, expectedSaleValue);
         assertEq(fees, expectedFees);
     }
 
     function test_LinearCurve_CalculateSaleReturnFour() public {
         supply = 1000000e18;
-        reserverBalance = 500000500000 ether;
+        reserveBalance = 500000500000 ether;
         amount = 1e18;
 
         uint256 expectedSaleValue = 1000000 ether;
         uint256 expectedFees = 10000 ether;
 
-        (uint256 returnedSaleValue, uint256 fees) = linCurve.calculateSaleReturn(supply, reserverBalance, amount);
+        (uint256 returnedSaleValue, uint256 fees) = linCurve.calculateSaleReturn(supply, reserveBalance, amount);
         assertEq(returnedSaleValue, expectedSaleValue);
         assertEq(fees, expectedFees);
     }
 
-    function test_CalculateMintCost() public {
+    function test_CalculateMintCostOne() public {
         supply = 1e18;
-        reserverBalance = 1 ether;
+        reserveBalance = 1 ether;
 
         uint256 expectedCost = 2 ether;
 
-        uint256 cost = linCurve.calculateMintCost(supply, reserverBalance);
+        uint256 cost = linCurve.calculateMintCost(supply, reserveBalance);
         assertEq(cost, expectedCost);
     }
 
-    function test_CaclutateMintCost() public {
+    function test_CalculateMintCostTwo() public {
         supply = 1e18;
-        reserverBalance = 0.001 ether;
+        reserveBalance = 0.001 ether;
 
         vm.prank(owner);
         linCurve.setInitialReserve(0.001 ether);
 
         uint256 expectedCost = 0.002 ether;
 
-        uint256 cost = linCurve.calculateMintCost(supply, reserverBalance);
-        assertEq(cost, expectedCost);
-    }
-
-    function test_CalculateMintCostTwo() public {
-        supply = 1568e17;
-        reserverBalance = 12371.6 ether;
-
-        uint256 expectedCost = 157800000000000000000;
-
-        uint256 cost = linCurve.calculateMintCost(supply, reserverBalance);
+        uint256 cost = linCurve.calculateMintCost(supply, reserveBalance);
         assertEq(cost, expectedCost);
     }
 
     function test_CalculateMintCostThree() public {
         supply = 1568e17;
-        reserverBalance = 12371.6 ether;
+        reserveBalance = 12371.6 ether;
+
+        uint256 expectedCost = 157800000000000000000;
+
+        uint256 cost = linCurve.calculateMintCost(supply, reserveBalance);
+        assertEq(cost, expectedCost);
+    }
+
+    function test_CalculateMintCostFour() public {
+        supply = 1568e17;
+        reserveBalance = 12371.6 ether;
         value = 157800000000000000000 + 1578000000000000000;
 
         uint256 expectedCurveTokens = 1e18;
         uint256 expectedFees = 1578000000000000000;
 
-        (uint256 returnedCurveTokens, uint256 fees) = linCurve.calculatePurchaseReturn(supply, reserverBalance, value);
+        (uint256 returnedCurveTokens, uint256 fees) = linCurve.calculatePurchaseReturn(supply, reserveBalance, value);
         assertEq(returnedCurveTokens, expectedCurveTokens);
         assertEq(fees, expectedFees);
+    }
+
+    function test_LinearCurveCalculateTokenPriceOne() public {
+        supply = 1e18;
+        reserveBalance = 1 ether;
+
+        uint256 expectedPrice = 1 ether;
+
+        uint256 price = linCurve.calculateTokenPrice(supply, reserveBalance);
+        assertEq(price, expectedPrice);
+    }
+
+    function test_LinearCurveCalculateTokenPriceTwo() public {
+        supply = 2e18;
+        reserveBalance = 3 ether;
+
+        uint256 expectedPrice = 2 ether;
+
+        uint256 price = linCurve.calculateTokenPrice(supply, reserveBalance);
+        assertEq(price, expectedPrice);
+    }
+
+    function test_LinearCurveCalculateTokenPriceThree() public {
+        supply = 25e17;
+        reserveBalance = 4.5 ether;
+
+        uint256 expectedPrice = 2.5 ether;
+
+        uint256 price = linCurve.calculateTokenPrice(supply, reserveBalance);
+        assertEq(price, expectedPrice);
+    }
+
+    function test_LinearCurveCalculateTokenPriceFour() public {
+        supply = 1568e17;
+        reserveBalance = 12371.6 ether;
+        value = 157800000000000000000 + 1578000000000000000;
+
+        uint256 expectedCurveTokens = 1e18;
+        uint256 expectedFees = 1578000000000000000;
+
+        (uint256 returnedCurveTokens, uint256 fees) = linCurve.calculatePurchaseReturn(supply, reserveBalance, value);
+        console.log("Returned Curve Tokens: ", returnedCurveTokens);
+        assertEq(returnedCurveTokens, expectedCurveTokens);
+        assertEq(fees, expectedFees);
+
+        uint256 newSupply = supply + returnedCurveTokens;
+        uint256 newReserveBalance = reserveBalance + value - fees;
+
+        console.log("New Supply: ", newSupply);
+        console.log("New Reserve Balance: ", newReserveBalance);
+
+        uint256 price = linCurve.calculateTokenPrice(newSupply, newReserveBalance);
+        assertApproxEqAbs(value - fees, price, 10);
     }
 }

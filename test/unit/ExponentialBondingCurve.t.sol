@@ -161,4 +161,43 @@ contract ExponentialBondingCurveTest is Test {
         assertApproxEqAbs(returnedCurveTokens, expectedCurveTokens, 1e5);
         assertApproxEqAbs(fees, expectedFees, 1e5);
     }
+
+    function test_ExponentialCurveCalculateTokenPrice() public {
+        supply = 1e18;
+        reserveBalance = 1 ether;
+
+        uint256 expectedPrice = 1 ether;
+
+        uint256 price = expCurve.calculateTokenPrice(supply, reserveBalance);
+        assertEq(price, expectedPrice);
+    }
+
+    function test_ExponentialCurveCalculateTokenPriceTwo() public {
+        supply = 2e18;
+        reserveBalance = 4 ether;
+
+        uint256 expectedPrice = 3 ether;
+
+        uint256 price = expCurve.calculateTokenPrice(supply, reserveBalance);
+        assertApproxEqAbs(price, expectedPrice, 10);
+    }
+
+    function test_ExponentialCurveCalculateTokenPriceThree() public {
+        supply = 2345e18;
+        reserveBalance = 4535215 ether;
+        value = 3868811937570751178619 + 38688119375707511786;
+
+        uint256 expectedCurveTokens = 1e18;
+        uint256 expectedFees = 38688119375707511786;
+
+        (uint256 returnedCurveTokens, uint256 fees) = expCurve.getPurchaseReturn(supply, reserveBalance, value);
+        assertEq(returnedCurveTokens, expectedCurveTokens);
+        assertEq(fees, expectedFees);
+
+        uint256 newSupply = supply + returnedCurveTokens;
+        uint256 newReserveBalance = reserveBalance + value - fees;
+
+        uint256 price = expCurve.calculateTokenPrice(newSupply, newReserveBalance);
+        assertApproxEqAbs(value - fees, price, 10);
+    }
 }

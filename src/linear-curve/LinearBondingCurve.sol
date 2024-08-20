@@ -113,6 +113,7 @@ contract LinearBondingCurve is Initializable, OwnableUpgradeable, UUPSUpgradeabl
 
         // Calculate the current token fragment.
         uint256 currentFragmentBalance = _totalCost(n) - reserveBalance;
+
         uint256 currentFragment = (currentFragmentBalance * PRECISION / (_totalCost(n) - _totalCost(n - 1)));
 
         // If the reserve tokens are less than the current fragment balance, return portion of the current fragment.
@@ -150,20 +151,34 @@ contract LinearBondingCurve is Initializable, OwnableUpgradeable, UUPSUpgradeabl
     ///                | 6695            | 7345  | 7345   | 7995  | 2       |
     ///
     function calculateSaleReturn(uint256 currentSupply, uint256 reserveBalance, uint256 amount)
-        external
+        public
         view
         returns (uint256 saleReturn, uint256 fees)
     {
         // Determine the current token threshold.
+        uint256 remainingCurrentTokenFragment;
         uint256 n = (currentSupply / PRECISION);
 
-        // Calculate the current token fragment.
         uint256 remainingCurrentTokenBalance = reserveBalance - _totalCost(n);
-        uint256 remainingCurrentTokenFragment = ((remainingCurrentTokenBalance * PRECISION) / (n + 1)) / PRECISION;
+        console.log("remainingCurrentTokenBalance: %d", remainingCurrentTokenBalance);
+
+        if (remainingCurrentTokenBalance == 0) {
+            remainingCurrentTokenBalance = _totalCost(n) - _totalCost(n - 1);
+            remainingCurrentTokenFragment = PRECISION;
+        } else {
+            remainingCurrentTokenFragment =
+                ((remainingCurrentTokenBalance * PRECISION) / ((_totalCost(n + 1)) - _totalCost(n)));
+            console.log("remainingCurrentTokenFragment: %d", remainingCurrentTokenFragment);
+        }
 
         // If the amount of tokens to sell is less than the current token fragment, return a portion of the current fragment.
         if (amount < remainingCurrentTokenFragment) {
-            saleReturn = amount * PRECISION / _totalCost(n + 1);
+            saleReturn = amount * PRECISION / _totalCost(n);
+            fees = (saleReturn * protocolFeePercent) / PRECISION;
+            return (saleReturn, fees);
+        } else if (remainingCurrentTokenFragment == 0) {
+            n--;
+            saleReturn = _totalCost(n) - _totalCost(n - 1);
             fees = (saleReturn * protocolFeePercent) / PRECISION;
             return (saleReturn, fees);
         }
@@ -172,15 +187,21 @@ contract LinearBondingCurve is Initializable, OwnableUpgradeable, UUPSUpgradeabl
         amount -= remainingCurrentTokenFragment;
         saleReturn += remainingCurrentTokenBalance;
 
-        // Iterate through the curve until the remaining amount of tokens to sell is less than the next token price threshold.
-        while (amount >= PRECISION) {
-            saleReturn += (_totalCost(n) - _totalCost(n - 1));
-            amount -= PRECISION;
+        if (n != 1) {
             n--;
         }
 
+        // Iterate through the curve until the remaining amount of tokens to sell is less than the next token price threshold.
+        while (amount >= PRECISION) {
+            saleReturn += (_totalCost(n + 1) - _totalCost(n));
+            amount -= PRECISION;
+            if (n != 1) {
+                n--;
+            }
+        }
+
         // Calculate the remaining fragment if the remaining amount of tokens to sell is less than the next token price threshold.
-        saleReturn += (amount * _totalCost(n)) / PRECISION;
+        saleReturn += ((amount * (_totalCost(n + 1) - _totalCost(n))) / PRECISION);
 
         // Calculate protocol fees
         fees = (saleReturn * protocolFeePercent) / PRECISION;
@@ -215,6 +236,19 @@ contract LinearBondingCurve is Initializable, OwnableUpgradeable, UUPSUpgradeabl
         uint256 remainingFragment = ((_totalCost(n) - _totalCost(n - 1)) * targetReturn) / PRECISION;
 
         depositAmount += remainingFragment;
+    }
+
+    function calculateTokenPrice(uint256 currentSupply, uint256 reserveBalance)
+        external
+        view
+        returns (uint256 tokenPrice)
+    {
+        if (currentSupply == 1e18) {
+            return tokenPrice = reserveBalance;
+        }
+
+        (tokenPrice,) = calculateSaleReturn(currentSupply, reserveBalance, PRECISION);
+        return tokenPrice;
     }
 
     /*//////////////////////////////////////////////////////////////

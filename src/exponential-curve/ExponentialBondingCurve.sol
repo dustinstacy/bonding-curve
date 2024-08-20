@@ -5,6 +5,7 @@ import {Initializable} from "lib/openzeppelin-contracts-upgradeable/contracts/pr
 import {OwnableUpgradeable} from "lib/openzeppelin-contracts-upgradeable/contracts/access/OwnableUpgradeable.sol";
 import {UUPSUpgradeable} from "lib/openzeppelin-contracts-upgradeable/contracts/proxy/utils/UUPSUpgradeable.sol";
 import {BancorFormula} from "src/exponential-curve/BancorFormula.sol";
+import {console} from "forge-std/console.sol";
 
 /// @title ExponentialBondingCurve
 /// @author Dustin Stacy
@@ -185,6 +186,18 @@ contract ExponentialBondingCurve is Initializable, OwnableUpgradeable, UUPSUpgra
         }
 
         depositAmount = high;
+    }
+
+    /// @notice Function to calculate the current price of the continuous token.
+    /// @param currentSupply The current supply of continuous tokens (in 1e18 format).
+    /// @param reserveTokenBalance The balance of reserve tokens (in wei).
+    /// @return tokenPrice The current price of the continuous token (in wei).
+    function calculateTokenPrice(uint256 currentSupply, uint256 reserveTokenBalance)
+        external
+        view
+        returns (uint256 tokenPrice)
+    {
+        tokenPrice = calculateSaleReturn(currentSupply, reserveTokenBalance, reserveRatio, PRECISION);
     }
 
     /*//////////////////////////////////////////////////////////////
