@@ -8,7 +8,7 @@ import {HelperConfig} from "script/HelperConfig.s.sol";
 import {DeployExponentialBondingCurve} from "script/DeployExponentialBondingCurve.s.sol";
 import {DeployExponentialToken} from "script/ExponentialInteractions.s.sol";
 
-contract ExponentialBondingCurveAndToken is Test {
+contract ExponentialBondingCurveAndTokenTest is Test {
     ExponentialBondingCurve public expCurve;
     ExponentialToken public expToken;
     HelperConfig.CurveConfig public config;
@@ -64,7 +64,7 @@ contract ExponentialBondingCurveAndToken is Test {
         expToken = tokenDeployer.run{value: initialReserve}(name, symbol, curveProxy, host);
     }
 
-    function test_ExponentialTokenContractConstructor() public view {
+    function test_ExponentialTokenConstructor() public view {
         assertEq(expToken.name(), name);
         assertEq(expToken.symbol(), symbol);
         assertEq(expToken.totalSupply(), 1 ether);
@@ -73,4 +73,8 @@ contract ExponentialBondingCurveAndToken is Test {
         assertEq(expToken.balanceOf(address(this)), 0);
         assertEq(expToken.getBondingCurveProxyAddress(), address(expCurve));
     }
+
+    function test_ExponentialTokenUserMint() public {}
+
+    function test_ExponentialTokenUserBurn() public {}
 }

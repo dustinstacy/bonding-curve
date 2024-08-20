@@ -96,8 +96,7 @@ contract LinearToken is ERC20Burnable {
         }
 
         // Calculate the amount of tokens to mint
-        (uint256 amount, uint256 fees) =
-            i_bondingCurve.calculatePurchaseReturn(totalSupply(), reserveBalance, msg.value);
+        (uint256 amount, uint256 fees) = i_bondingCurve.getPurchaseReturn(totalSupply(), reserveBalance, msg.value);
 
         // Update the reserve balance.
         reserveBalance += (msg.value - fees);
@@ -134,7 +133,7 @@ contract LinearToken is ERC20Burnable {
         }
 
         // Calculate the amount of Ether to return to the seller
-        (uint256 salePrice, uint256 fees) = i_bondingCurve.calculateSaleReturn(totalSupply(), reserveBalance, amount);
+        (uint256 salePrice, uint256 fees) = i_bondingCurve.getSaleReturn(totalSupply(), reserveBalance, amount);
         reserveBalance -= salePrice;
         salePrice -= fees;
 

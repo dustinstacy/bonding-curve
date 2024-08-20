@@ -8,7 +8,7 @@ import {HelperConfig} from "script/HelperConfig.s.sol";
 import {DeployLinearBondingCurve} from "script/DeployLinearBondingCurve.s.sol";
 import {DeployLinearToken} from "script/LinearInteractions.s.sol";
 
-contract LinearBondingCurveAndToken is Test {
+contract LinearBondingCurveAndTokenTest is Test {
     LinearBondingCurve public linCurve;
     LinearToken public linToken;
     HelperConfig.CurveConfig public config;
@@ -71,4 +71,8 @@ contract LinearBondingCurveAndToken is Test {
         assertEq(linToken.balanceOf(address(this)), 0);
         assertEq(linToken.getBondingCurveProxyAddress(), address(linCurve));
     }
+
+    function test_ExponentialTokenUserMint() public {}
+
+    function test_ExponentialTokenUserBurn() public {}
 }
