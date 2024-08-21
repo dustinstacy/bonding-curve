@@ -137,19 +137,27 @@ contract LinearBondingCurve is Initializable, OwnableUpgradeable, UUPSUpgradeabl
     /// @param currentSupply The current supply of continuous tokens (in 1e18 format).
     /// @param reserveBalance The balance of reserve tokens (in wei).
     /// @return depositAmount The amount of reserve tokens required to mint a token (in wei).
-    function getMintCost(uint256 currentSupply, uint256 reserveBalance) external view returns (uint256 depositAmount) {
-        depositAmount = calculateMintCost(currentSupply, reserveBalance, initialReserve);
-        return depositAmount;
+    function getMintCost(uint256 currentSupply, uint256 reserveBalance)
+        external
+        view
+        returns (uint256 depositAmount, uint256 fees)
+    {
+        (depositAmount, fees) = calculateMintCost(currentSupply, reserveBalance, initialReserve, protocolFeePercent);
+        return (depositAmount, fees);
     }
 
     /// @notice Function to calculate the price of the token based on the current supply and reserve balance.
     /// @param currentSupply The current supply of continuous tokens (in 1e18 format).
     /// @param reserveBalance The balance of reserve tokens (in wei).
     /// @return tokenPrice The price of the token (in wei).
-    function getTokenPrice(uint256 currentSupply, uint256 reserveBalance) external view returns (uint256 tokenPrice) {
-        (tokenPrice,) =
+    function getTokenPrice(uint256 currentSupply, uint256 reserveBalance)
+        external
+        view
+        returns (uint256 tokenPrice, uint256 fees)
+    {
+        (tokenPrice, fees) =
             calculateSaleReturn(currentSupply, reserveBalance, initialReserve, PRECISION, protocolFeePercent);
-        return tokenPrice;
+        return (tokenPrice, fees);
     }
 
     /*//////////////////////////////////////////////////////////////

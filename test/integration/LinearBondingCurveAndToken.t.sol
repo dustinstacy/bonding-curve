@@ -1,14 +1,15 @@
 //SPDX-License-Identifier: MIT
 pragma solidity ^0.8.26;
 
-import {Test} from "forge-std/Test.sol";
+import {Test, console} from "forge-std/Test.sol";
 import {LinearBondingCurve} from "src/linear-curve/LinearBondingCurve.sol";
 import {LinearToken} from "src/linear-curve/LinearToken.sol";
 import {HelperConfig} from "script/HelperConfig.s.sol";
 import {DeployLinearBondingCurve} from "script/DeployLinearBondingCurve.s.sol";
 import {DeployLinearToken} from "script/LinearInteractions.s.sol";
+import {CodeConstants} from "script/HelperConfig.s.sol";
 
-contract LinearBondingCurveAndTokenTest is Test {
+contract LinearBondingCurveAndTokenTest is Test, CodeConstants {
     LinearBondingCurve public linCurve;
     LinearToken public linToken;
     HelperConfig.CurveConfig public config;
@@ -28,16 +29,18 @@ contract LinearBondingCurveAndTokenTest is Test {
     uint256 public maxGasLimit;
 
     // Test Variables
+    uint256 supply;
+    uint256 reserve;
     uint256 value;
     uint256 amount;
 
     // Addresses
     address public host = makeAddr("host");
-    address public user1 = makeAddr("user1");
-    address public user2 = makeAddr("user2");
+    address public user1 = 0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266;
 
     // User Balances
     uint256 STARTING_BALANCE = 1000 ether;
+    uint256 public constant PRECISION = 1e18;
 
     function setUp() public {
         curveDeployer = new DeployLinearBondingCurve();
@@ -54,7 +57,6 @@ contract LinearBondingCurveAndTokenTest is Test {
 
         vm.deal(host, STARTING_BALANCE);
         vm.deal(user1, STARTING_BALANCE);
-        vm.deal(user2, STARTING_BALANCE);
 
         linCurve = LinearBondingCurve(payable(curveProxy));
 
@@ -72,7 +74,55 @@ contract LinearBondingCurveAndTokenTest is Test {
         assertEq(linToken.getBondingCurveProxyAddress(), address(linCurve));
     }
 
-    function test_ExponentialTokenUserMint() public {}
+    function test_RevertsWhen_LinearTokenMintingWithoutValue() public {
+        vm.expectRevert(LinearToken.LinearToken__AmountMustBeMoreThanZero.selector);
+        linToken.mintTokens();
+    }
 
-    function test_ExponentialTokenUserBurn() public {}
+    function test_LinearTokenUserMintAndBurnToken() public {
+        // Set starting values
+        supply = linToken.totalSupply();
+        reserve = linToken.reserveBalance();
+        uint256 startingProtocolBalance = FOUNDRY_DEFAULT_SENDER.balance;
+
+        // Calculate required value to mint 1 token
+        (uint256 depositAmount, uint256 expectedFees) = linCurve.getMintCost(supply, reserve);
+
+        // Set expected post mint values
+        uint256 expectedReturn = 1e18;
+        uint256 expectedSupply = supply + expectedReturn;
+        uint256 expectedReserve = reserve + (depositAmount - expectedFees);
+        uint256 expectedProtocolBalance = startingProtocolBalance + expectedFees;
+
+        vm.prank(user1);
+        linToken.mintTokens{value: depositAmount}();
+
+        assertEq(linToken.totalSupply(), expectedSupply);
+        assertEq(linToken.reserveBalance(), expectedReserve);
+        assertEq(FOUNDRY_DEFAULT_SENDER.balance, expectedProtocolBalance);
+        assertEq(linToken.balanceOf(user1), expectedReturn);
+
+        uint256 burnAmount = 1e18;
+        uint256 userBalance = user1.balance;
+
+        // Set expected post burn values
+        (expectedReturn, expectedFees) = linCurve.getTokenPrice(linToken.totalSupply(), linToken.reserveBalance());
+        expectedReserve = linToken.reserveBalance() - expectedReturn;
+        expectedReturn -= expectedFees;
+        expectedSupply = linToken.totalSupply() - burnAmount;
+        expectedProtocolBalance = FOUNDRY_DEFAULT_SENDER.balance + expectedFees;
+
+        console.log("expectedReturn", expectedReturn, "expectedFees", expectedFees);
+
+        vm.startPrank(user1);
+        linToken.approve(address(user1), burnAmount);
+        linToken.burnTokens(burnAmount, user1);
+        vm.stopPrank();
+
+        assertEq(linToken.totalSupply(), expectedSupply);
+        assertEq(linToken.reserveBalance(), expectedReserve);
+        assertEq(linToken.balanceOf(user1), 0);
+        assertEq(FOUNDRY_DEFAULT_SENDER.balance, expectedProtocolBalance);
+        assertEq(user1.balance, userBalance + expectedReturn);
+    }
 }

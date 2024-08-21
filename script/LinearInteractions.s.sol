@@ -22,7 +22,7 @@ contract MintLinearToken is Script {
 }
 
 contract BurnLinearToken is Script {
-    function run(address contractAddress, uint256 amount) external {
-        LinearToken(contractAddress).burnTokens(amount);
+    function run(address contractAddress, uint256 amount, address sender) external {
+        LinearToken(contractAddress).burnTokens(amount, sender);
     }
 }

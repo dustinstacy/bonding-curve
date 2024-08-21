@@ -38,17 +38,10 @@ contract ExponentialBondingCurveAndTokenTest is Test, CodeConstants {
     // Addresses
     address public host = makeAddr("host");
     address public user1 = 0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266;
-    address public user2 = makeAddr("user2");
 
     // Constants
     uint256 public constant STARTING_BALANCE = 1000 ether;
     uint256 public constant PRECISION = 1e18;
-
-    /// @notice Event to log token purchases.
-    event TokensPurchased(address indexed buyer, uint256 amountSpent, uint256 fees, uint256 tokensMinted);
-
-    /// @notice Event to log token sales.
-    event TokensSold(address indexed seller, uint256 amountReceived, uint256 fees, uint256 tokensBurnt);
 
     function setUp() public {
         curveDeployer = new DeployExponentialBondingCurve();
@@ -66,7 +59,6 @@ contract ExponentialBondingCurveAndTokenTest is Test, CodeConstants {
 
         vm.deal(host, STARTING_BALANCE);
         vm.deal(user1, STARTING_BALANCE);
-        vm.deal(user2, STARTING_BALANCE);
 
         expCurve = ExponentialBondingCurve(payable(curveProxy));
 
@@ -84,7 +76,7 @@ contract ExponentialBondingCurveAndTokenTest is Test, CodeConstants {
         assertEq(expToken.getBondingCurveProxyAddress(), address(expCurve));
     }
 
-    function test_RevertsWhen_MintingWithoutValue() public {
+    function test_RevertsWhen_ExponentialTokenMintingWithoutValue() public {
         vm.expectRevert(ExponentialToken.ExponentialToken__AmountMustBeMoreThanZero.selector);
         expToken.mintTokens();
     }
@@ -98,14 +90,13 @@ contract ExponentialBondingCurveAndTokenTest is Test, CodeConstants {
         // Calculate required value to mint 1 token
         (uint256 depositAmount, uint256 expectedFees) = expCurve.getApproxMintCost(supply, reserve);
 
-        // Set expected mint values
+        // Set expected post mint values
         uint256 expectedReturn = 1e18;
         uint256 expectedSupply = supply + expectedReturn;
         uint256 expectedReserve = reserve + (depositAmount - expectedFees);
         uint256 expectedProtocolBalance = startingProtocolBalance + expectedFees;
 
         vm.prank(user1);
-
         expToken.mintTokens{value: depositAmount}();
 
         assertApproxEqAbs(expToken.totalSupply(), expectedSupply, 1e5);
@@ -116,7 +107,7 @@ contract ExponentialBondingCurveAndTokenTest is Test, CodeConstants {
         uint256 burnAmount = expToken.balanceOf(user1);
         uint256 userBalance = user1.balance;
 
-        // Set expected burn values
+        // Set expected post burn values
         (expectedReturn, expectedFees) = expCurve.getTokenPrice(expToken.totalSupply(), expToken.reserveBalance());
         expectedReserve = expToken.reserveBalance() - expectedReturn;
         expectedReturn -= expectedFees;

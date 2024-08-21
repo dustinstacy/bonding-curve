@@ -202,12 +202,17 @@ contract LinearBondingCurveTest is Test {
 
     function test_LinearTokenGetMintCostOne() public {
         supply = 1e18;
-        reserveBalance = 1 ether;
+        reserveBalance = 0.0001 ether;
 
-        uint256 expectedCost = 2 ether;
+        uint256 expectedDepositAmount = 0.0002 ether;
+        uint256 expectedFees = 0.000002 ether;
 
-        uint256 cost = linCurve.getMintCost(supply, reserveBalance);
-        assertEq(cost, expectedCost);
+        vm.prank(owner);
+        linCurve.setInitialReserve(0.0001 ether);
+
+        (uint256 depositAmount, uint256 depositFees) = linCurve.getMintCost(supply, reserveBalance);
+        assertEq(depositAmount - depositFees, expectedDepositAmount);
+        assertEq(depositFees, expectedFees);
     }
 
     function test_LinearTokenGetMintCostTwo() public {
@@ -217,9 +222,9 @@ contract LinearBondingCurveTest is Test {
         vm.prank(owner);
         linCurve.setInitialReserve(0.001 ether);
 
-        uint256 expectedCost = 0.002 ether;
+        uint256 expectedCost = 0.00202 ether;
 
-        uint256 cost = linCurve.getMintCost(supply, reserveBalance);
+        (uint256 cost,) = linCurve.getMintCost(supply, reserveBalance);
         assertEq(cost, expectedCost);
     }
 
@@ -229,8 +234,8 @@ contract LinearBondingCurveTest is Test {
 
         uint256 expectedCost = 157800000000000000000;
 
-        uint256 cost = linCurve.getMintCost(supply, reserveBalance);
-        assertEq(cost, expectedCost);
+        (uint256 cost, uint256 fees) = linCurve.getMintCost(supply, reserveBalance);
+        assertEq(cost - fees, expectedCost);
     }
 
     function test_LinearTokenGetMintCostFour() public {
@@ -252,7 +257,7 @@ contract LinearBondingCurveTest is Test {
 
         uint256 expectedPrice = 1 ether;
 
-        uint256 price = linCurve.getTokenPrice(supply, reserveBalance);
+        (uint256 price,) = linCurve.getTokenPrice(supply, reserveBalance);
         assertEq(price, expectedPrice);
     }
 
@@ -262,7 +267,7 @@ contract LinearBondingCurveTest is Test {
 
         uint256 expectedPrice = 2 ether;
 
-        uint256 price = linCurve.getTokenPrice(supply, reserveBalance);
+        (uint256 price,) = linCurve.getTokenPrice(supply, reserveBalance);
         assertEq(price, expectedPrice);
     }
 
@@ -272,7 +277,7 @@ contract LinearBondingCurveTest is Test {
 
         uint256 expectedPrice = 2.5 ether;
 
-        uint256 price = linCurve.getTokenPrice(supply, reserveBalance);
+        (uint256 price,) = linCurve.getTokenPrice(supply, reserveBalance);
         assertEq(price, expectedPrice);
     }
 
@@ -285,17 +290,13 @@ contract LinearBondingCurveTest is Test {
         uint256 expectedFees = 1578000000000000000;
 
         (uint256 returnedCurveTokens, uint256 fees) = linCurve.getPurchaseReturn(supply, reserveBalance, value);
-        console.log("Returned Curve Tokens: ", returnedCurveTokens);
         assertEq(returnedCurveTokens, expectedCurveTokens);
         assertEq(fees, expectedFees);
 
         uint256 newSupply = supply + returnedCurveTokens;
         uint256 newReserveBalance = reserveBalance + value - fees;
 
-        console.log("New Supply: ", newSupply);
-        console.log("New Reserve Balance: ", newReserveBalance);
-
-        uint256 price = linCurve.getTokenPrice(newSupply, newReserveBalance);
+        (uint256 price,) = linCurve.getTokenPrice(newSupply, newReserveBalance);
         assertApproxEqAbs(value - fees, price, 10);
     }
 }

@@ -116,6 +116,7 @@ contract ExponentialToken is ERC20Burnable {
 
     /// @notice Allows a user to burn tokens and receive ether from the contract.
     /// @param amount The amount of tokens to burn.
+    /// @param sender The address of the sender.
     function burnTokens(uint256 amount, address sender) external validGasPrice {
         if (amount == 0) {
             revert ExponentialToken__AmountMustBeMoreThanZero();
@@ -148,10 +149,10 @@ contract ExponentialToken is ERC20Burnable {
         }
 
         // Burn tokens from the seller.
-        burnFrom(msg.sender, amount);
+        burnFrom(sender, amount);
 
         // Emit an event to log the sale.
-        emit TokensSold(msg.sender, salePrice, fees, amount);
+        emit TokensSold(sender, salePrice, fees, amount);
 
         // Transfer protocol fees to the protocol fee destination
         (bool received,) = i_bondingCurve.protocolFeeDestination().call{value: fees}("");
@@ -160,7 +161,7 @@ contract ExponentialToken is ERC20Burnable {
         }
 
         // Transfer Ether to the seller.
-        (bool sent,) = payable(msg.sender).call{value: salePrice}("");
+        (bool sent,) = payable(sender).call{value: salePrice}("");
         if (!sent) {
             revert("Token sale transfer failed");
         }

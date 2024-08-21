@@ -83,7 +83,6 @@ contract LinearFormula {
         uint256 n = (currentSupply / PRECISION);
 
         uint256 remainingCurrentTokenBalance = reserveBalance - _totalCost(n, intialReserve);
-        console.log("remainingCurrentTokenBalance: %s", remainingCurrentTokenBalance);
 
         if (remainingCurrentTokenBalance == 0) {
             remainingCurrentTokenBalance = _totalCost(n, intialReserve) - _totalCost(n - 1, intialReserve);
@@ -138,12 +137,14 @@ contract LinearFormula {
     /// @param currentSupply The current supply of continuous tokens (in 1e18 format).
     /// @param reserveBalance The balance of reserve tokens (in wei).
     /// @param initialReserve The initial reserve balance (in wei).
+    /// @param protocolFeePercent The protocol fee percentage (in 1e18 format).
     /// @return depositAmount The amount of reserve tokens required to mint a token (in wei).
-    function calculateMintCost(uint256 currentSupply, uint256 reserveBalance, uint256 initialReserve)
-        public
-        pure
-        returns (uint256 depositAmount)
-    {
+    function calculateMintCost(
+        uint256 currentSupply,
+        uint256 reserveBalance,
+        uint256 initialReserve,
+        uint256 protocolFeePercent
+    ) public pure returns (uint256 depositAmount, uint256 fees) {
         // We want to mint exactly 1 token, scaled by PRECISION
         uint256 targetReturn = PRECISION;
 
@@ -156,7 +157,10 @@ contract LinearFormula {
             (currentFragmentBalance * PRECISION / (_totalCost(n, initialReserve) - _totalCost(n - 1, initialReserve)));
 
         if (currentFragment == targetReturn) {
-            return depositAmount = currentFragmentBalance;
+            depositAmount = currentFragmentBalance;
+            fees = depositAmount * protocolFeePercent / PRECISION;
+            depositAmount += fees;
+            return (depositAmount, fees);
         }
 
         // Calibrate variables for the next token price threshold.
@@ -168,10 +172,14 @@ contract LinearFormula {
             ((_totalCost(n, initialReserve) - _totalCost(n - 1, initialReserve)) * targetReturn) / PRECISION;
 
         depositAmount += remainingFragment;
+        fees = ((depositAmount * PRECISION / (protocolFeePercent + PRECISION)) * protocolFeePercent) / PRECISION;
+        depositAmount += fees;
+
+        return (depositAmount, fees);
     }
 
     /// @notice Function to calculate the total cost of tokens given the number of tokens.
     function _totalCost(uint256 n, uint256 initialReserve) internal pure returns (uint256) {
-        return (n * (n + 1) * initialReserve) / 2;
+        return ((n * (n + 1)) / 2) * initialReserve;
     }
 }
