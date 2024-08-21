@@ -3,6 +3,7 @@ pragma solidity ^0.8.26;
 
 import {ERC20Burnable, ERC20} from "@openzeppelin/contracts/token/ERC20/extensions/ERC20Burnable.sol";
 import {ExponentialBondingCurve} from "src/exponential-curve/ExponentialBondingCurve.sol";
+import {console} from "forge-std/console.sol";
 
 /// @title ExponentialCurveToken
 /// @author Dustin Stacy
@@ -115,7 +116,7 @@ contract ExponentialToken is ERC20Burnable {
 
     /// @notice Allows a user to burn tokens and receive ether from the contract.
     /// @param amount The amount of tokens to burn.
-    function burnTokens(uint256 amount) external validGasPrice {
+    function burnTokens(uint256 amount, address sender) external validGasPrice {
         if (amount == 0) {
             revert ExponentialToken__AmountMustBeMoreThanZero();
         }
@@ -126,7 +127,8 @@ contract ExponentialToken is ERC20Burnable {
         }
 
         // Check if the seller has enough tokens to burn.
-        uint256 balance = balanceOf(msg.sender);
+        uint256 balance = balanceOf(sender);
+
         if (balance < amount) {
             revert ExponentialToken__BurnAmountExceedsBalance();
         }

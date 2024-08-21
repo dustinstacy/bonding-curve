@@ -104,7 +104,7 @@ contract ExponentialBondingCurveTest is Test {
         uint256 expectedDepositAmount = 3.03 ether;
         uint256 expectedFees = 0.03 ether;
 
-        (uint256 depositAmount, uint256 depositFees) = expCurve.getMintCost(supply, reserveBalance);
+        (uint256 depositAmount, uint256 depositFees) = expCurve.getApproxMintCost(supply, reserveBalance);
         assertApproxEqAbs(depositAmount, expectedDepositAmount, 10);
         assertApproxEqAbs(depositFees, expectedFees, 10);
 
@@ -122,7 +122,7 @@ contract ExponentialBondingCurveTest is Test {
         uint256 expectedDepositAmount = 3907500056946458690405;
         uint256 expectedFees = 38688119375707511786;
 
-        (uint256 depositAmount, uint256 depositFees) = expCurve.getMintCost(supply, reserveBalance);
+        (uint256 depositAmount, uint256 depositFees) = expCurve.getApproxMintCost(supply, reserveBalance);
         assertApproxEqAbs(depositAmount, expectedDepositAmount, 10);
         assertApproxEqAbs(depositFees, expectedFees, 10);
 
@@ -140,7 +140,7 @@ contract ExponentialBondingCurveTest is Test {
         uint256 expectedDepositAmount = 192070094125490;
         uint256 expectedFees = 1901684100252;
 
-        (uint256 depositAmount, uint256 depositFees) = expCurve.getMintCost(supply, reserveBalance);
+        (uint256 depositAmount, uint256 depositFees) = expCurve.getApproxMintCost(supply, reserveBalance);
         assertApproxEqAbs(depositAmount, expectedDepositAmount, 10);
         assertApproxEqAbs(depositFees, expectedFees, 10);
 
@@ -158,7 +158,7 @@ contract ExponentialBondingCurveTest is Test {
         uint256 expectedDepositAmount = 0.000303 ether;
         uint256 expectedFees = 0.000003 ether;
 
-        (uint256 depositAmount, uint256 depositFees) = expCurve.getMintCost(supply, reserveBalance);
+        (uint256 depositAmount, uint256 depositFees) = expCurve.getApproxMintCost(supply, reserveBalance);
         assertApproxEqAbs(depositAmount, expectedDepositAmount, 10);
         assertApproxEqAbs(depositFees, expectedFees, 10);
 
@@ -175,7 +175,7 @@ contract ExponentialBondingCurveTest is Test {
 
         uint256 expectedPrice = 1 ether;
 
-        uint256 price = expCurve.getTokenPrice(supply, reserveBalance);
+        (uint256 price,) = expCurve.getTokenPrice(supply, reserveBalance);
         assertEq(price, expectedPrice);
     }
 
@@ -185,7 +185,7 @@ contract ExponentialBondingCurveTest is Test {
 
         uint256 expectedPrice = 3 ether;
 
-        uint256 price = expCurve.getTokenPrice(supply, reserveBalance);
+        (uint256 price,) = expCurve.getTokenPrice(supply, reserveBalance);
         assertApproxEqAbs(price, expectedPrice, 10);
     }
 
@@ -204,7 +204,7 @@ contract ExponentialBondingCurveTest is Test {
         uint256 newSupply = supply + returnedCurveTokens;
         uint256 newReserveBalance = reserveBalance + value - fees;
 
-        uint256 price = expCurve.getTokenPrice(newSupply, newReserveBalance);
+        (uint256 price,) = expCurve.getTokenPrice(newSupply, newReserveBalance);
         assertApproxEqAbs(value - fees, price, 10);
     }
 }

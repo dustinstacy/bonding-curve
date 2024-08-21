@@ -137,7 +137,7 @@ contract ExponentialBondingCurve is Initializable, OwnableUpgradeable, UUPSUpgra
     ///                | 18565           | 18690 | 18690  | 18816 | 2       |
     ///
     function getSaleReturn(uint256 currentSupply, uint256 reserveTokenBalance, uint256 tokensToBurn)
-        external
+        public
         view
         returns (uint256 saleValue, uint256 fees)
     {
@@ -159,7 +159,7 @@ contract ExponentialBondingCurve is Initializable, OwnableUpgradeable, UUPSUpgra
     /// Gas Report     | min             | avg    | median | max     | # calls |
     ///                | 690082          | 867621 | 846733 | 1066050 | 3       |
     ///
-    function getMintCost(uint256 currentSupply, uint256 reserveTokenBalance)
+    function getApproxMintCost(uint256 currentSupply, uint256 reserveTokenBalance)
         external
         view
         returns (uint256 depositAmount, uint256 fees)
@@ -195,9 +195,9 @@ contract ExponentialBondingCurve is Initializable, OwnableUpgradeable, UUPSUpgra
     function getTokenPrice(uint256 currentSupply, uint256 reserveTokenBalance)
         external
         view
-        returns (uint256 tokenPrice)
+        returns (uint256 tokenPrice, uint256 fees)
     {
-        tokenPrice = calculateSaleReturn(currentSupply, reserveTokenBalance, reserveRatio, PRECISION);
+        (tokenPrice, fees) = getSaleReturn(currentSupply, reserveTokenBalance, PRECISION);
     }
 
     /*//////////////////////////////////////////////////////////////

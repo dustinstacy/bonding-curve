@@ -22,7 +22,7 @@ contract MintExponentialToken is Script {
 }
 
 contract BurnExponentialToken is Script {
-    function run(address contractAddress, uint256 amount) external {
-        ExponentialToken(contractAddress).burnTokens(amount);
+    function run(address contractAddress, uint256 amount, address sender) external {
+        ExponentialToken(contractAddress).burnTokens(amount, sender);
     }
 }

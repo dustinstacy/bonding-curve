@@ -37,7 +37,7 @@ contract ExponentialBondingCurveAndTokenTest is Test, CodeConstants {
 
     // Addresses
     address public host = makeAddr("host");
-    address public user1 = makeAddr("user1");
+    address public user1 = 0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266;
     address public user2 = makeAddr("user2");
 
     // Constants
@@ -89,31 +89,49 @@ contract ExponentialBondingCurveAndTokenTest is Test, CodeConstants {
         expToken.mintTokens();
     }
 
-    function test_ExponentialTokenUserMint() public {
+    function test_ExponentialTokenUserMintAndBurnToken() public {
         // Set starting values
         supply = expToken.totalSupply();
         reserve = expToken.reserveBalance();
         uint256 startingProtocolBalance = FOUNDRY_DEFAULT_SENDER.balance;
 
         // Calculate required value to mint 1 token
-        (uint256 depositAmount, uint256 expectedFees) = expCurve.getMintCost(supply, reserve);
-        console.log("Deposit Amount: ", depositAmount);
-        console.log("Expected Fees: ", expectedFees);
+        (uint256 depositAmount, uint256 expectedFees) = expCurve.getApproxMintCost(supply, reserve);
 
-        // Set expected values
+        // Set expected mint values
         uint256 expectedReturn = 1e18;
         uint256 expectedSupply = supply + expectedReturn;
         uint256 expectedReserve = reserve + (depositAmount - expectedFees);
         uint256 expectedProtocolBalance = startingProtocolBalance + expectedFees;
 
         vm.prank(user1);
+
         expToken.mintTokens{value: depositAmount}();
 
         assertApproxEqAbs(expToken.totalSupply(), expectedSupply, 1e5);
         assertApproxEqAbs(expToken.reserveBalance(), expectedReserve, 10);
         assertApproxEqAbs(expToken.balanceOf(user1), expectedReturn, 1e5);
         assertApproxEqAbs(FOUNDRY_DEFAULT_SENDER.balance, expectedProtocolBalance, 10);
-    }
 
-    function test_ExponentialTokenUserBurn() public {}
+        uint256 burnAmount = expToken.balanceOf(user1);
+        uint256 userBalance = user1.balance;
+
+        // Set expected burn values
+        (expectedReturn, expectedFees) = expCurve.getTokenPrice(expToken.totalSupply(), expToken.reserveBalance());
+        expectedReserve = expToken.reserveBalance() - expectedReturn;
+        expectedReturn -= expectedFees;
+        expectedSupply = expToken.totalSupply() - burnAmount;
+        expectedProtocolBalance = FOUNDRY_DEFAULT_SENDER.balance + expectedFees;
+
+        vm.startPrank(user1);
+        expToken.approve(address(user1), burnAmount);
+        expToken.burnTokens(burnAmount, user1);
+        vm.stopPrank();
+
+        assertEq(expToken.totalSupply(), expectedSupply);
+        assertEq(expToken.reserveBalance(), expectedReserve);
+        assertEq(expToken.balanceOf(user1), 0);
+        assertEq(FOUNDRY_DEFAULT_SENDER.balance, expectedProtocolBalance);
+        assertEq(user1.balance, userBalance + expectedReturn);
+    }
 }

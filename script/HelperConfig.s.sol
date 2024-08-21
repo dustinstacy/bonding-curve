@@ -59,7 +59,7 @@ contract HelperConfig is Script, CodeConstants {
             owner: 0x3ef270a74CaAe5Ca4b740a66497085abBf236655, // update to dao address
             protocolFeeDestination: 0x3ef270a74CaAe5Ca4b740a66497085abBf236655, // update to dao address
             protocolFeePercent: 100, // 1%
-            feeSharePercent: 100, // 1%
+            feeSharePercent: 0, // 0%
             initialReserve: 0.0001 ether,
             reserveRatio: 500000, // 50.0%
             maxGasLimit: 1000000 // 1M Gwei
@@ -71,7 +71,7 @@ contract HelperConfig is Script, CodeConstants {
             owner: 0x3ef270a74CaAe5Ca4b740a66497085abBf236655, // update to dao address
             protocolFeeDestination: 0x3ef270a74CaAe5Ca4b740a66497085abBf236655, // update to dao address
             protocolFeePercent: 100, // 1%
-            feeSharePercent: 100, // 1%
+            feeSharePercent: 0, // 0%
             initialReserve: 0.0001 ether,
             reserveRatio: 500000, // 50.0%
             maxGasLimit: 1000000 // 1M Gwei
@@ -87,7 +87,7 @@ contract HelperConfig is Script, CodeConstants {
             owner: FOUNDRY_DEFAULT_SENDER, // update to dao address
             protocolFeeDestination: FOUNDRY_DEFAULT_SENDER, // update to dao address
             protocolFeePercent: 100, // 1%
-            feeSharePercent: 100, // 1%
+            feeSharePercent: 0, // 0%
             initialReserve: 0.0001 ether,
             reserveRatio: 500000, // 50.0%
             maxGasLimit: 1000000 // 1M Gwei
