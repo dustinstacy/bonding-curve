@@ -30,11 +30,11 @@ contract ExponentialBondingCurveTest is Test {
     uint256 public constant BASIS_POINTS_PRECISION = 1e4;
 
     function setUp() public {
+        owner = makeAddr("owner");
         DeployExponentialBondingCurve deployer = new DeployExponentialBondingCurve();
-        (address proxy, HelperConfig helper) = deployer.deployCurve();
+        (address proxy, HelperConfig helper) = deployer.deployCurve(owner);
         HelperConfig.CurveConfig memory config = helper.getConfig();
 
-        owner = config.owner;
         protocolFeeDestination = config.protocolFeeDestination;
         protocolFeePercent = (config.protocolFeePercent * PRECISION) / BASIS_POINTS_PRECISION;
         feeSharePercent = config.feeSharePercent;

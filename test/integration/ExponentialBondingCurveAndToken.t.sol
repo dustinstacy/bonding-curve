@@ -44,12 +44,12 @@ contract ExponentialBondingCurveAndTokenTest is Test, CodeConstants {
     uint256 public constant PRECISION = 1e18;
 
     function setUp() public {
+        owner = makeAddr("owner");
         curveDeployer = new DeployExponentialBondingCurve();
         tokenDeployer = new DeployExponentialToken();
-        (address curveProxy, HelperConfig helper) = curveDeployer.deployCurve();
+        (address curveProxy, HelperConfig helper) = curveDeployer.deployCurve(owner);
         config = helper.getConfig();
 
-        owner = config.owner;
         protocolFeeDestination = config.protocolFeeDestination;
         protocolFeePercent = config.protocolFeePercent;
         feeSharePercent = config.feeSharePercent;
@@ -57,6 +57,7 @@ contract ExponentialBondingCurveAndTokenTest is Test, CodeConstants {
         reserveRatio = config.reserveRatio;
         maxGasLimit = config.maxGasLimit;
 
+        vm.deal(owner, STARTING_BALANCE);
         vm.deal(host, STARTING_BALANCE);
         vm.deal(user1, STARTING_BALANCE);
 
@@ -85,7 +86,7 @@ contract ExponentialBondingCurveAndTokenTest is Test, CodeConstants {
         // Set starting values
         supply = expToken.totalSupply();
         reserve = expToken.reserveBalance();
-        uint256 startingProtocolBalance = FOUNDRY_DEFAULT_SENDER.balance;
+        uint256 startingProtocolBalance = owner.balance;
 
         // Calculate required value to mint 1 token
         (uint256 depositAmount, uint256 expectedFees) = expCurve.getApproxMintCost(supply, reserve);
@@ -102,7 +103,7 @@ contract ExponentialBondingCurveAndTokenTest is Test, CodeConstants {
         assertApproxEqAbs(expToken.totalSupply(), expectedSupply, 1e5);
         assertApproxEqAbs(expToken.reserveBalance(), expectedReserve, 10);
         assertApproxEqAbs(expToken.balanceOf(user1), expectedReturn, 1e5);
-        assertApproxEqAbs(FOUNDRY_DEFAULT_SENDER.balance, expectedProtocolBalance, 10);
+        assertApproxEqAbs(owner.balance, expectedProtocolBalance, 10);
 
         uint256 burnAmount = expToken.balanceOf(user1);
         uint256 userBalance = user1.balance;
@@ -112,7 +113,7 @@ contract ExponentialBondingCurveAndTokenTest is Test, CodeConstants {
         expectedReserve = expToken.reserveBalance() - expectedReturn;
         expectedReturn -= expectedFees;
         expectedSupply = expToken.totalSupply() - burnAmount;
-        expectedProtocolBalance = FOUNDRY_DEFAULT_SENDER.balance + expectedFees;
+        expectedProtocolBalance = owner.balance + expectedFees;
 
         vm.startPrank(user1);
         expToken.approve(address(user1), burnAmount);
@@ -122,7 +123,7 @@ contract ExponentialBondingCurveAndTokenTest is Test, CodeConstants {
         assertEq(expToken.totalSupply(), expectedSupply);
         assertEq(expToken.reserveBalance(), expectedReserve);
         assertEq(expToken.balanceOf(user1), 0);
-        assertEq(FOUNDRY_DEFAULT_SENDER.balance, expectedProtocolBalance);
+        assertEq(owner.balance, expectedProtocolBalance);
         assertEq(user1.balance, userBalance + expectedReturn);
     }
 }

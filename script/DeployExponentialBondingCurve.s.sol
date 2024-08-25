@@ -9,15 +9,15 @@ import {ERC1967Proxy} from "@openzeppelin/contracts/proxy/ERC1967/ERC1967Proxy.s
 /// @title DeployExponentialBondingCurve
 /// @notice Script for deploying the ExponentialBondingCurve contract.
 contract DeployExponentialBondingCurve is Script {
-    function run() external {
-        deployCurve();
+    function run(address _owner) external {
+        deployCurve(_owner);
     }
 
     /// @notice Deploys the ExponentialBondingCurve contract and sets it up as a proxy.
     /// @notice Deploys the HelperConfig contract and encodes the parameters for the ExponentialBondingCurve contract.
     /// @return proxy The address of the deployed ExponentialBondingCurve proxy.
     /// @return helperConfig The address of the deployed HelperConfig contract.
-    function deployCurve() public returns (address proxy, HelperConfig helperConfig) {
+    function deployCurve(address _owner) public returns (address proxy, HelperConfig helperConfig) {
         helperConfig = new HelperConfig();
         HelperConfig.CurveConfig memory config = helperConfig.getConfig();
 
@@ -28,8 +28,8 @@ contract DeployExponentialBondingCurve is Script {
         // Encode the parameters for the ExponentialBondingCurve contract.
         bytes memory data = abi.encodeWithSelector(
             bondingCurve.initialize.selector,
-            config.owner,
-            config.protocolFeeDestination,
+            _owner,
+            _owner,
             config.protocolFeePercent,
             config.feeSharePercent,
             config.initialReserve,

@@ -12,7 +12,7 @@ import {console} from "forge-std/console.sol";
 /// @notice This contract implements the Bancor bonding curve.
 ///         The curve is defined by a reserveRatio, which determines the steepness and bend of the curve.
 /// @dev    Need to add access controls
-contract ExponentialBondingCurve is Initializable, OwnableUpgradeable, UUPSUpgradeable, BancorFormula {
+contract ExponentialBondingCurveUpgradeMox is Initializable, OwnableUpgradeable, UUPSUpgradeable, BancorFormula {
     /*///////////////////////////////////////////////////////////////
                             STATE VARIABLES
     ///////////////////////////////////////////////////////////////*/
@@ -189,16 +189,11 @@ contract ExponentialBondingCurve is Initializable, OwnableUpgradeable, UUPSUpgra
     }
 
     /// @notice Function to calculate the current price of the continuous token.
-    /// @param currentSupply The current supply of continuous tokens (in 1e18 format).
-    /// @param reserveTokenBalance The balance of reserve tokens (in wei).
     /// @return tokenPrice The current price of the continuous token (in wei).
     /// @return fees The amount of protocol fees to send to the protocol fee destination (in wei).
-    function getTokenPrice(uint256 currentSupply, uint256 reserveTokenBalance)
-        external
-        view
-        returns (uint256 tokenPrice, uint256 fees)
-    {
-        (tokenPrice, fees) = getSaleReturn(currentSupply, reserveTokenBalance, PRECISION);
+    function getTokenPrice() external view returns (uint256 tokenPrice, uint256 fees) {
+        tokenPrice = 123456789;
+        fees = 1234567;
     }
 
     /*//////////////////////////////////////////////////////////////
