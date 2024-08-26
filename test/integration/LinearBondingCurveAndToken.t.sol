@@ -13,7 +13,8 @@ contract LinearBondingCurveAndTokenTest is Test, CodeConstants {
     LinearBondingCurve public linCurve;
     LinearToken public linToken;
     HelperConfig public helperConfig;
-    HelperConfig.CurveConfig public config;
+    HelperConfig.NetworkConfig public networkConfig;
+    HelperConfig.CurveConfig public curveConfig;
     DeployLinearBondingCurve public curveDeployer;
     DeployLinearToken public tokenDeployer;
     address linProxy;
@@ -45,17 +46,17 @@ contract LinearBondingCurveAndTokenTest is Test, CodeConstants {
     uint256 public constant PRECISION = 1e18;
 
     function setUp() public {
-        owner = makeAddr("owner");
+        helperConfig = new HelperConfig();
+        (curveConfig, networkConfig) = helperConfig.getConfig();
+        owner = networkConfig.admin;
         curveDeployer = new DeployLinearBondingCurve();
         tokenDeployer = new DeployLinearToken();
-        (linProxy, linCurve, helperConfig) = curveDeployer.deployCurve(owner, owner);
-        config = helperConfig.getConfig();
+        (linProxy, linCurve, helperConfig) = curveDeployer.run();
 
-        protocolFeeDestination = config.protocolFeeDestination;
-        protocolFeePercent = config.protocolFeePercent;
-        feeSharePercent = config.feeSharePercent;
-        initialReserve = config.initialReserve;
-        maxGasLimit = config.maxGasLimit;
+        protocolFeePercent = curveConfig.protocolFeePercent;
+        feeSharePercent = curveConfig.feeSharePercent;
+        initialReserve = curveConfig.initialReserve;
+        maxGasLimit = curveConfig.maxGasLimit;
 
         vm.deal(host, STARTING_BALANCE);
         vm.deal(user1, STARTING_BALANCE);

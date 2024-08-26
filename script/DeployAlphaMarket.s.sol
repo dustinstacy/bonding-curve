@@ -5,13 +5,24 @@ import {Script, console} from "forge-std/Script.sol";
 import {AlphaMarket} from "src/dao/AlphaMarket.sol";
 import {AlphaMarketToken} from "src/dao/AlphaMarketToken.sol";
 import {TimeLock} from "src/dao/TimeLock.sol";
+import {HelperConfig} from "script/HelperConfig.s.sol";
+import {DevOpsTools} from "lib/foundry-devops/src/DevOpsTools.sol";
 
 /// @title DeployExponentialBondingCurve
 /// @notice Script for deploying the AlphaMarket protocol.
 contract DeployAlphaMarket is Script {
-    function run(address _admin, AlphaMarketToken token, TimeLock lock) external returns (AlphaMarket market) {
-        market = deployAlphaMarket(_admin, token, lock);
-        updateRoles(address(market), _admin, lock);
+    function run() external returns (AlphaMarket market) {
+        HelperConfig helperConfig = new HelperConfig();
+        HelperConfig.NetworkConfig memory networkConfig;
+        (, networkConfig) = helperConfig.getConfig();
+
+        address mostRecentAlphaToken = DevOpsTools.get_most_recent_deployment("AlphaMarketToken", block.chainid);
+        address mostRecentTimeLock = DevOpsTools.get_most_recent_deployment("TimeLock", block.chainid);
+        TimeLock timeLock = TimeLock(payable(mostRecentTimeLock));
+        AlphaMarketToken token = AlphaMarketToken(mostRecentAlphaToken);
+
+        market = deployAlphaMarket(networkConfig.admin, token, timeLock);
+        updateRoles(address(market), networkConfig.admin, timeLock);
 
         return (market);
     }

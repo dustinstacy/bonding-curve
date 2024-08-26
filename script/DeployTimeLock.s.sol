@@ -2,14 +2,18 @@
 pragma solidity ^0.8.26;
 
 import {Script} from "forge-std/Script.sol";
-
 import {TimeLock} from "src/dao/TimeLock.sol";
+import {HelperConfig} from "script/HelperConfig.s.sol";
 
 /// @title DeployExponentialBondingCurve
 /// @notice Script for deploying the AlphaMarket protocol.
 contract DeployTimeLock is Script {
-    function run(address _admin) external returns (TimeLock lock) {
-        lock = deployTimeLock(_admin);
+    function run() external returns (TimeLock lock) {
+        HelperConfig helperConfig = new HelperConfig();
+        HelperConfig.NetworkConfig memory networkConfig;
+        (, networkConfig) = helperConfig.getConfig();
+
+        lock = deployTimeLock(networkConfig.admin);
     }
 
     /// @notice Deploys the TimeLock contract.

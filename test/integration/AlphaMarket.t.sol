@@ -24,7 +24,8 @@ contract AlphaMarketTest is Test, CodeConstants {
     LinearBondingCurve public linCurve;
     ExponentialBondingCurveUpgradeMock public upgradeMock;
     HelperConfig public helperConfig;
-    HelperConfig.CurveConfig public config;
+    HelperConfig.NetworkConfig public networkConfig;
+    HelperConfig.CurveConfig public curveConfig;
     DeployExponentialBondingCurve public curveDeployer;
     address expProxy;
     address linProxy;
@@ -60,27 +61,9 @@ contract AlphaMarketTest is Test, CodeConstants {
     address public voter = makeAddr("voter");
 
     function setUp() public {
-        admin = makeAddr("admin");
-
-        // alphaMarketToken = new AlphaMarketToken(admin);
-
-        // vm.prank(admin);
-        // timeLock = new TimeLock(MIN_DELAY, proposers, executors, admin);
-        // alphaMarket = new AlphaMarket(alphaMarketToken, timeLock);
-
-        // curveDeployer = new DeployExponentialBondingCurve();
-        // (curveProxy, expCurve, helper) = curveDeployer.deployCurve(address(timeLock), address(alphaMarket));
-        // config = helper.getConfig();
-
-        // owner = config.owner;
-        // protocolFeeDestination = config.protocolFeeDestination;
-        // protocolFeePercent = config.protocolFeePercent;
-        // feeSharePercent = config.feeSharePercent;
-        // initialReserve = config.initialReserve;
-        // reserveRatio = config.reserveRatio;
-        // maxGasLimit = config.maxGasLimit;
-
-        // expCurve = ExponentialBondingCurve(payable(curveProxy));
+        helperConfig = new HelperConfig();
+        (curveConfig, networkConfig) = helperConfig.getConfig();
+        admin = networkConfig.admin;
 
         DeployAlphaMarketToken deployToken = new DeployAlphaMarketToken();
         DeployTimeLock deployLock = new DeployTimeLock();
@@ -88,11 +71,12 @@ contract AlphaMarketTest is Test, CodeConstants {
         DeployExponentialBondingCurve deployExpCurve = new DeployExponentialBondingCurve();
         DeployLinearBondingCurve deployLinCurve = new DeployLinearBondingCurve();
 
-        alphaMarketToken = deployToken.run(admin);
-        timeLock = deployLock.run(admin);
-        alphaMarket = deployMarket.run(admin, alphaMarketToken, timeLock);
-        (expProxy, expCurve, helperConfig) = deployExpCurve.run(address(timeLock), address(alphaMarket));
-        (linProxy, linCurve,) = deployLinCurve.run(address(timeLock), address(alphaMarket));
+        alphaMarketToken = deployToken.run();
+        timeLock = deployLock.run();
+        alphaMarket = deployMarket.deployAlphaMarket(admin, alphaMarketToken, timeLock);
+        deployMarket.updateRoles(address(alphaMarket), admin, timeLock);
+        (expProxy, expCurve, helperConfig) = deployExpCurve.deployCurve(address(timeLock), admin, curveConfig);
+        (linProxy, linCurve,) = deployLinCurve.run();
 
         vm.prank(admin);
         alphaMarketToken.mint(voter, 1000);
@@ -100,13 +84,11 @@ contract AlphaMarketTest is Test, CodeConstants {
         vm.prank(voter);
         alphaMarketToken.delegate(voter);
 
-        config = helperConfig.getConfig();
-        protocolFeeDestination = config.protocolFeeDestination;
-        protocolFeePercent = config.protocolFeePercent;
-        feeSharePercent = config.feeSharePercent;
-        initialReserve = config.initialReserve;
-        reserveRatio = config.reserveRatio;
-        maxGasLimit = config.maxGasLimit;
+        protocolFeePercent = curveConfig.protocolFeePercent;
+        feeSharePercent = curveConfig.feeSharePercent;
+        initialReserve = curveConfig.initialReserve;
+        reserveRatio = curveConfig.reserveRatio;
+        maxGasLimit = curveConfig.maxGasLimit;
 
         proposers = new address[](1);
         proposers[0] = makeAddr("proposer");
@@ -162,13 +144,16 @@ contract AlphaMarketTest is Test, CodeConstants {
         bytes32 descriptionHash = keccak256(abi.encodePacked(description));
 
         alphaMarket.queue(addressesToCall, values, functionCalls, descriptionHash);
-        console.log("here");
         vm.roll(block.number + MIN_DELAY + 1);
         vm.warp(block.timestamp + MIN_DELAY + 1);
+
+        console.log("Proposal State:", uint256(alphaMarket.state(proposalId)));
 
         // Execute the proposal
         vm.prank(executors[0]);
         alphaMarket.execute(addressesToCall, values, functionCalls, descriptionHash);
+
+        console.log("Proposal State:", uint256(alphaMarket.state(proposalId)));
 
         assertEq(expCurve.protocolFeeDestination(), newProtocolFeeDestination);
     }

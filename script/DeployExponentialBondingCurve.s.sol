@@ -9,11 +9,13 @@ import {ERC1967Proxy} from "@openzeppelin/contracts/proxy/ERC1967/ERC1967Proxy.s
 /// @title DeployExponentialBondingCurve
 /// @notice Script for deploying the ExponentialBondingCurve contract.
 contract DeployExponentialBondingCurve is Script {
-    function run(address _owner, address _feeAddress)
-        external
-        returns (address proxy, ExponentialBondingCurve expCurve, HelperConfig helperConfig)
-    {
-        (proxy, expCurve, helperConfig) = deployCurve(_owner, _feeAddress);
+    function run() external returns (address proxy, ExponentialBondingCurve expCurve, HelperConfig helperConfig) {
+        helperConfig = new HelperConfig();
+        HelperConfig.CurveConfig memory config;
+        HelperConfig.NetworkConfig memory networkConfig;
+        (config, networkConfig) = helperConfig.getConfig();
+
+        (proxy, expCurve, helperConfig) = deployCurve(networkConfig.admin, networkConfig.protocolFeeDestination, config);
     }
 
     /// @notice Deploys the ExponentialBondingCurve contract and sets it up as a proxy.
@@ -23,13 +25,10 @@ contract DeployExponentialBondingCurve is Script {
     /// @return proxy The address of the deployed ExponentialBondingCurve proxy.
     /// @return expCurve The address of the deployed ExponentialBondingCurve contract.
     /// @return helperConfig The address of the deployed HelperConfig contract.
-    function deployCurve(address _owner, address _feeAddress)
+    function deployCurve(address _owner, address _feeAddress, HelperConfig.CurveConfig memory config)
         public
         returns (address proxy, ExponentialBondingCurve expCurve, HelperConfig helperConfig)
     {
-        helperConfig = new HelperConfig();
-        HelperConfig.CurveConfig memory config = helperConfig.getConfig();
-
         vm.startBroadcast();
         // Deploy the ExponentialBondingCurve implementation contract.
         ExponentialBondingCurve bondingCurve = new ExponentialBondingCurve();

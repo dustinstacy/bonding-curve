@@ -9,6 +9,8 @@ import {DeployExponentialBondingCurve} from "script/DeployExponentialBondingCurv
 contract ExponentialBondingCurveTest is Test {
     ExponentialBondingCurve public expCurve;
     HelperConfig public helperConfig;
+    HelperConfig.NetworkConfig public networkConfig;
+    HelperConfig.CurveConfig public curveConfig;
     address expProxy;
 
     // Curve Variables;
@@ -33,17 +35,18 @@ contract ExponentialBondingCurveTest is Test {
     uint256 public constant BASIS_POINTS_PRECISION = 1e4;
 
     function setUp() public {
-        owner = makeAddr("owner");
-        DeployExponentialBondingCurve deployer = new DeployExponentialBondingCurve();
-        (expProxy, expCurve, helperConfig) = deployer.deployCurve(owner, owner);
-        HelperConfig.CurveConfig memory config = helperConfig.getConfig();
+        helperConfig = new HelperConfig();
+        (curveConfig, networkConfig) = helperConfig.getConfig();
+        owner = networkConfig.admin;
 
-        protocolFeeDestination = config.protocolFeeDestination;
-        protocolFeePercent = (config.protocolFeePercent * PRECISION) / BASIS_POINTS_PRECISION;
-        feeSharePercent = config.feeSharePercent;
-        initialReserve = config.initialReserve;
-        reserveRatio = config.reserveRatio;
-        maxGasLimit = config.maxGasLimit;
+        DeployExponentialBondingCurve deployer = new DeployExponentialBondingCurve();
+        (expProxy, expCurve, helperConfig) = deployer.run();
+
+        protocolFeePercent = curveConfig.protocolFeePercent;
+        feeSharePercent = curveConfig.feeSharePercent;
+        initialReserve = curveConfig.initialReserve;
+        reserveRatio = curveConfig.reserveRatio;
+        maxGasLimit = curveConfig.maxGasLimit;
     }
 
     function test_ExponentialCurve_CalculatePurchaseReturnOne() public {

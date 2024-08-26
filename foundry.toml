@@ -4,7 +4,9 @@ out = "out"
 libs = ["lib"]
 solc_version = "0.8.26"
 fs_permissions = [
-  {access = "read-write", path = "./script/data"}
+  {access = "read-write", path = "./script/data"},
+  {access = "read", path = "./broadcast" },
+  {access = "read", path = "./reports" }
 ]
 remappings = [
     '@openzeppelin/contracts/=lib/openzeppelin-contracts/contracts',

@@ -13,7 +13,8 @@ contract ExponentialBondingCurveAndTokenTest is Test, CodeConstants {
     ExponentialBondingCurve public expCurve;
     ExponentialToken public expToken;
     HelperConfig public helperConfig;
-    HelperConfig.CurveConfig public config;
+    HelperConfig.NetworkConfig public networkConfig;
+    HelperConfig.CurveConfig public curveConfig;
     DeployExponentialBondingCurve public curveDeployer;
     DeployExponentialToken public tokenDeployer;
     address expProxy;
@@ -46,18 +47,18 @@ contract ExponentialBondingCurveAndTokenTest is Test, CodeConstants {
     uint256 public constant PRECISION = 1e18;
 
     function setUp() public {
-        owner = FOUNDRY_DEFAULT_SENDER;
+        helperConfig = new HelperConfig();
+        (curveConfig, networkConfig) = helperConfig.getConfig();
+        owner = networkConfig.admin;
         curveDeployer = new DeployExponentialBondingCurve();
         tokenDeployer = new DeployExponentialToken();
-        (expProxy, expCurve, helperConfig) = curveDeployer.deployCurve(owner, owner);
-        config = helperConfig.getConfig();
+        (expProxy, expCurve,) = curveDeployer.run();
 
-        protocolFeeDestination = config.protocolFeeDestination;
-        protocolFeePercent = config.protocolFeePercent;
-        feeSharePercent = config.feeSharePercent;
-        initialReserve = config.initialReserve;
-        reserveRatio = config.reserveRatio;
-        maxGasLimit = config.maxGasLimit;
+        protocolFeePercent = curveConfig.protocolFeePercent;
+        feeSharePercent = curveConfig.feeSharePercent;
+        initialReserve = curveConfig.initialReserve;
+        reserveRatio = curveConfig.reserveRatio;
+        maxGasLimit = curveConfig.maxGasLimit;
 
         vm.deal(owner, STARTING_BALANCE);
         vm.deal(host, STARTING_BALANCE);

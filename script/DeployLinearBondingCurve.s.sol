@@ -9,11 +9,13 @@ import {ERC1967Proxy} from "@openzeppelin/contracts/proxy/ERC1967/ERC1967Proxy.s
 /// @title DeployLinearBondingCurve
 /// @notice Script for deploying the LinearBondingCurve contract.
 contract DeployLinearBondingCurve is Script {
-    function run(address _owner, address _feeAddress)
-        external
-        returns (address proxy, LinearBondingCurve linCurve, HelperConfig helperConfig)
-    {
-        (proxy, linCurve, helperConfig) = deployCurve(_owner, _feeAddress);
+    function run() external returns (address proxy, LinearBondingCurve linCurve, HelperConfig helperConfig) {
+        helperConfig = new HelperConfig();
+        HelperConfig.CurveConfig memory config;
+        HelperConfig.NetworkConfig memory networkConfig;
+        (config, networkConfig) = helperConfig.getConfig();
+
+        (proxy, linCurve, helperConfig) = deployCurve(networkConfig.admin, networkConfig.protocolFeeDestination, config);
     }
 
     /// @notice Deploys the LinearBondingCurve contract and sets it up as a proxy.
@@ -22,13 +24,10 @@ contract DeployLinearBondingCurve is Script {
     /// @return proxy The address of the deployed LinearBondingCurve proxy.
     /// @return linCurve The address of the deployed LinearBondingCurve contract.
     /// @return helperConfig The address of the deployed HelperConfig contract.
-    function deployCurve(address _owner, address _feeAddress)
+    function deployCurve(address _owner, address _feeAddress, HelperConfig.CurveConfig memory config)
         public
         returns (address proxy, LinearBondingCurve linCurve, HelperConfig helperConfig)
     {
-        helperConfig = new HelperConfig();
-        HelperConfig.CurveConfig memory config = helperConfig.getConfig();
-
         vm.startBroadcast();
         // Deploy the LinearBondingCurve implementation contract.
         LinearBondingCurve bondingCurve = new LinearBondingCurve();
