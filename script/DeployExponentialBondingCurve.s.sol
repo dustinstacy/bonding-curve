@@ -9,15 +9,24 @@ import {ERC1967Proxy} from "@openzeppelin/contracts/proxy/ERC1967/ERC1967Proxy.s
 /// @title DeployExponentialBondingCurve
 /// @notice Script for deploying the ExponentialBondingCurve contract.
 contract DeployExponentialBondingCurve is Script {
-    function run(address _owner) external {
-        deployCurve(_owner);
+    function run(address _owner, address _feeAddress)
+        external
+        returns (address proxy, ExponentialBondingCurve expCurve, HelperConfig helperConfig)
+    {
+        (proxy, expCurve, helperConfig) = deployCurve(_owner, _feeAddress);
     }
 
     /// @notice Deploys the ExponentialBondingCurve contract and sets it up as a proxy.
     /// @notice Deploys the HelperConfig contract and encodes the parameters for the ExponentialBondingCurve contract.
+    /// @param _owner The address of the owner of the ExponentialBondingCurve contract.
+    /// @param _feeAddress The address of the fee address for the ExponentialBondingCurve contract.
     /// @return proxy The address of the deployed ExponentialBondingCurve proxy.
+    /// @return expCurve The address of the deployed ExponentialBondingCurve contract.
     /// @return helperConfig The address of the deployed HelperConfig contract.
-    function deployCurve(address _owner) public returns (address proxy, HelperConfig helperConfig) {
+    function deployCurve(address _owner, address _feeAddress)
+        public
+        returns (address proxy, ExponentialBondingCurve expCurve, HelperConfig helperConfig)
+    {
         helperConfig = new HelperConfig();
         HelperConfig.CurveConfig memory config = helperConfig.getConfig();
 
@@ -29,7 +38,7 @@ contract DeployExponentialBondingCurve is Script {
         bytes memory data = abi.encodeWithSelector(
             bondingCurve.initialize.selector,
             _owner,
-            _owner,
+            _feeAddress,
             config.protocolFeePercent,
             config.feeSharePercent,
             config.initialReserve,
@@ -40,7 +49,9 @@ contract DeployExponentialBondingCurve is Script {
         // Deploy the ERC1967Proxy contract and set the ExponentialBondingCurve contract as the implementation.
         ERC1967Proxy proxyContract = new ERC1967Proxy(address(bondingCurve), data);
         proxy = address(proxyContract);
+        expCurve = ExponentialBondingCurve(payable(proxy));
         vm.stopBroadcast();
-        return (proxy, helperConfig);
+
+        return (proxy, expCurve, helperConfig);
     }
 }

@@ -9,6 +9,7 @@ import {DeployExponentialBondingCurve} from "script/DeployExponentialBondingCurv
 contract ExponentialBondingCurveTest is Test {
     ExponentialBondingCurve public expCurve;
     HelperConfig public helperConfig;
+    address expProxy;
 
     // Curve Variables;
     address owner;
@@ -25,6 +26,8 @@ contract ExponentialBondingCurveTest is Test {
     uint256 value;
     uint256 amount;
 
+    address public admin = makeAddr("admin");
+
     // Constants
     uint256 public constant PRECISION = 1e18;
     uint256 public constant BASIS_POINTS_PRECISION = 1e4;
@@ -32,8 +35,8 @@ contract ExponentialBondingCurveTest is Test {
     function setUp() public {
         owner = makeAddr("owner");
         DeployExponentialBondingCurve deployer = new DeployExponentialBondingCurve();
-        (address proxy, HelperConfig helper) = deployer.deployCurve(owner);
-        HelperConfig.CurveConfig memory config = helper.getConfig();
+        (expProxy, expCurve, helperConfig) = deployer.deployCurve(owner, owner);
+        HelperConfig.CurveConfig memory config = helperConfig.getConfig();
 
         protocolFeeDestination = config.protocolFeeDestination;
         protocolFeePercent = (config.protocolFeePercent * PRECISION) / BASIS_POINTS_PRECISION;
@@ -41,8 +44,6 @@ contract ExponentialBondingCurveTest is Test {
         initialReserve = config.initialReserve;
         reserveRatio = config.reserveRatio;
         maxGasLimit = config.maxGasLimit;
-
-        expCurve = ExponentialBondingCurve(payable(proxy));
     }
 
     function test_ExponentialCurve_CalculatePurchaseReturnOne() public {

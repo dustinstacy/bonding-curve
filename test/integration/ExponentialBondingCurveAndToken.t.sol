@@ -12,9 +12,11 @@ import {CodeConstants} from "script/HelperConfig.s.sol";
 contract ExponentialBondingCurveAndTokenTest is Test, CodeConstants {
     ExponentialBondingCurve public expCurve;
     ExponentialToken public expToken;
+    HelperConfig public helperConfig;
     HelperConfig.CurveConfig public config;
     DeployExponentialBondingCurve public curveDeployer;
     DeployExponentialToken public tokenDeployer;
+    address expProxy;
 
     // Token Contract Variables
     string public name = "HaTOKEN";
@@ -44,11 +46,11 @@ contract ExponentialBondingCurveAndTokenTest is Test, CodeConstants {
     uint256 public constant PRECISION = 1e18;
 
     function setUp() public {
-        owner = makeAddr("owner");
+        owner = FOUNDRY_DEFAULT_SENDER;
         curveDeployer = new DeployExponentialBondingCurve();
         tokenDeployer = new DeployExponentialToken();
-        (address curveProxy, HelperConfig helper) = curveDeployer.deployCurve(owner);
-        config = helper.getConfig();
+        (expProxy, expCurve, helperConfig) = curveDeployer.deployCurve(owner, owner);
+        config = helperConfig.getConfig();
 
         protocolFeeDestination = config.protocolFeeDestination;
         protocolFeePercent = config.protocolFeePercent;
@@ -61,10 +63,8 @@ contract ExponentialBondingCurveAndTokenTest is Test, CodeConstants {
         vm.deal(host, STARTING_BALANCE);
         vm.deal(user1, STARTING_BALANCE);
 
-        expCurve = ExponentialBondingCurve(payable(curveProxy));
-
         vm.prank(host);
-        expToken = tokenDeployer.run{value: initialReserve}(name, symbol, curveProxy, host);
+        expToken = tokenDeployer.run{value: initialReserve}(name, symbol, expProxy, host);
     }
 
     function test_ExponentialTokenConstructor() public view {

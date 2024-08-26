@@ -3,12 +3,17 @@ pragma solidity ^0.8.26;
 
 import {Test, console} from "forge-std/Test.sol";
 import {AlphaMarketToken} from "src/dao/AlphaMarketToken.sol";
+import {DeployAlphaMarketToken} from "script/DeployAlphaMarketToken.s.sol";
 import {TimeLock} from "src/dao/TimeLock.sol";
+import {DeployTimeLock} from "script/DeployTimeLock.s.sol";
 import {AlphaMarket} from "src/dao/AlphaMarket.sol";
+import {DeployAlphaMarket} from "script/DeployAlphaMarket.s.sol";
 import {ExponentialBondingCurve} from "src/exponential-curve/ExponentialBondingCurve.sol";
+import {DeployExponentialBondingCurve} from "script/DeployExponentialBondingCurve.s.sol";
+import {LinearBondingCurve} from "src/linear-curve/LinearBondingCurve.sol";
+import {DeployLinearBondingCurve} from "script/DeployLinearBondingCurve.s.sol";
 import {HelperConfig} from "script/HelperConfig.s.sol";
 import {ExponentialBondingCurveUpgradeMock} from "test/mocks/ExponentialBondingCurveUpgradeMock.sol";
-import {DeployExponentialBondingCurve} from "script/DeployExponentialBondingCurve.s.sol";
 import {CodeConstants} from "script/HelperConfig.s.sol";
 
 contract AlphaMarketTest is Test, CodeConstants {
@@ -16,12 +21,13 @@ contract AlphaMarketTest is Test, CodeConstants {
     TimeLock public timeLock;
     AlphaMarket public alphaMarket;
     ExponentialBondingCurve public expCurve;
+    LinearBondingCurve public linCurve;
     ExponentialBondingCurveUpgradeMock public upgradeMock;
-    HelperConfig public helper;
+    HelperConfig public helperConfig;
     HelperConfig.CurveConfig public config;
     DeployExponentialBondingCurve public curveDeployer;
-
-    address curveProxy;
+    address expProxy;
+    address linProxy;
 
     address[] proposers;
     address[] executors;
@@ -54,37 +60,47 @@ contract AlphaMarketTest is Test, CodeConstants {
     address public voter = makeAddr("voter");
 
     function setUp() public {
-        proposers = new address[](1);
-        proposers[0] = makeAddr("proposer");
-
-        executors = new address[](1);
-        executors[0] = makeAddr("executor");
-
         admin = makeAddr("admin");
 
-        alphaMarketToken = new AlphaMarketToken(admin);
+        // alphaMarketToken = new AlphaMarketToken(admin);
+
+        // vm.prank(admin);
+        // timeLock = new TimeLock(MIN_DELAY, proposers, executors, admin);
+        // alphaMarket = new AlphaMarket(alphaMarketToken, timeLock);
+
+        // curveDeployer = new DeployExponentialBondingCurve();
+        // (curveProxy, expCurve, helper) = curveDeployer.deployCurve(address(timeLock), address(alphaMarket));
+        // config = helper.getConfig();
+
+        // owner = config.owner;
+        // protocolFeeDestination = config.protocolFeeDestination;
+        // protocolFeePercent = config.protocolFeePercent;
+        // feeSharePercent = config.feeSharePercent;
+        // initialReserve = config.initialReserve;
+        // reserveRatio = config.reserveRatio;
+        // maxGasLimit = config.maxGasLimit;
+
+        // expCurve = ExponentialBondingCurve(payable(curveProxy));
+
+        DeployAlphaMarketToken deployToken = new DeployAlphaMarketToken();
+        DeployTimeLock deployLock = new DeployTimeLock();
+        DeployAlphaMarket deployMarket = new DeployAlphaMarket();
+        DeployExponentialBondingCurve deployExpCurve = new DeployExponentialBondingCurve();
+        DeployLinearBondingCurve deployLinCurve = new DeployLinearBondingCurve();
+
+        alphaMarketToken = deployToken.run(admin);
+        timeLock = deployLock.run(admin);
+        alphaMarket = deployMarket.run(admin, alphaMarketToken, timeLock);
+        (expProxy, expCurve, helperConfig) = deployExpCurve.run(address(timeLock), address(alphaMarket));
+        (linProxy, linCurve,) = deployLinCurve.run(address(timeLock), address(alphaMarket));
+
         vm.prank(admin);
         alphaMarketToken.mint(voter, 1000);
 
         vm.prank(voter);
         alphaMarketToken.delegate(voter);
 
-        vm.prank(admin);
-        timeLock = new TimeLock(MIN_DELAY, proposers, executors, admin);
-        alphaMarket = new AlphaMarket(alphaMarketToken, timeLock);
-
-        proposerRole = timeLock.PROPOSER_ROLE();
-        executorRole = timeLock.EXECUTOR_ROLE();
-
-        vm.startPrank(admin);
-        timeLock.grantRole(proposerRole, address(alphaMarket));
-        timeLock.grantRole(executorRole, address(alphaMarket));
-        vm.stopPrank();
-        curveDeployer = new DeployExponentialBondingCurve();
-        (curveProxy, helper) = curveDeployer.deployCurve(admin);
-        config = helper.getConfig();
-
-        owner = config.owner;
+        config = helperConfig.getConfig();
         protocolFeeDestination = config.protocolFeeDestination;
         protocolFeePercent = config.protocolFeePercent;
         feeSharePercent = config.feeSharePercent;
@@ -92,9 +108,19 @@ contract AlphaMarketTest is Test, CodeConstants {
         reserveRatio = config.reserveRatio;
         maxGasLimit = config.maxGasLimit;
 
-        expCurve = ExponentialBondingCurve(payable(curveProxy));
-        vm.prank(admin);
-        expCurve.transferOwnership(address(timeLock));
+        proposers = new address[](1);
+        proposers[0] = makeAddr("proposer");
+
+        executors = new address[](1);
+        executors[0] = makeAddr("executor");
+
+        proposerRole = timeLock.PROPOSER_ROLE();
+        executorRole = timeLock.EXECUTOR_ROLE();
+
+        vm.startPrank(admin);
+        timeLock.grantRole(proposerRole, proposers[0]);
+        timeLock.grantRole(executorRole, executors[0]);
+        vm.stopPrank();
     }
 
     function test_CantUpdateBondingCurveWithoutGovernance() public {
@@ -134,7 +160,9 @@ contract AlphaMarketTest is Test, CodeConstants {
 
         // Queue the proposal
         bytes32 descriptionHash = keccak256(abi.encodePacked(description));
+
         alphaMarket.queue(addressesToCall, values, functionCalls, descriptionHash);
+        console.log("here");
         vm.roll(block.number + MIN_DELAY + 1);
         vm.warp(block.timestamp + MIN_DELAY + 1);
 
@@ -183,7 +211,7 @@ contract AlphaMarketTest is Test, CodeConstants {
         alphaMarket.execute(addressesToCall, values, functionCalls, descriptionHash);
 
         uint256 expectedValue = 123456789;
-        (uint256 actualValue,) = ExponentialBondingCurveUpgradeMock(curveProxy).getTokenPrice();
+        (uint256 actualValue,) = ExponentialBondingCurveUpgradeMock(expProxy).getTokenPrice();
         assertEq(actualValue, expectedValue);
     }
 }

@@ -12,9 +12,11 @@ import {CodeConstants} from "script/HelperConfig.s.sol";
 contract LinearBondingCurveAndTokenTest is Test, CodeConstants {
     LinearBondingCurve public linCurve;
     LinearToken public linToken;
+    HelperConfig public helperConfig;
     HelperConfig.CurveConfig public config;
     DeployLinearBondingCurve public curveDeployer;
     DeployLinearToken public tokenDeployer;
+    address linProxy;
 
     // Token Contract Variables
     string public name = "HaTOKEN";
@@ -43,12 +45,12 @@ contract LinearBondingCurveAndTokenTest is Test, CodeConstants {
     uint256 public constant PRECISION = 1e18;
 
     function setUp() public {
+        owner = makeAddr("owner");
         curveDeployer = new DeployLinearBondingCurve();
         tokenDeployer = new DeployLinearToken();
-        (address curveProxy, HelperConfig helper) = curveDeployer.deployCurve();
-        config = helper.getConfig();
+        (linProxy, linCurve, helperConfig) = curveDeployer.deployCurve(owner, owner);
+        config = helperConfig.getConfig();
 
-        owner = config.owner;
         protocolFeeDestination = config.protocolFeeDestination;
         protocolFeePercent = config.protocolFeePercent;
         feeSharePercent = config.feeSharePercent;
@@ -58,10 +60,8 @@ contract LinearBondingCurveAndTokenTest is Test, CodeConstants {
         vm.deal(host, STARTING_BALANCE);
         vm.deal(user1, STARTING_BALANCE);
 
-        linCurve = LinearBondingCurve(payable(curveProxy));
-
         vm.prank(host);
-        linToken = tokenDeployer.run{value: initialReserve}(name, symbol, curveProxy, host);
+        linToken = tokenDeployer.run{value: initialReserve}(name, symbol, linProxy, host);
     }
 
     function test_LinearTokenContractConstructor() public view {
@@ -83,7 +83,7 @@ contract LinearBondingCurveAndTokenTest is Test, CodeConstants {
         // Set starting values
         supply = linToken.totalSupply();
         reserve = linToken.reserveBalance();
-        uint256 startingProtocolBalance = FOUNDRY_DEFAULT_SENDER.balance;
+        uint256 startingProtocolBalance = owner.balance;
 
         // Calculate required value to mint 1 token
         (uint256 depositAmount, uint256 expectedFees) = linCurve.getMintCost(supply, reserve);
@@ -99,7 +99,7 @@ contract LinearBondingCurveAndTokenTest is Test, CodeConstants {
 
         assertEq(linToken.totalSupply(), expectedSupply);
         assertEq(linToken.reserveBalance(), expectedReserve);
-        assertEq(FOUNDRY_DEFAULT_SENDER.balance, expectedProtocolBalance);
+        assertEq(owner.balance, expectedProtocolBalance);
         assertEq(linToken.balanceOf(user1), expectedReturn);
 
         uint256 burnAmount = 1e18;
@@ -110,7 +110,7 @@ contract LinearBondingCurveAndTokenTest is Test, CodeConstants {
         expectedReserve = linToken.reserveBalance() - expectedReturn;
         expectedReturn -= expectedFees;
         expectedSupply = linToken.totalSupply() - burnAmount;
-        expectedProtocolBalance = FOUNDRY_DEFAULT_SENDER.balance + expectedFees;
+        expectedProtocolBalance = owner.balance + expectedFees;
 
         console.log("expectedReturn", expectedReturn, "expectedFees", expectedFees);
 
@@ -122,7 +122,7 @@ contract LinearBondingCurveAndTokenTest is Test, CodeConstants {
         assertEq(linToken.totalSupply(), expectedSupply);
         assertEq(linToken.reserveBalance(), expectedReserve);
         assertEq(linToken.balanceOf(user1), 0);
-        assertEq(FOUNDRY_DEFAULT_SENDER.balance, expectedProtocolBalance);
+        assertEq(owner.balance, expectedProtocolBalance);
         assertEq(user1.balance, userBalance + expectedReturn);
     }
 }

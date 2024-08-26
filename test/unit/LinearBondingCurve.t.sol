@@ -9,6 +9,7 @@ import {DeployLinearBondingCurve} from "script/DeployLinearBondingCurve.s.sol";
 contract LinearBondingCurveTest is Test {
     LinearBondingCurve public linCurve;
     HelperConfig public helperConfig;
+    address public linProxy;
 
     // Curve Variables;
     address owner;
@@ -25,18 +26,17 @@ contract LinearBondingCurveTest is Test {
     uint256 amount;
 
     function setUp() public {
+        owner = makeAddr("owner");
         DeployLinearBondingCurve deployer = new DeployLinearBondingCurve();
-        (address proxy, HelperConfig helper) = deployer.deployCurve();
-        HelperConfig.CurveConfig memory config = helper.getConfig();
+        (linProxy, linCurve, helperConfig) = deployer.deployCurve(owner, owner);
+        HelperConfig.CurveConfig memory config = helperConfig.getConfig();
 
-        owner = config.owner;
         protocolFeeDestination = config.protocolFeeDestination;
         protocolFeePercent = config.protocolFeePercent;
         feeSharePercent = config.feeSharePercent;
         initialReserve = config.initialReserve;
         maxGasLimit = config.maxGasLimit;
 
-        linCurve = LinearBondingCurve(payable(proxy));
         vm.prank(owner);
         linCurve.setInitialReserve(1 ether);
     }

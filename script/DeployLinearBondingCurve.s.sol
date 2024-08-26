@@ -9,15 +9,23 @@ import {ERC1967Proxy} from "@openzeppelin/contracts/proxy/ERC1967/ERC1967Proxy.s
 /// @title DeployLinearBondingCurve
 /// @notice Script for deploying the LinearBondingCurve contract.
 contract DeployLinearBondingCurve is Script {
-    function run() external {
-        deployCurve();
+    function run(address _owner, address _feeAddress)
+        external
+        returns (address proxy, LinearBondingCurve linCurve, HelperConfig helperConfig)
+    {
+        (proxy, linCurve, helperConfig) = deployCurve(_owner, _feeAddress);
     }
 
     /// @notice Deploys the LinearBondingCurve contract and sets it up as a proxy.
     /// @notice Deploys the HelperConfig contract and encodes the parameters for the LinearBondingCurve contract.
+    /// @param _owner The address of the owner of the LinearBondingCurve contract.
     /// @return proxy The address of the deployed LinearBondingCurve proxy.
+    /// @return linCurve The address of the deployed LinearBondingCurve contract.
     /// @return helperConfig The address of the deployed HelperConfig contract.
-    function deployCurve() public returns (address proxy, HelperConfig helperConfig) {
+    function deployCurve(address _owner, address _feeAddress)
+        public
+        returns (address proxy, LinearBondingCurve linCurve, HelperConfig helperConfig)
+    {
         helperConfig = new HelperConfig();
         HelperConfig.CurveConfig memory config = helperConfig.getConfig();
 
@@ -28,8 +36,8 @@ contract DeployLinearBondingCurve is Script {
         // Encode the parameters for the LinearBondingCurve contract.
         bytes memory data = abi.encodeWithSelector(
             bondingCurve.initialize.selector,
-            config.owner,
-            config.protocolFeeDestination,
+            _owner,
+            _feeAddress,
             config.protocolFeePercent,
             config.feeSharePercent,
             config.initialReserve,
@@ -38,7 +46,9 @@ contract DeployLinearBondingCurve is Script {
         // Deploy the ERC1967Proxy contract and set the LinearBondingCurve contract as the implementation.
         ERC1967Proxy proxyContract = new ERC1967Proxy(address(bondingCurve), data);
         proxy = address(proxyContract);
+        linCurve = LinearBondingCurve(payable(proxy));
         vm.stopBroadcast();
-        return (proxy, helperConfig);
+
+        return (proxy, linCurve, helperConfig);
     }
 }
