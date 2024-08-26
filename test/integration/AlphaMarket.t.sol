@@ -7,6 +7,7 @@ import {TimeLock} from "src/dao/TimeLock.sol";
 import {AlphaMarket} from "src/dao/AlphaMarket.sol";
 import {ExponentialBondingCurve} from "src/exponential-curve/ExponentialBondingCurve.sol";
 import {HelperConfig} from "script/HelperConfig.s.sol";
+import {ExponentialBondingCurveUpgradeMock} from "test/mocks/ExponentialBondingCurveUpgradeMock.sol";
 import {DeployExponentialBondingCurve} from "script/DeployExponentialBondingCurve.s.sol";
 import {CodeConstants} from "script/HelperConfig.s.sol";
 
@@ -15,6 +16,7 @@ contract AlphaMarketTest is Test, CodeConstants {
     TimeLock public timeLock;
     AlphaMarket public alphaMarket;
     ExponentialBondingCurve public expCurve;
+    ExponentialBondingCurveUpgradeMock public upgradeMock;
     HelperConfig public helper;
     HelperConfig.CurveConfig public config;
     DeployExponentialBondingCurve public curveDeployer;
@@ -143,5 +145,45 @@ contract AlphaMarketTest is Test, CodeConstants {
         assertEq(expCurve.protocolFeeDestination(), newProtocolFeeDestination);
     }
 
-    function test_UpgradeBondingCurveContract() public {}
+    function test_UpgradeBondingCurveContract() public {
+        upgradeMock = new ExponentialBondingCurveUpgradeMock();
+
+        string memory description = "Set new curve parameters";
+        bytes memory encodedFunctionCalls =
+            abi.encodeWithSignature("upgradeToAndCall(address,bytes)", address(upgradeMock), "");
+
+        addressesToCall.push(address(expCurve));
+        values.push(0);
+        functionCalls.push(encodedFunctionCalls);
+
+        // Propose the change
+        vm.prank(proposers[0]);
+        uint256 proposalId = alphaMarket.propose(addressesToCall, values, functionCalls, description);
+
+        vm.warp(block.timestamp + VOTING_DELAY + 1);
+        vm.roll(block.number + VOTING_DELAY + 1);
+
+        // Vote on the proposal
+        string memory reason = "Let me upgrade ya!";
+        uint8 voteWay = 1;
+        vm.prank(voter);
+        alphaMarket.castVoteWithReason(proposalId, voteWay, reason);
+
+        vm.warp(block.timestamp + VOTING_PERIOD + 1);
+        vm.roll(block.number + VOTING_PERIOD + 1);
+
+        // Queue the proposal
+        bytes32 descriptionHash = keccak256(abi.encodePacked(description));
+        alphaMarket.queue(addressesToCall, values, functionCalls, descriptionHash);
+        vm.roll(block.number + MIN_DELAY + 1);
+        vm.warp(block.timestamp + MIN_DELAY + 1);
+
+        // Execute the proposal
+        vm.prank(executors[0]);
+        alphaMarket.execute(addressesToCall, values, functionCalls, descriptionHash);
+
+        uint256 expectedValue = 123456789;
+        (uint256 actualValue,) = ExponentialBondingCurveUpgradeMock(curveProxy).getTokenPrice();
+        assertEq(actualValue, expectedValue);
+    }
 }
