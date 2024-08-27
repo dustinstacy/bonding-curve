@@ -5,6 +5,7 @@ import {ExponentialBondingCurve} from "src/exponential-curve/ExponentialBondingC
 import {Script} from "forge-std/Script.sol";
 import {HelperConfig} from "script/HelperConfig.s.sol";
 import {ERC1967Proxy} from "@openzeppelin/contracts/proxy/ERC1967/ERC1967Proxy.sol";
+import {DevOpsTools} from "lib/foundry-devops/src/DevOpsTools.sol";
 
 /// @title DeployExponentialBondingCurve
 /// @notice Script for deploying the ExponentialBondingCurve contract.
@@ -15,7 +16,9 @@ contract DeployExponentialBondingCurve is Script {
         HelperConfig.NetworkConfig memory networkConfig;
         (config, networkConfig) = helperConfig.getConfig();
 
-        (proxy, expCurve, helperConfig) = deployCurve(networkConfig.admin, networkConfig.protocolFeeDestination, config);
+        address mostRecentTimeLock = DevOpsTools.get_most_recent_deployment("TimeLock", block.chainid);
+
+        (proxy, expCurve, helperConfig) = deployCurve(mostRecentTimeLock, networkConfig.protocolFeeDestination, config);
     }
 
     /// @notice Deploys the ExponentialBondingCurve contract and sets it up as a proxy.
@@ -48,7 +51,6 @@ contract DeployExponentialBondingCurve is Script {
         // Deploy the ERC1967Proxy contract and set the ExponentialBondingCurve contract as the implementation.
         ERC1967Proxy proxyContract = new ERC1967Proxy(address(bondingCurve), data);
         proxy = address(proxyContract);
-        expCurve = ExponentialBondingCurve(payable(proxy));
         vm.stopBroadcast();
 
         return (proxy, expCurve, helperConfig);

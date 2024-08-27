@@ -1,3 +1,4 @@
 {
-    "json.format.enable": false
+    "json.format.enable": false,
+    "terminal.integrated.scrollback": 9999
 }

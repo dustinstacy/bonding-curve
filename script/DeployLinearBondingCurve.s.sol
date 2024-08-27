@@ -5,6 +5,7 @@ import {LinearBondingCurve} from "src/linear-curve/LinearBondingCurve.sol";
 import {Script} from "forge-std/Script.sol";
 import {HelperConfig} from "script/HelperConfig.s.sol";
 import {ERC1967Proxy} from "@openzeppelin/contracts/proxy/ERC1967/ERC1967Proxy.sol";
+import {DevOpsTools} from "lib/foundry-devops/src/DevOpsTools.sol";
 
 /// @title DeployLinearBondingCurve
 /// @notice Script for deploying the LinearBondingCurve contract.
@@ -15,7 +16,9 @@ contract DeployLinearBondingCurve is Script {
         HelperConfig.NetworkConfig memory networkConfig;
         (config, networkConfig) = helperConfig.getConfig();
 
-        (proxy, linCurve, helperConfig) = deployCurve(networkConfig.admin, networkConfig.protocolFeeDestination, config);
+        address mostRecentTimeLock = DevOpsTools.get_most_recent_deployment("TimeLock", block.chainid);
+
+        (proxy, linCurve, helperConfig) = deployCurve(mostRecentTimeLock, networkConfig.protocolFeeDestination, config);
     }
 
     /// @notice Deploys the LinearBondingCurve contract and sets it up as a proxy.

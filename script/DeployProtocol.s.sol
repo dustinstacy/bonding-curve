@@ -62,12 +62,10 @@ contract DeployProtocol is Script {
         DeployExponentialBondingCurve deployExpCurve = new DeployExponentialBondingCurve();
         DeployLinearBondingCurve deployLinCurve = new DeployLinearBondingCurve();
 
-        vm.broadcast();
         token = deployToken.run();
         lock = deployLock.run();
         market = deployMarket.run();
         (expProxy, expCurve, helper) = deployExpCurve.run();
         (linProxy, linCurve,) = deployLinCurve.run();
-        vm.stopBroadcast();
     }
 }
