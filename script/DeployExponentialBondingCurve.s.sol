@@ -41,7 +41,6 @@ contract DeployExponentialBondingCurve is Script {
         // Deploy the ExponentialBondingCurve implementation contract.
         expCurve = new ExponentialBondingCurve();
 
-        console.log("initialReserve", config.initialReserve);
         // Encode the parameters for the ExponentialBondingCurve contract.
         bytes memory data = abi.encodeWithSelector(
             expCurve.initialize.selector,

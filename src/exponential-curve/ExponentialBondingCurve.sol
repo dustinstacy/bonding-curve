@@ -11,7 +11,6 @@ import {console} from "forge-std/console.sol";
 /// @author Dustin Stacy
 /// @notice This contract implements the Bancor bonding curve.
 ///         The curve is defined by a reserveRatio, which determines the steepness and bend of the curve.
-/// @dev    Need to add access controls
 contract ExponentialBondingCurve is Initializable, OwnableUpgradeable, UUPSUpgradeable, BancorFormula {
     /*///////////////////////////////////////////////////////////////
                             STATE VARIABLES
