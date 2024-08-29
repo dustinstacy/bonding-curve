@@ -15,6 +15,11 @@ import {DeployLinearBondingCurve} from "script/DeployLinearBondingCurve.s.sol";
 import {HelperConfig} from "script/HelperConfig.s.sol";
 import {ERC1967Proxy} from "@openzeppelin/contracts/proxy/ERC1967/ERC1967Proxy.sol";
 
+///////////////////////////////////////////////////////////////////////////////
+///////// !!!!!!!!!! NOT TESTED !!!!!!!!!!! ///////////////////////////////////
+/////// Need more testnet funds to deploy the protocol ////////////////////////
+///////////////////////////////////////////////////////////////////////////////
+
 /// @title DeployExponentialBondingCurve
 /// @notice Script for deploying the AlphaMarket protocol.
 contract DeployProtocol is Script {

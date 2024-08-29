@@ -164,6 +164,8 @@ contract ExponentialBondingCurve is Initializable, OwnableUpgradeable, UUPSUpgra
         view
         returns (uint256 depositAmount, uint256 fees)
     {
+        console.log("currentSupply: %d", currentSupply);
+        console.log("reserveTokenBalance: %d", reserveTokenBalance);
         // We want to mint exactly 1 token, scaled by PRECISION
         uint256 targetReturn = PRECISION;
 

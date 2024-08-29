@@ -16,9 +16,14 @@ contract DeployLinearBondingCurve is Script {
         HelperConfig.NetworkConfig memory networkConfig;
         (config, networkConfig) = helperConfig.getConfig();
 
-        address mostRecentTimeLock = DevOpsTools.get_most_recent_deployment("TimeLock", block.chainid);
-
-        (proxy, linCurve, helperConfig) = deployCurve(mostRecentTimeLock, networkConfig.protocolFeeDestination, config);
+        if (block.chainid != 31337) {
+            address mostRecentTimeLock = DevOpsTools.get_most_recent_deployment("TimeLock", block.chainid);
+            (proxy, linCurve, helperConfig) =
+                deployCurve(mostRecentTimeLock, networkConfig.protocolFeeDestination, config);
+        } else {
+            (proxy, linCurve, helperConfig) =
+                deployCurve(networkConfig.protocolFeeDestination, networkConfig.protocolFeeDestination, config);
+        }
     }
 
     /// @notice Deploys the LinearBondingCurve contract and sets it up as a proxy.
@@ -33,11 +38,11 @@ contract DeployLinearBondingCurve is Script {
     {
         vm.startBroadcast();
         // Deploy the LinearBondingCurve implementation contract.
-        LinearBondingCurve bondingCurve = new LinearBondingCurve();
+        linCurve = new LinearBondingCurve();
 
         // Encode the parameters for the LinearBondingCurve contract.
         bytes memory data = abi.encodeWithSelector(
-            bondingCurve.initialize.selector,
+            linCurve.initialize.selector,
             _owner,
             _feeAddress,
             config.protocolFeePercent,
@@ -46,7 +51,7 @@ contract DeployLinearBondingCurve is Script {
             config.maxGasLimit
         );
         // Deploy the ERC1967Proxy contract and set the LinearBondingCurve contract as the implementation.
-        ERC1967Proxy proxyContract = new ERC1967Proxy(address(bondingCurve), data);
+        ERC1967Proxy proxyContract = new ERC1967Proxy(address(linCurve), data);
         proxy = address(proxyContract);
         linCurve = LinearBondingCurve(payable(proxy));
         vm.stopBroadcast();

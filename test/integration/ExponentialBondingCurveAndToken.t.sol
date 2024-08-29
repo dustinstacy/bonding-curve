@@ -75,7 +75,7 @@ contract ExponentialBondingCurveAndTokenTest is Test, CodeConstants {
         assertEq(expToken.reserveBalance(), initialReserve);
         assertEq(expToken.balanceOf(host), 1 ether);
         assertEq(expToken.balanceOf(address(this)), 0);
-        assertEq(expToken.getBondingCurveProxyAddress(), address(expCurve));
+        assertEq(expToken.getBondingCurveProxyAddress(), address(expProxy));
     }
 
     function test_RevertsWhen_ExponentialTokenMintingWithoutValue() public {
@@ -89,6 +89,7 @@ contract ExponentialBondingCurveAndTokenTest is Test, CodeConstants {
         reserve = expToken.reserveBalance();
         uint256 startingProtocolBalance = owner.balance;
 
+        console.log("here");
         // Calculate required value to mint 1 token
         (uint256 depositAmount, uint256 expectedFees) = expCurve.getApproxMintCost(supply, reserve);
 
