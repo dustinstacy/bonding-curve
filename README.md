@@ -7,6 +7,7 @@ Alpha Market DAO and Bonding Curves
 <p align="center">
   <a href="#description">Description</a> •
   <a href="#local-setup">Local Setup</a> •
+  <a href="#documentation">Documentation</a> •
   <a href="#screenshots">Screenshots</a> •
   <a href="#dao">DAO</a> •
   <a href="#bonding-curves">Bonding Curves</a> •
@@ -38,6 +39,10 @@ This repository utilizes the [Foundry](https://book.getfoundry.sh/getting-starte
 git clone https://github.com/dustinstacy/bonding-curve.git
 cd bonding-curve
 ```
+
+## Documentation
+
+<a href="././SUMMARY.md">Summary</a>
 
 ## Screenshots
 
