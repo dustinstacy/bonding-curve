@@ -42,7 +42,7 @@ cd bonding-curve
 
 ## Documentation
 
-<a href="././SUMMARY.md">Summary</a>
+<a href="docs/src/SUMMARY.md">Summary</a>
 
 ## Screenshots
 
