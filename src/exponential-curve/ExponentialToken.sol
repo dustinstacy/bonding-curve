@@ -73,6 +73,7 @@ contract ExponentialToken is ERC20Burnable {
         payable
         ERC20(_name, _symbol)
     {
+        console.log("HERE");
         // Check if the bonding curve address is not the zero address and set the bonding curve instance.
         require(_bcAddress != address(0), "ExponentialToken: bonding curve address cannot be zero address");
         i_bondingCurve = ExponentialBondingCurve(_bcAddress);

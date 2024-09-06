@@ -54,7 +54,7 @@ contract HelperConfig is Script, CodeConstants {
         activeCurveConfig = CurveConfig({
             protocolFeePercent: 100, // 1%
             feeSharePercent: 0, // 0%
-            initialReserve: 0.0001 ether,
+            initialReserve: 100000000000000,
             reserveRatio: 500000, // 50.0%
             maxGasLimit: 1000000 // 1M Gwei
         });
