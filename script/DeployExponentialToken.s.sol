@@ -17,27 +17,21 @@ contract DeployExponentialToken is Script {
         string memory name = "Exponential Token";
         string memory symbol = "EXP";
         address proxy = 0x3FE1EeFD8FcA939dD0670564700A2703BBfAFe96;
-        uint256 value = curveConfig.initialReserve;
 
-        token = deployExponentialToken(name, symbol, proxy, msg.sender, value);
+        token = deployExponentialToken(name, symbol, proxy);
     }
 
     /// @notice Deploys the ExponentialToken contract.
     /// @param name The name of the token.
     /// @param symbol The symbol of the token.
     /// @param proxy The address of the proxy contract.
-    /// @param host The address of the host contract.
-    /// @param value The initial reserve value.
     /// @return token The address of the deployed ExponentialToken contract.
-    function deployExponentialToken(
-        string memory name,
-        string memory symbol,
-        address proxy,
-        address host,
-        uint256 value
-    ) public returns (ExponentialToken token) {
+    function deployExponentialToken(string memory name, string memory symbol, address proxy)
+        public
+        returns (ExponentialToken token)
+    {
         vm.startBroadcast();
-        token = new ExponentialToken{value: value}(name, symbol, proxy, host);
+        token = new ExponentialToken(name, symbol, proxy);
         vm.stopBroadcast();
         return token;
     }

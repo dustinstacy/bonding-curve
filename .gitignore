@@ -1,18 +1,24 @@
+# IDE files
+.vscode
+
 # Compiler files
+artifacts/
+broadcast/
 cache/
+cache_hardhat/
 out/
 
-# Ignores development broadcast logs
-!/broadcast
-/broadcast/*/31337/
-/broadcast/**/dry-run/
+# Documentation files
+docs/
 
 # Dotenv file
 .env
 
-# Reference files
-references/
+# Node modules
+node_modules/
 
-# Stored Files
-alternate-curves/
-script/data
+# Local Test Files
+slither.config.json
+
+
+

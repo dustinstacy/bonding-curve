@@ -113,8 +113,6 @@ contract LinearBondingCurveAndTokenTest is Test, CodeConstants {
         expectedSupply = linToken.totalSupply() - burnAmount;
         expectedProtocolBalance = owner.balance + expectedFees;
 
-        console.log("expectedReturn", expectedReturn, "expectedFees", expectedFees);
-
         vm.startPrank(user1);
         linToken.approve(address(user1), burnAmount);
         linToken.burnTokens(burnAmount, user1);

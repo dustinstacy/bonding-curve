@@ -5,7 +5,6 @@ import {Initializable} from "lib/openzeppelin-contracts-upgradeable/contracts/pr
 import {OwnableUpgradeable} from "lib/openzeppelin-contracts-upgradeable/contracts/access/OwnableUpgradeable.sol";
 import {UUPSUpgradeable} from "lib/openzeppelin-contracts-upgradeable/contracts/proxy/utils/UUPSUpgradeable.sol";
 import {BancorFormula} from "src/exponential-curve/BancorFormula.sol";
-import {console} from "forge-std/console.sol";
 
 /// @title ExponentialBondingCurve
 /// @author Dustin Stacy
@@ -163,8 +162,6 @@ contract ExponentialBondingCurve is Initializable, OwnableUpgradeable, UUPSUpgra
         view
         returns (uint256 depositAmount, uint256 fees)
     {
-        console.log("currentSupply: %d", currentSupply);
-        console.log("reserveTokenBalance: %d", reserveTokenBalance);
         // We want to mint exactly 1 token, scaled by PRECISION
         uint256 targetReturn = PRECISION;
 

@@ -89,7 +89,6 @@ contract ExponentialBondingCurveAndTokenTest is Test, CodeConstants {
         reserve = expToken.reserveBalance();
         uint256 startingProtocolBalance = owner.balance;
 
-        console.log("here");
         // Calculate required value to mint 1 token
         (uint256 depositAmount, uint256 expectedFees) = expCurve.getApproxMintCost(supply, reserve);
 
