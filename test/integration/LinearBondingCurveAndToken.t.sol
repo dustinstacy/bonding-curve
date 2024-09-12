@@ -2,12 +2,12 @@
 pragma solidity ^0.8.26;
 
 import {Test, console} from "forge-std/Test.sol";
-import {LinearBondingCurve} from "src/linear-curve/LinearBondingCurve.sol";
-import {LinearToken} from "src/linear-curve/LinearToken.sol";
-import {HelperConfig} from "script/HelperConfig.s.sol";
-import {DeployLinearBondingCurve} from "script/DeployLinearBondingCurve.s.sol";
-import {DeployLinearToken} from "script/LinearInteractions.s.sol";
-import {CodeConstants} from "script/HelperConfig.s.sol";
+import {LinearBondingCurve} from "src/bonding-curves/LinearBondingCurve.sol";
+import {LinearToken} from "src/bonding-curves/curve-tokens/LinearToken.sol";
+import {HelperConfig} from "script/utils/HelperConfig.s.sol";
+import {DeployLinearBondingCurve} from "script/deploy/DeployLinearBondingCurve.s.sol";
+import {DeployLinearToken} from "script/interactions/LinearInteractions.s.sol";
+import {CodeConstants} from "script/utils/HelperConfig.s.sol";
 
 contract LinearBondingCurveAndTokenTest is Test, CodeConstants {
     LinearBondingCurve public linCurve;

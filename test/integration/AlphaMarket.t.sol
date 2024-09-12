@@ -3,23 +3,23 @@ pragma solidity ^0.8.26;
 
 import {Test, console} from "forge-std/Test.sol";
 import {AlphaMarketToken} from "src/dao/AlphaMarketToken.sol";
-import {DeployAlphaMarketToken} from "script/DeployAlphaMarketToken.s.sol";
+import {DeployAlphaMarketToken} from "script/deploy/DeployAlphaMarketToken.s.sol";
 import {TimeLock} from "src/dao/TimeLock.sol";
-import {DeployTimeLock} from "script/DeployTimeLock.s.sol";
-import {AlphaMarket} from "src/dao/AlphaMarket.sol";
-import {DeployAlphaMarket} from "script/DeployAlphaMarket.s.sol";
-import {ExponentialBondingCurve} from "src/exponential-curve/ExponentialBondingCurve.sol";
-import {DeployExponentialBondingCurve} from "script/DeployExponentialBondingCurve.s.sol";
-import {LinearBondingCurve} from "src/linear-curve/LinearBondingCurve.sol";
-import {DeployLinearBondingCurve} from "script/DeployLinearBondingCurve.s.sol";
-import {HelperConfig} from "script/HelperConfig.s.sol";
+import {DeployTimeLock} from "script/deploy/DeployTimeLock.s.sol";
+import {AlphaMarketDAO} from "src/dao/AlphaMarketDAO.sol";
+import {DeployAlphaMarketDAO} from "script/deploy/DeployAlphaMarketDAO.s.sol";
+import {ExponentialBondingCurve} from "src/bonding-curves/ExponentialBondingCurve.sol";
+import {DeployExponentialBondingCurve} from "script/deploy/DeployExponentialBondingCurve.s.sol";
+import {LinearBondingCurve} from "src/bonding-curves/LinearBondingCurve.sol";
+import {DeployLinearBondingCurve} from "script/deploy/DeployLinearBondingCurve.s.sol";
+import {HelperConfig} from "script/utils/HelperConfig.s.sol";
 import {ExponentialBondingCurveUpgradeMock} from "test/mocks/ExponentialBondingCurveUpgradeMock.sol";
-import {CodeConstants} from "script/HelperConfig.s.sol";
+import {CodeConstants} from "script/utils/HelperConfig.s.sol";
 
-contract AlphaMarketTest is Test, CodeConstants {
+contract AlphaMarketDAOTest is Test, CodeConstants {
     AlphaMarketToken public alphaMarketToken;
     TimeLock public timeLock;
-    AlphaMarket public alphaMarket;
+    AlphaMarketDAO public alphaMarket;
     ExponentialBondingCurve public expCurve;
     LinearBondingCurve public linCurve;
     ExponentialBondingCurveUpgradeMock public upgradeMock;
@@ -67,13 +67,13 @@ contract AlphaMarketTest is Test, CodeConstants {
 
         DeployAlphaMarketToken deployToken = new DeployAlphaMarketToken();
         DeployTimeLock deployLock = new DeployTimeLock();
-        DeployAlphaMarket deployMarket = new DeployAlphaMarket();
+        DeployAlphaMarketDAO deployMarket = new DeployAlphaMarketDAO();
         DeployExponentialBondingCurve deployExpCurve = new DeployExponentialBondingCurve();
         DeployLinearBondingCurve deployLinCurve = new DeployLinearBondingCurve();
 
         alphaMarketToken = deployToken.run();
         timeLock = deployLock.run();
-        alphaMarket = deployMarket.deployAlphaMarket(admin, alphaMarketToken, timeLock);
+        alphaMarket = deployMarket.deployAlphaMarketDAO(admin, alphaMarketToken, timeLock);
         deployMarket.updateRoles(address(alphaMarket), admin, timeLock);
         (expProxy, expCurve, helperConfig) = deployExpCurve.deployCurve(address(timeLock), admin, curveConfig);
         (linProxy, linCurve,) = deployLinCurve.run();

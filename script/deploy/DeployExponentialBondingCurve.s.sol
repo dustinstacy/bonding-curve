@@ -1,9 +1,9 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.26;
 
-import {ExponentialBondingCurve} from "src/exponential-curve/ExponentialBondingCurve.sol";
+import {ExponentialBondingCurve} from "src/bonding-curves/ExponentialBondingCurve.sol";
 import {Script, console} from "forge-std/Script.sol";
-import {HelperConfig} from "script/HelperConfig.s.sol";
+import {HelperConfig} from "script/utils/HelperConfig.s.sol";
 import {ERC1967Proxy} from "@openzeppelin/contracts/proxy/ERC1967/ERC1967Proxy.sol";
 import {DevOpsTools} from "lib/foundry-devops/src/DevOpsTools.sol";
 

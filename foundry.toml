@@ -17,7 +17,7 @@ remappings = [
 [fuzz]
 runs = 100
 
-gas_reports = ["ExponentialBondingCurve", "ExponentialToken", "LinearBondingCurve", "LinearToken"]
+gas_reports = ["ExponentialBondingCurve", "GroupToken", "LinearBondingCurve", "LinearToken"]
 
 
 

@@ -7,8 +7,6 @@ Alpha Market DAO and Bonding Curves
 <p align="center">
   <a href="#description">Description</a> •
   <a href="#local-setup">Local Setup</a> •
-  <a href="#documentation">Documentation</a> •
-  <a href="#screenshots">Screenshots</a> •
   <a href="#dao">DAO</a> •
   <a href="#bonding-curves">Bonding Curves</a> •
   <a href="#groups">Groups</a> •
@@ -39,21 +37,6 @@ This repository utilizes the [Foundry](https://book.getfoundry.sh/getting-starte
 git clone https://github.com/dustinstacy/bonding-curve.git
 cd bonding-curve
 ```
-
-## Documentation
-
-<a href="docs/src/SUMMARY.md">Summary</a>
-
-## Screenshots
-
-<h4>Home screen</h4>
-
-![home screen](<image-file-path>)
-
-<h4>Group Screen</h4>
-
-![group screen](<image-file-path>)
-
 
 ## DAO 
 
@@ -145,7 +128,7 @@ Bonding curves provide liquidity by creating a continuous market for the token. 
 
 The curve token contracts manage tokens used for groups launched by hosts on a curation market platform. These ERC20 tokens interact with a bonding curve to facilitate their issuance and redemption.
 
-- **Contract**: `ExponentialToken`, `LinearToken`
+- **Contract**: `GroupToken`, `LinearToken`
 - **Features**:
   - **Dynamic Pricing**: Uses the corresponding curve contract to determine token prices based on the curve’s formula and the current reserve balance.
   - **Token Issuance**: Enables users to mint new tokens by sending Ether. The number of tokens minted and associated fees are determined by the bonding curve.

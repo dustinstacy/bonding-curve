@@ -2,7 +2,7 @@
 pragma solidity ^0.8.26;
 
 import {ERC20Burnable, ERC20} from "@openzeppelin/contracts/token/ERC20/extensions/ERC20Burnable.sol";
-import {LinearBondingCurve} from "src/linear-curve/LinearBondingCurve.sol";
+import {LinearBondingCurve} from "src/bonding-curves/LinearBondingCurve.sol";
 
 /// @title LinearCurveToken
 /// @author Dustin Stacy
@@ -74,7 +74,7 @@ contract LinearToken is ERC20Burnable {
         ERC20(_name, _symbol)
     {
         // Check if the bonding curve address is not the zero address and set the bonding curve instance.
-        require(_bcAddress != address(0), "ExponentialToken: bonding curve address cannot be zero address");
+        require(_bcAddress != address(0), "GroupToken: bonding curve address cannot be zero address");
         i_bondingCurve = LinearBondingCurve(_bcAddress);
 
         // Mint the initial token to the contract creator.

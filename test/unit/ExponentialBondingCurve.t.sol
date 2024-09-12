@@ -2,9 +2,9 @@
 pragma solidity ^0.8.26;
 
 import {Test, console} from "forge-std/Test.sol";
-import {ExponentialBondingCurve} from "src/exponential-curve/ExponentialBondingCurve.sol";
-import {HelperConfig} from "script/HelperConfig.s.sol";
-import {DeployExponentialBondingCurve} from "script/DeployExponentialBondingCurve.s.sol";
+import {ExponentialBondingCurve} from "src/bonding-curves/ExponentialBondingCurve.sol";
+import {HelperConfig} from "script/utils/HelperConfig.s.sol";
+import {DeployExponentialBondingCurve} from "script/deploy/DeployExponentialBondingCurve.s.sol";
 
 contract ExponentialBondingCurveTest is Test {
     ExponentialBondingCurve public expCurve;

@@ -2,37 +2,31 @@
 pragma solidity ^0.8.26;
 
 import {ERC20Burnable, ERC20} from "@openzeppelin/contracts/token/ERC20/extensions/ERC20Burnable.sol";
-import {ExponentialBondingCurve} from "src/exponential-curve/ExponentialBondingCurve.sol";
+import {ExponentialBondingCurve} from "src/bonding-curves/ExponentialBondingCurve.sol";
 import {console} from "forge-std/console.sol";
 
 /// @title ExponentialCurveToken
 /// @author Dustin Stacy
 /// @notice This contract implements a simple ERC20 token that can be bought and sold using an exponential bonding curve.
-contract ExponentialToken is ERC20Burnable {
+contract GroupToken is ERC20Burnable {
     /*///////////////////////////////////////////////////////////////
                                 ERRORS
     ///////////////////////////////////////////////////////////////*/
 
-    /// @dev Emitted when the host attempts to mint the initial token after it has already been minted.
-    error ExponentialToken__InitialTokenAlreadyMinted();
-
     /// @dev Emitted when the buyer does not send the correct amount of Ether to mint the initial token.
-    error ExponentialToken__IncorrectAmountOfEtherSent();
-
-    /// @dev Emitted when the fan attempts to mint tokens before the initial token has been minted.
-    error ExponentialToken__InitialTokenNotMinted();
+    error GroupToken__IncorrectAmountOfEtherSent();
 
     /// @dev Emitted when attempting to perform an action with an amount that must be more than zero.
-    error ExponentialToken__AmountMustBeMoreThanZero();
+    error GroupToken__AmountMustBeMoreThanZero();
 
     /// @dev Emitted if the buyer does not send enough Ether to purchase the tokens.
-    error ExponentialToken__InsufficientFundingForTransaction();
+    error GroupToken__InsufficientFundingForTransaction();
 
     /// @dev Emitted when attempting to burn an amount that exceeds the sender's balance.
-    error ExponentialToken__BurnAmountExceedsBalance();
+    error GroupToken__BurnAmountExceedsBalance();
 
     /// @dev Emitted when attempting to reduce the total supply below one.
-    error ExponentialToken__SupplyCannotBeReducedBelowOne();
+    error GroupToken__SupplyCannotBeReducedBelowOne();
 
     /*///////////////////////////////////////////////////////////////
                              STATE VARIABLES
@@ -74,37 +68,31 @@ contract ExponentialToken is ERC20Burnable {
     /// @param _name The name of the token.
     /// @param _symbol The symbol of the token.
     /// @param _bcAddress The address of the ExponentialBondingCurve contract.
-    constructor(string memory _name, string memory _symbol, address _bcAddress) ERC20(_name, _symbol) {
+    /// @param _host The address of the host account.
+    constructor(string memory _name, string memory _symbol, address _bcAddress, address _host)
+        payable
+        ERC20(_name, _symbol)
+    {
         // Check if the bonding curve address is not the zero address and set the bonding curve instance.
         require(_bcAddress != address(0), "ExponentialToken: bonding curve address cannot be zero address");
         i_bondingCurve = ExponentialBondingCurve(_bcAddress);
+
+        // Mint the initial token to the contract creator.
+        if (msg.value != i_bondingCurve.initialReserve()) {
+            revert GroupToken__IncorrectAmountOfEtherSent();
+        }
+        reserveBalance += msg.value;
+        _mint(_host, 1e18);
     }
 
     /*///////////////////////////////////////////////////////////////
                           EXTERNAL FUNCTIONS
     ///////////////////////////////////////////////////////////////*/
 
-    /// @notice Allows the host to mint the initial token by sending the correct amount of Ether to the contract.
-    function hostMint(address _host) external payable {
-        if (totalSupply() != 0) {
-            revert ExponentialToken__InitialTokenAlreadyMinted();
-        }
-        // Mint the initial token to the contract creator.
-        if (msg.value != i_bondingCurve.initialReserve()) {
-            revert ExponentialToken__IncorrectAmountOfEtherSent();
-        }
-        reserveBalance += msg.value;
-        _mint(_host, 1e18);
-    }
-
     /// @notice Allows a user to mint tokens by sending Ether to the contract.
     function mintTokens() external payable validGasPrice {
-        if (totalSupply() == 0) {
-            revert ExponentialToken__InitialTokenNotMinted();
-        }
-
         if (msg.value == 0) {
-            revert ExponentialToken__AmountMustBeMoreThanZero();
+            revert GroupToken__AmountMustBeMoreThanZero();
         }
 
         // Calculate the amount of tokens to mint.
@@ -131,19 +119,19 @@ contract ExponentialToken is ERC20Burnable {
     /// @param sender The address of the sender.
     function burnTokens(uint256 amount, address sender) external validGasPrice {
         if (amount == 0) {
-            revert ExponentialToken__AmountMustBeMoreThanZero();
+            revert GroupToken__AmountMustBeMoreThanZero();
         }
 
         /// Do we want to enforce this to prevent bricking the contract?
         if (totalSupply() - amount < 1e18) {
-            revert ExponentialToken__SupplyCannotBeReducedBelowOne();
+            revert GroupToken__SupplyCannotBeReducedBelowOne();
         }
 
         // Check if the seller has enough tokens to burn.
         uint256 balance = balanceOf(sender);
 
         if (balance < amount) {
-            revert ExponentialToken__BurnAmountExceedsBalance();
+            revert GroupToken__BurnAmountExceedsBalance();
         }
 
         // Calculate the amount of Ether to return to the seller.

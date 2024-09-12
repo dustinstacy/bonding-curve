@@ -3,10 +3,10 @@ pragma solidity ^0.8.26;
 
 import {Script} from "forge-std/Script.sol";
 import {AlphaMarketToken} from "src/dao/AlphaMarketToken.sol";
-import {HelperConfig} from "script/HelperConfig.s.sol";
+import {HelperConfig} from "script/utils/HelperConfig.s.sol";
 
 /// @title DeployExponentialBondingCurve
-/// @notice Script for deploying the AlphaMarket protocol.
+/// @notice Script for deploying the AlphaMarketDAO protocol.
 contract DeployAlphaMarketToken is Script {
     function run() external returns (AlphaMarketToken token) {
         HelperConfig helperConfig = new HelperConfig();

@@ -2,16 +2,16 @@
 pragma solidity ^0.8.26;
 
 import {Script, console} from "forge-std/Script.sol";
-import {AlphaMarket} from "src/dao/AlphaMarket.sol";
+import {AlphaMarketDAO} from "src/dao/AlphaMarketDAO.sol";
 import {AlphaMarketToken} from "src/dao/AlphaMarketToken.sol";
 import {TimeLock} from "src/dao/TimeLock.sol";
-import {HelperConfig} from "script/HelperConfig.s.sol";
+import {HelperConfig} from "script/utils/HelperConfig.s.sol";
 import {DevOpsTools} from "lib/foundry-devops/src/DevOpsTools.sol";
 
 /// @title DeployExponentialBondingCurve
-/// @notice Script for deploying the AlphaMarket protocol.
-contract DeployAlphaMarket is Script {
-    function run() external returns (AlphaMarket market) {
+/// @notice Script for deploying the AlphaMarketDAO protocol.
+contract DeployAlphaMarketDAO is Script {
+    function run() external returns (AlphaMarketDAO market) {
         HelperConfig helperConfig = new HelperConfig();
         HelperConfig.NetworkConfig memory networkConfig;
         (, networkConfig) = helperConfig.getConfig();
@@ -21,29 +21,29 @@ contract DeployAlphaMarket is Script {
         TimeLock timeLock = TimeLock(payable(mostRecentTimeLock));
         AlphaMarketToken token = AlphaMarketToken(mostRecentAlphaToken);
 
-        market = deployAlphaMarket(networkConfig.admin, token, timeLock);
+        market = deployAlphaMarketDAO(networkConfig.admin, token, timeLock);
         updateRoles(address(market), networkConfig.admin, timeLock);
 
         return (market);
     }
 
-    /// @notice Deploys the AlphaMarket contract.
+    /// @notice Deploys the AlphaMarketDAO contract.
     /// @param _admin The address of the admin of the TimeLock contract.
     /// @param alphaMarketToken The instance of the AlphaMarketToken contract.
     /// @param timeLock The instance of the TimeLock contract.
-    /// @return alphaMarket The address of the deployed AlphaMarket contract.
-    function deployAlphaMarket(address _admin, AlphaMarketToken alphaMarketToken, TimeLock timeLock)
+    /// @return alphaMarket The address of the deployed AlphaMarketDAO contract.
+    function deployAlphaMarketDAO(address _admin, AlphaMarketToken alphaMarketToken, TimeLock timeLock)
         public
-        returns (AlphaMarket alphaMarket)
+        returns (AlphaMarketDAO alphaMarket)
     {
         vm.startBroadcast(_admin);
-        alphaMarket = new AlphaMarket(alphaMarketToken, timeLock);
+        alphaMarket = new AlphaMarketDAO(alphaMarketToken, timeLock);
         vm.stopBroadcast();
         return alphaMarket;
     }
 
     /// @notice Grants the proposer and executor roles to the admin of the TimeLock contract.
-    /// @param alphaMarket The address of the AlphaMarket contract.
+    /// @param alphaMarket The address of the AlphaMarketDAO contract.
     /// @param timeLock The instance of the TimeLock contract.
     function updateRoles(address alphaMarket, address _admin, TimeLock timeLock) public {
         bytes32 proposerRole = timeLock.PROPOSER_ROLE();

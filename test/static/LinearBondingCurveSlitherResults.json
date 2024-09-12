@@ -11,9 +11,9 @@
                         "source_mapping": {
                             "start": 5899,
                             "length": 1766,
-                            "filename_relative": "src/linear-curve/LinearBondingCurve.sol",
-                            "filename_absolute": "/home/cloudwalker/repos/bonding-curve/src/linear-curve/LinearBondingCurve.sol",
-                            "filename_short": "src/linear-curve/LinearBondingCurve.sol",
+                            "filename_relative": "src/bonding-curves/LinearBondingCurve.sol",
+                            "filename_absolute": "/home/cloudwalker/repos/bonding-curve/src/bonding-curves/LinearBondingCurve.sol",
+                            "filename_short": "src/bonding-curves/LinearBondingCurve.sol",
                             "is_dependency": false,
                             "lines": [
                                 121, 122, 123, 124, 125, 126, 127, 128, 129, 130, 131, 132, 133, 134, 135, 136, 137,
@@ -30,9 +30,9 @@
                                 "source_mapping": {
                                     "start": 817,
                                     "length": 9971,
-                                    "filename_relative": "src/linear-curve/LinearBondingCurve.sol",
-                                    "filename_absolute": "/home/cloudwalker/repos/bonding-curve/src/linear-curve/LinearBondingCurve.sol",
-                                    "filename_short": "src/linear-curve/LinearBondingCurve.sol",
+                                    "filename_relative": "src/bonding-curves/LinearBondingCurve.sol",
+                                    "filename_absolute": "/home/cloudwalker/repos/bonding-curve/src/bonding-curves/LinearBondingCurve.sol",
+                                    "filename_short": "src/bonding-curves/LinearBondingCurve.sol",
                                     "is_dependency": false,
                                     "lines": [
                                         15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34,
@@ -63,9 +63,9 @@
                         "source_mapping": {
                             "start": 6647,
                             "length": 54,
-                            "filename_relative": "src/linear-curve/LinearBondingCurve.sol",
-                            "filename_absolute": "/home/cloudwalker/repos/bonding-curve/src/linear-curve/LinearBondingCurve.sol",
-                            "filename_short": "src/linear-curve/LinearBondingCurve.sol",
+                            "filename_relative": "src/bonding-curves/LinearBondingCurve.sol",
+                            "filename_absolute": "/home/cloudwalker/repos/bonding-curve/src/bonding-curves/LinearBondingCurve.sol",
+                            "filename_short": "src/bonding-curves/LinearBondingCurve.sol",
                             "is_dependency": false,
                             "lines": [137],
                             "starting_column": 13,
@@ -78,9 +78,9 @@
                                 "source_mapping": {
                                     "start": 5899,
                                     "length": 1766,
-                                    "filename_relative": "src/linear-curve/LinearBondingCurve.sol",
-                                    "filename_absolute": "/home/cloudwalker/repos/bonding-curve/src/linear-curve/LinearBondingCurve.sol",
-                                    "filename_short": "src/linear-curve/LinearBondingCurve.sol",
+                                    "filename_relative": "src/bonding-curves/LinearBondingCurve.sol",
+                                    "filename_absolute": "/home/cloudwalker/repos/bonding-curve/src/bonding-curves/LinearBondingCurve.sol",
+                                    "filename_short": "src/bonding-curves/LinearBondingCurve.sol",
                                     "is_dependency": false,
                                     "lines": [
                                         121, 122, 123, 124, 125, 126, 127, 128, 129, 130, 131, 132, 133, 134, 135, 136,
@@ -97,9 +97,9 @@
                                         "source_mapping": {
                                             "start": 817,
                                             "length": 9971,
-                                            "filename_relative": "src/linear-curve/LinearBondingCurve.sol",
-                                            "filename_absolute": "/home/cloudwalker/repos/bonding-curve/src/linear-curve/LinearBondingCurve.sol",
-                                            "filename_short": "src/linear-curve/LinearBondingCurve.sol",
+                                            "filename_relative": "src/bonding-curves/LinearBondingCurve.sol",
+                                            "filename_absolute": "/home/cloudwalker/repos/bonding-curve/src/bonding-curves/LinearBondingCurve.sol",
+                                            "filename_short": "src/bonding-curves/LinearBondingCurve.sol",
                                             "is_dependency": false,
                                             "lines": [
                                                 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32,
@@ -133,9 +133,9 @@
                         "source_mapping": {
                             "start": 6715,
                             "length": 55,
-                            "filename_relative": "src/linear-curve/LinearBondingCurve.sol",
-                            "filename_absolute": "/home/cloudwalker/repos/bonding-curve/src/linear-curve/LinearBondingCurve.sol",
-                            "filename_short": "src/linear-curve/LinearBondingCurve.sol",
+                            "filename_relative": "src/bonding-curves/LinearBondingCurve.sol",
+                            "filename_absolute": "/home/cloudwalker/repos/bonding-curve/src/bonding-curves/LinearBondingCurve.sol",
+                            "filename_short": "src/bonding-curves/LinearBondingCurve.sol",
                             "is_dependency": false,
                             "lines": [138],
                             "starting_column": 13,
@@ -148,9 +148,9 @@
                                 "source_mapping": {
                                     "start": 5899,
                                     "length": 1766,
-                                    "filename_relative": "src/linear-curve/LinearBondingCurve.sol",
-                                    "filename_absolute": "/home/cloudwalker/repos/bonding-curve/src/linear-curve/LinearBondingCurve.sol",
-                                    "filename_short": "src/linear-curve/LinearBondingCurve.sol",
+                                    "filename_relative": "src/bonding-curves/LinearBondingCurve.sol",
+                                    "filename_absolute": "/home/cloudwalker/repos/bonding-curve/src/bonding-curves/LinearBondingCurve.sol",
+                                    "filename_short": "src/bonding-curves/LinearBondingCurve.sol",
                                     "is_dependency": false,
                                     "lines": [
                                         121, 122, 123, 124, 125, 126, 127, 128, 129, 130, 131, 132, 133, 134, 135, 136,
@@ -167,9 +167,9 @@
                                         "source_mapping": {
                                             "start": 817,
                                             "length": 9971,
-                                            "filename_relative": "src/linear-curve/LinearBondingCurve.sol",
-                                            "filename_absolute": "/home/cloudwalker/repos/bonding-curve/src/linear-curve/LinearBondingCurve.sol",
-                                            "filename_short": "src/linear-curve/LinearBondingCurve.sol",
+                                            "filename_relative": "src/bonding-curves/LinearBondingCurve.sol",
+                                            "filename_absolute": "/home/cloudwalker/repos/bonding-curve/src/bonding-curves/LinearBondingCurve.sol",
+                                            "filename_short": "src/bonding-curves/LinearBondingCurve.sol",
                                             "is_dependency": false,
                                             "lines": [
                                                 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32,
@@ -198,9 +198,9 @@
                         }
                     }
                 ],
-                "description": "LinearBondingCurve.calculateSaleReturn(uint256,uint256,uint256) (src/linear-curve/LinearBondingCurve.sol#121-161) performs a multiplication on the result of a division:\n\t- rawSaleReturn = amount * PRECISION / _totalCost(n + 1) (src/linear-curve/LinearBondingCurve.sol#137)\n\t- fees = (rawSaleReturn * protocolFeePercent) / PRECISION (src/linear-curve/LinearBondingCurve.sol#138)\n",
-                "markdown": "[LinearBondingCurve.calculateSaleReturn(uint256,uint256,uint256)](src/linear-curve/LinearBondingCurve.sol#L121-L161) performs a multiplication on the result of a division:\n\t- [rawSaleReturn = amount * PRECISION / _totalCost(n + 1)](src/linear-curve/LinearBondingCurve.sol#L137)\n\t- [fees = (rawSaleReturn * protocolFeePercent) / PRECISION](src/linear-curve/LinearBondingCurve.sol#L138)\n",
-                "first_markdown_element": "src/linear-curve/LinearBondingCurve.sol#L121-L161",
+                "description": "LinearBondingCurve.calculateSaleReturn(uint256,uint256,uint256) (src/bonding-curves/LinearBondingCurve.sol#121-161) performs a multiplication on the result of a division:\n\t- rawSaleReturn = amount * PRECISION / _totalCost(n + 1) (src/bonding-curves/LinearBondingCurve.sol#137)\n\t- fees = (rawSaleReturn * protocolFeePercent) / PRECISION (src/bonding-curves/LinearBondingCurve.sol#138)\n",
+                "markdown": "[LinearBondingCurve.calculateSaleReturn(uint256,uint256,uint256)](src/bonding-curves/LinearBondingCurve.sol#L121-L161) performs a multiplication on the result of a division:\n\t- [rawSaleReturn = amount * PRECISION / _totalCost(n + 1)](src/bonding-curves/LinearBondingCurve.sol#L137)\n\t- [fees = (rawSaleReturn * protocolFeePercent) / PRECISION](src/bonding-curves/LinearBondingCurve.sol#L138)\n",
+                "first_markdown_element": "src/bonding-curves/LinearBondingCurve.sol#L121-L161",
                 "id": "00910b758a4e924a4b357fbe1aaecb8165f806938ee0a1bc188d2c5d1dc7fa8e",
                 "check": "divide-before-multiply",
                 "impact": "Medium",
@@ -214,9 +214,9 @@
                         "source_mapping": {
                             "start": 3558,
                             "length": 1894,
-                            "filename_relative": "src/linear-curve/LinearBondingCurve.sol",
-                            "filename_absolute": "/home/cloudwalker/repos/bonding-curve/src/linear-curve/LinearBondingCurve.sol",
-                            "filename_short": "src/linear-curve/LinearBondingCurve.sol",
+                            "filename_relative": "src/bonding-curves/LinearBondingCurve.sol",
+                            "filename_absolute": "/home/cloudwalker/repos/bonding-curve/src/bonding-curves/LinearBondingCurve.sol",
+                            "filename_short": "src/bonding-curves/LinearBondingCurve.sol",
                             "is_dependency": false,
                             "lines": [
                                 73, 74, 75, 76, 77, 78, 79, 80, 81, 82, 83, 84, 85, 86, 87, 88, 89, 90, 91, 92, 93, 94,
@@ -232,9 +232,9 @@
                                 "source_mapping": {
                                     "start": 817,
                                     "length": 9971,
-                                    "filename_relative": "src/linear-curve/LinearBondingCurve.sol",
-                                    "filename_absolute": "/home/cloudwalker/repos/bonding-curve/src/linear-curve/LinearBondingCurve.sol",
-                                    "filename_short": "src/linear-curve/LinearBondingCurve.sol",
+                                    "filename_relative": "src/bonding-curves/LinearBondingCurve.sol",
+                                    "filename_absolute": "/home/cloudwalker/repos/bonding-curve/src/bonding-curves/LinearBondingCurve.sol",
+                                    "filename_short": "src/bonding-curves/LinearBondingCurve.sol",
                                     "is_dependency": false,
                                     "lines": [
                                         15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34,
@@ -265,9 +265,9 @@
                         "source_mapping": {
                             "start": 3804,
                             "length": 112,
-                            "filename_relative": "src/linear-curve/LinearBondingCurve.sol",
-                            "filename_absolute": "/home/cloudwalker/repos/bonding-curve/src/linear-curve/LinearBondingCurve.sol",
-                            "filename_short": "src/linear-curve/LinearBondingCurve.sol",
+                            "filename_relative": "src/bonding-curves/LinearBondingCurve.sol",
+                            "filename_absolute": "/home/cloudwalker/repos/bonding-curve/src/bonding-curves/LinearBondingCurve.sol",
+                            "filename_short": "src/bonding-curves/LinearBondingCurve.sol",
                             "is_dependency": false,
                             "lines": [79],
                             "starting_column": 9,
@@ -280,9 +280,9 @@
                                 "source_mapping": {
                                     "start": 3558,
                                     "length": 1894,
-                                    "filename_relative": "src/linear-curve/LinearBondingCurve.sol",
-                                    "filename_absolute": "/home/cloudwalker/repos/bonding-curve/src/linear-curve/LinearBondingCurve.sol",
-                                    "filename_short": "src/linear-curve/LinearBondingCurve.sol",
+                                    "filename_relative": "src/bonding-curves/LinearBondingCurve.sol",
+                                    "filename_absolute": "/home/cloudwalker/repos/bonding-curve/src/bonding-curves/LinearBondingCurve.sol",
+                                    "filename_short": "src/bonding-curves/LinearBondingCurve.sol",
                                     "is_dependency": false,
                                     "lines": [
                                         73, 74, 75, 76, 77, 78, 79, 80, 81, 82, 83, 84, 85, 86, 87, 88, 89, 90, 91, 92,
@@ -299,9 +299,9 @@
                                         "source_mapping": {
                                             "start": 817,
                                             "length": 9971,
-                                            "filename_relative": "src/linear-curve/LinearBondingCurve.sol",
-                                            "filename_absolute": "/home/cloudwalker/repos/bonding-curve/src/linear-curve/LinearBondingCurve.sol",
-                                            "filename_short": "src/linear-curve/LinearBondingCurve.sol",
+                                            "filename_relative": "src/bonding-curves/LinearBondingCurve.sol",
+                                            "filename_absolute": "/home/cloudwalker/repos/bonding-curve/src/bonding-curves/LinearBondingCurve.sol",
+                                            "filename_short": "src/bonding-curves/LinearBondingCurve.sol",
                                             "is_dependency": false,
                                             "lines": [
                                                 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32,
@@ -330,9 +330,9 @@
                         }
                     }
                 ],
-                "description": "LinearBondingCurve.calculatePurchaseReturn(uint256,uint256,uint256) (src/linear-curve/LinearBondingCurve.sol#73-111) performs a multiplication on the result of a division:\n\t- fees = ((reserveTokensReceived * PRECISION / (protocolFeePercent + PRECISION)) * protocolFeePercent) / PRECISION (src/linear-curve/LinearBondingCurve.sol#79)\n",
-                "markdown": "[LinearBondingCurve.calculatePurchaseReturn(uint256,uint256,uint256)](src/linear-curve/LinearBondingCurve.sol#L73-L111) performs a multiplication on the result of a division:\n\t- [fees = ((reserveTokensReceived * PRECISION / (protocolFeePercent + PRECISION)) * protocolFeePercent) / PRECISION](src/linear-curve/LinearBondingCurve.sol#L79)\n",
-                "first_markdown_element": "src/linear-curve/LinearBondingCurve.sol#L73-L111",
+                "description": "LinearBondingCurve.calculatePurchaseReturn(uint256,uint256,uint256) (src/bonding-curves/LinearBondingCurve.sol#73-111) performs a multiplication on the result of a division:\n\t- fees = ((reserveTokensReceived * PRECISION / (protocolFeePercent + PRECISION)) * protocolFeePercent) / PRECISION (src/bonding-curves/LinearBondingCurve.sol#79)\n",
+                "markdown": "[LinearBondingCurve.calculatePurchaseReturn(uint256,uint256,uint256)](src/bonding-curves/LinearBondingCurve.sol#L73-L111) performs a multiplication on the result of a division:\n\t- [fees = ((reserveTokensReceived * PRECISION / (protocolFeePercent + PRECISION)) * protocolFeePercent) / PRECISION](src/bonding-curves/LinearBondingCurve.sol#L79)\n",
+                "first_markdown_element": "src/bonding-curves/LinearBondingCurve.sol#L73-L111",
                 "id": "722c079b19254f5cd663dbca233b753a6b74126787121384de26f31290cf6292",
                 "check": "divide-before-multiply",
                 "impact": "Medium",
@@ -346,9 +346,9 @@
                         "source_mapping": {
                             "start": 6086,
                             "length": 21,
-                            "filename_relative": "src/linear-curve/LinearBondingCurve.sol",
-                            "filename_absolute": "/home/cloudwalker/repos/bonding-curve/src/linear-curve/LinearBondingCurve.sol",
-                            "filename_short": "src/linear-curve/LinearBondingCurve.sol",
+                            "filename_relative": "src/bonding-curves/LinearBondingCurve.sol",
+                            "filename_absolute": "/home/cloudwalker/repos/bonding-curve/src/bonding-curves/LinearBondingCurve.sol",
+                            "filename_short": "src/bonding-curves/LinearBondingCurve.sol",
                             "is_dependency": false,
                             "lines": [126],
                             "starting_column": 9,
@@ -361,9 +361,9 @@
                                 "source_mapping": {
                                     "start": 5899,
                                     "length": 1766,
-                                    "filename_relative": "src/linear-curve/LinearBondingCurve.sol",
-                                    "filename_absolute": "/home/cloudwalker/repos/bonding-curve/src/linear-curve/LinearBondingCurve.sol",
-                                    "filename_short": "src/linear-curve/LinearBondingCurve.sol",
+                                    "filename_relative": "src/bonding-curves/LinearBondingCurve.sol",
+                                    "filename_absolute": "/home/cloudwalker/repos/bonding-curve/src/bonding-curves/LinearBondingCurve.sol",
+                                    "filename_short": "src/bonding-curves/LinearBondingCurve.sol",
                                     "is_dependency": false,
                                     "lines": [
                                         121, 122, 123, 124, 125, 126, 127, 128, 129, 130, 131, 132, 133, 134, 135, 136,
@@ -380,9 +380,9 @@
                                         "source_mapping": {
                                             "start": 817,
                                             "length": 9971,
-                                            "filename_relative": "src/linear-curve/LinearBondingCurve.sol",
-                                            "filename_absolute": "/home/cloudwalker/repos/bonding-curve/src/linear-curve/LinearBondingCurve.sol",
-                                            "filename_short": "src/linear-curve/LinearBondingCurve.sol",
+                                            "filename_relative": "src/bonding-curves/LinearBondingCurve.sol",
+                                            "filename_absolute": "/home/cloudwalker/repos/bonding-curve/src/bonding-curves/LinearBondingCurve.sol",
+                                            "filename_short": "src/bonding-curves/LinearBondingCurve.sol",
                                             "is_dependency": false,
                                             "lines": [
                                                 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32,
@@ -411,9 +411,9 @@
                         }
                     }
                 ],
-                "description": "LinearBondingCurve.calculateSaleReturn(uint256,uint256,uint256).rawSaleReturn (src/linear-curve/LinearBondingCurve.sol#126) is a local variable never initialized\n",
-                "markdown": "[LinearBondingCurve.calculateSaleReturn(uint256,uint256,uint256).rawSaleReturn](src/linear-curve/LinearBondingCurve.sol#L126) is a local variable never initialized\n",
-                "first_markdown_element": "src/linear-curve/LinearBondingCurve.sol#L126",
+                "description": "LinearBondingCurve.calculateSaleReturn(uint256,uint256,uint256).rawSaleReturn (src/bonding-curves/LinearBondingCurve.sol#126) is a local variable never initialized\n",
+                "markdown": "[LinearBondingCurve.calculateSaleReturn(uint256,uint256,uint256).rawSaleReturn](src/bonding-curves/LinearBondingCurve.sol#L126) is a local variable never initialized\n",
+                "first_markdown_element": "src/bonding-curves/LinearBondingCurve.sol#L126",
                 "id": "abffd0210a548cf8d54f3f4bb3bbab11ce51241133f1eab28cc5d40db3bbc33a",
                 "check": "uninitialized-local",
                 "impact": "Medium",
@@ -427,9 +427,9 @@
                         "source_mapping": {
                             "start": 8996,
                             "length": 23,
-                            "filename_relative": "src/linear-curve/LinearBondingCurve.sol",
-                            "filename_absolute": "/home/cloudwalker/repos/bonding-curve/src/linear-curve/LinearBondingCurve.sol",
-                            "filename_short": "src/linear-curve/LinearBondingCurve.sol",
+                            "filename_relative": "src/bonding-curves/LinearBondingCurve.sol",
+                            "filename_absolute": "/home/cloudwalker/repos/bonding-curve/src/bonding-curves/LinearBondingCurve.sol",
+                            "filename_short": "src/bonding-curves/LinearBondingCurve.sol",
                             "is_dependency": false,
                             "lines": [197],
                             "starting_column": 40,
@@ -442,9 +442,9 @@
                                 "source_mapping": {
                                     "start": 8961,
                                     "length": 124,
-                                    "filename_relative": "src/linear-curve/LinearBondingCurve.sol",
-                                    "filename_absolute": "/home/cloudwalker/repos/bonding-curve/src/linear-curve/LinearBondingCurve.sol",
-                                    "filename_short": "src/linear-curve/LinearBondingCurve.sol",
+                                    "filename_relative": "src/bonding-curves/LinearBondingCurve.sol",
+                                    "filename_absolute": "/home/cloudwalker/repos/bonding-curve/src/bonding-curves/LinearBondingCurve.sol",
+                                    "filename_short": "src/bonding-curves/LinearBondingCurve.sol",
                                     "is_dependency": false,
                                     "lines": [197, 198, 199],
                                     "starting_column": 5,
@@ -457,9 +457,9 @@
                                         "source_mapping": {
                                             "start": 817,
                                             "length": 9971,
-                                            "filename_relative": "src/linear-curve/LinearBondingCurve.sol",
-                                            "filename_absolute": "/home/cloudwalker/repos/bonding-curve/src/linear-curve/LinearBondingCurve.sol",
-                                            "filename_short": "src/linear-curve/LinearBondingCurve.sol",
+                                            "filename_relative": "src/bonding-curves/LinearBondingCurve.sol",
+                                            "filename_absolute": "/home/cloudwalker/repos/bonding-curve/src/bonding-curves/LinearBondingCurve.sol",
+                                            "filename_short": "src/bonding-curves/LinearBondingCurve.sol",
                                             "is_dependency": false,
                                             "lines": [
                                                 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32,
@@ -493,9 +493,9 @@
                         "source_mapping": {
                             "start": 9038,
                             "length": 40,
-                            "filename_relative": "src/linear-curve/LinearBondingCurve.sol",
-                            "filename_absolute": "/home/cloudwalker/repos/bonding-curve/src/linear-curve/LinearBondingCurve.sol",
-                            "filename_short": "src/linear-curve/LinearBondingCurve.sol",
+                            "filename_relative": "src/bonding-curves/LinearBondingCurve.sol",
+                            "filename_absolute": "/home/cloudwalker/repos/bonding-curve/src/bonding-curves/LinearBondingCurve.sol",
+                            "filename_short": "src/bonding-curves/LinearBondingCurve.sol",
                             "is_dependency": false,
                             "lines": [198],
                             "starting_column": 9,
@@ -508,9 +508,9 @@
                                 "source_mapping": {
                                     "start": 8961,
                                     "length": 124,
-                                    "filename_relative": "src/linear-curve/LinearBondingCurve.sol",
-                                    "filename_absolute": "/home/cloudwalker/repos/bonding-curve/src/linear-curve/LinearBondingCurve.sol",
-                                    "filename_short": "src/linear-curve/LinearBondingCurve.sol",
+                                    "filename_relative": "src/bonding-curves/LinearBondingCurve.sol",
+                                    "filename_absolute": "/home/cloudwalker/repos/bonding-curve/src/bonding-curves/LinearBondingCurve.sol",
+                                    "filename_short": "src/bonding-curves/LinearBondingCurve.sol",
                                     "is_dependency": false,
                                     "lines": [197, 198, 199],
                                     "starting_column": 5,
@@ -523,9 +523,9 @@
                                         "source_mapping": {
                                             "start": 817,
                                             "length": 9971,
-                                            "filename_relative": "src/linear-curve/LinearBondingCurve.sol",
-                                            "filename_absolute": "/home/cloudwalker/repos/bonding-curve/src/linear-curve/LinearBondingCurve.sol",
-                                            "filename_short": "src/linear-curve/LinearBondingCurve.sol",
+                                            "filename_relative": "src/bonding-curves/LinearBondingCurve.sol",
+                                            "filename_absolute": "/home/cloudwalker/repos/bonding-curve/src/bonding-curves/LinearBondingCurve.sol",
+                                            "filename_short": "src/bonding-curves/LinearBondingCurve.sol",
                                             "is_dependency": false,
                                             "lines": [
                                                 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32,
@@ -554,9 +554,9 @@
                         }
                     }
                 ],
-                "description": "LinearBondingCurve.setProtocolFeeDestination(address)._feeDestination (src/linear-curve/LinearBondingCurve.sol#197) lacks a zero-check on :\n\t\t- protocolFeeDestination = _feeDestination (src/linear-curve/LinearBondingCurve.sol#198)\n",
-                "markdown": "[LinearBondingCurve.setProtocolFeeDestination(address)._feeDestination](src/linear-curve/LinearBondingCurve.sol#L197) lacks a zero-check on :\n\t\t- [protocolFeeDestination = _feeDestination](src/linear-curve/LinearBondingCurve.sol#L198)\n",
-                "first_markdown_element": "src/linear-curve/LinearBondingCurve.sol#L197",
+                "description": "LinearBondingCurve.setProtocolFeeDestination(address)._feeDestination (src/bonding-curves/LinearBondingCurve.sol#197) lacks a zero-check on :\n\t\t- protocolFeeDestination = _feeDestination (src/bonding-curves/LinearBondingCurve.sol#198)\n",
+                "markdown": "[LinearBondingCurve.setProtocolFeeDestination(address)._feeDestination](src/bonding-curves/LinearBondingCurve.sol#L197) lacks a zero-check on :\n\t\t- [protocolFeeDestination = _feeDestination](src/bonding-curves/LinearBondingCurve.sol#L198)\n",
+                "first_markdown_element": "src/bonding-curves/LinearBondingCurve.sol#L197",
                 "id": "bcb797f8d1aaf05b234ed1d27238af55d09bee8a57883480d7482218219deba3",
                 "check": "missing-zero-check",
                 "impact": "Low",
@@ -570,9 +570,9 @@
                         "source_mapping": {
                             "start": 32,
                             "length": 24,
-                            "filename_relative": "src/linear-curve/LinearBondingCurve.sol",
-                            "filename_absolute": "/home/cloudwalker/repos/bonding-curve/src/linear-curve/LinearBondingCurve.sol",
-                            "filename_short": "src/linear-curve/LinearBondingCurve.sol",
+                            "filename_relative": "src/bonding-curves/LinearBondingCurve.sol",
+                            "filename_absolute": "/home/cloudwalker/repos/bonding-curve/src/bonding-curves/LinearBondingCurve.sol",
+                            "filename_short": "src/bonding-curves/LinearBondingCurve.sol",
                             "is_dependency": false,
                             "lines": [2],
                             "starting_column": 1,
@@ -583,9 +583,9 @@
                         }
                     }
                 ],
-                "description": "Version constraint ^0.8.24 contains known severe issues (https://solidity.readthedocs.io/en/latest/bugs.html)\n.\nIt is used by:\n\t- ^0.8.24 (src/linear-curve/LinearBondingCurve.sol#2)\n",
-                "markdown": "Version constraint ^0.8.24 contains known severe issues (https://solidity.readthedocs.io/en/latest/bugs.html)\n.\nIt is used by:\n\t- [^0.8.24](src/linear-curve/LinearBondingCurve.sol#L2)\n",
-                "first_markdown_element": "src/linear-curve/LinearBondingCurve.sol#L2",
+                "description": "Version constraint ^0.8.24 contains known severe issues (https://solidity.readthedocs.io/en/latest/bugs.html)\n.\nIt is used by:\n\t- ^0.8.24 (src/bonding-curves/LinearBondingCurve.sol#2)\n",
+                "markdown": "Version constraint ^0.8.24 contains known severe issues (https://solidity.readthedocs.io/en/latest/bugs.html)\n.\nIt is used by:\n\t- [^0.8.24](src/bonding-curves/LinearBondingCurve.sol#L2)\n",
+                "first_markdown_element": "src/bonding-curves/LinearBondingCurve.sol#L2",
                 "id": "88c81b0d1fd5f68d0b3192dea5b37ac65d605b8708f75f2a72725c0c83e28cc3",
                 "check": "solc-version",
                 "impact": "Informational",
@@ -599,9 +599,9 @@
                         "source_mapping": {
                             "start": 9229,
                             "length": 20,
-                            "filename_relative": "src/linear-curve/LinearBondingCurve.sol",
-                            "filename_absolute": "/home/cloudwalker/repos/bonding-curve/src/linear-curve/LinearBondingCurve.sol",
-                            "filename_short": "src/linear-curve/LinearBondingCurve.sol",
+                            "filename_relative": "src/bonding-curves/LinearBondingCurve.sol",
+                            "filename_absolute": "/home/cloudwalker/repos/bonding-curve/src/bonding-curves/LinearBondingCurve.sol",
+                            "filename_short": "src/bonding-curves/LinearBondingCurve.sol",
                             "is_dependency": false,
                             "lines": [202],
                             "starting_column": 40,
@@ -614,9 +614,9 @@
                                 "source_mapping": {
                                     "start": 9194,
                                     "length": 208,
-                                    "filename_relative": "src/linear-curve/LinearBondingCurve.sol",
-                                    "filename_absolute": "/home/cloudwalker/repos/bonding-curve/src/linear-curve/LinearBondingCurve.sol",
-                                    "filename_short": "src/linear-curve/LinearBondingCurve.sol",
+                                    "filename_relative": "src/bonding-curves/LinearBondingCurve.sol",
+                                    "filename_absolute": "/home/cloudwalker/repos/bonding-curve/src/bonding-curves/LinearBondingCurve.sol",
+                                    "filename_short": "src/bonding-curves/LinearBondingCurve.sol",
                                     "is_dependency": false,
                                     "lines": [202, 203, 204, 205],
                                     "starting_column": 5,
@@ -629,9 +629,9 @@
                                         "source_mapping": {
                                             "start": 817,
                                             "length": 9971,
-                                            "filename_relative": "src/linear-curve/LinearBondingCurve.sol",
-                                            "filename_absolute": "/home/cloudwalker/repos/bonding-curve/src/linear-curve/LinearBondingCurve.sol",
-                                            "filename_short": "src/linear-curve/LinearBondingCurve.sol",
+                                            "filename_relative": "src/bonding-curves/LinearBondingCurve.sol",
+                                            "filename_absolute": "/home/cloudwalker/repos/bonding-curve/src/bonding-curves/LinearBondingCurve.sol",
+                                            "filename_short": "src/bonding-curves/LinearBondingCurve.sol",
                                             "is_dependency": false,
                                             "lines": [
                                                 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32,
@@ -664,9 +664,9 @@
                         }
                     }
                 ],
-                "description": "Parameter LinearBondingCurve.setProtocolFeeBasisPoints(uint256)._basisPoints (src/linear-curve/LinearBondingCurve.sol#202) is not in mixedCase\n",
-                "markdown": "Parameter [LinearBondingCurve.setProtocolFeeBasisPoints(uint256)._basisPoints](src/linear-curve/LinearBondingCurve.sol#L202) is not in mixedCase\n",
-                "first_markdown_element": "src/linear-curve/LinearBondingCurve.sol#L202",
+                "description": "Parameter LinearBondingCurve.setProtocolFeeBasisPoints(uint256)._basisPoints (src/bonding-curves/LinearBondingCurve.sol#202) is not in mixedCase\n",
+                "markdown": "Parameter [LinearBondingCurve.setProtocolFeeBasisPoints(uint256)._basisPoints](src/bonding-curves/LinearBondingCurve.sol#L202) is not in mixedCase\n",
+                "first_markdown_element": "src/bonding-curves/LinearBondingCurve.sol#L202",
                 "id": "19b3852b6549e60a995b83998ae5bfcc690e30c9bcce299802d88d5e62bbd65b",
                 "check": "naming-convention",
                 "impact": "Informational",
@@ -680,9 +680,9 @@
                         "source_mapping": {
                             "start": 9661,
                             "length": 20,
-                            "filename_relative": "src/linear-curve/LinearBondingCurve.sol",
-                            "filename_absolute": "/home/cloudwalker/repos/bonding-curve/src/linear-curve/LinearBondingCurve.sol",
-                            "filename_short": "src/linear-curve/LinearBondingCurve.sol",
+                            "filename_relative": "src/bonding-curves/LinearBondingCurve.sol",
+                            "filename_absolute": "/home/cloudwalker/repos/bonding-curve/src/bonding-curves/LinearBondingCurve.sol",
+                            "filename_short": "src/bonding-curves/LinearBondingCurve.sol",
                             "is_dependency": false,
                             "lines": [213],
                             "starting_column": 29,
@@ -695,9 +695,9 @@
                                 "source_mapping": {
                                     "start": 9637,
                                     "length": 96,
-                                    "filename_relative": "src/linear-curve/LinearBondingCurve.sol",
-                                    "filename_absolute": "/home/cloudwalker/repos/bonding-curve/src/linear-curve/LinearBondingCurve.sol",
-                                    "filename_short": "src/linear-curve/LinearBondingCurve.sol",
+                                    "filename_relative": "src/bonding-curves/LinearBondingCurve.sol",
+                                    "filename_absolute": "/home/cloudwalker/repos/bonding-curve/src/bonding-curves/LinearBondingCurve.sol",
+                                    "filename_short": "src/bonding-curves/LinearBondingCurve.sol",
                                     "is_dependency": false,
                                     "lines": [213, 214, 215],
                                     "starting_column": 5,
@@ -710,9 +710,9 @@
                                         "source_mapping": {
                                             "start": 817,
                                             "length": 9971,
-                                            "filename_relative": "src/linear-curve/LinearBondingCurve.sol",
-                                            "filename_absolute": "/home/cloudwalker/repos/bonding-curve/src/linear-curve/LinearBondingCurve.sol",
-                                            "filename_short": "src/linear-curve/LinearBondingCurve.sol",
+                                            "filename_relative": "src/bonding-curves/LinearBondingCurve.sol",
+                                            "filename_absolute": "/home/cloudwalker/repos/bonding-curve/src/bonding-curves/LinearBondingCurve.sol",
+                                            "filename_short": "src/bonding-curves/LinearBondingCurve.sol",
                                             "is_dependency": false,
                                             "lines": [
                                                 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32,
@@ -745,9 +745,9 @@
                         }
                     }
                 ],
-                "description": "Parameter LinearBondingCurve.setMaxGasLimit(uint256)._maxGasLimit (src/linear-curve/LinearBondingCurve.sol#213) is not in mixedCase\n",
-                "markdown": "Parameter [LinearBondingCurve.setMaxGasLimit(uint256)._maxGasLimit](src/linear-curve/LinearBondingCurve.sol#L213) is not in mixedCase\n",
-                "first_markdown_element": "src/linear-curve/LinearBondingCurve.sol#L213",
+                "description": "Parameter LinearBondingCurve.setMaxGasLimit(uint256)._maxGasLimit (src/bonding-curves/LinearBondingCurve.sol#213) is not in mixedCase\n",
+                "markdown": "Parameter [LinearBondingCurve.setMaxGasLimit(uint256)._maxGasLimit](src/bonding-curves/LinearBondingCurve.sol#L213) is not in mixedCase\n",
+                "first_markdown_element": "src/bonding-curves/LinearBondingCurve.sol#L213",
                 "id": "1ba5443a6357e48bf7324e4dd32f89d104a67901f2065ad90d7837aa7a00f140",
                 "check": "naming-convention",
                 "impact": "Informational",
@@ -761,9 +761,9 @@
                         "source_mapping": {
                             "start": 9491,
                             "length": 20,
-                            "filename_relative": "src/linear-curve/LinearBondingCurve.sol",
-                            "filename_absolute": "/home/cloudwalker/repos/bonding-curve/src/linear-curve/LinearBondingCurve.sol",
-                            "filename_short": "src/linear-curve/LinearBondingCurve.sol",
+                            "filename_relative": "src/bonding-curves/LinearBondingCurve.sol",
+                            "filename_absolute": "/home/cloudwalker/repos/bonding-curve/src/bonding-curves/LinearBondingCurve.sol",
+                            "filename_short": "src/bonding-curves/LinearBondingCurve.sol",
                             "is_dependency": false,
                             "lines": [208],
                             "starting_column": 29,
@@ -776,9 +776,9 @@
                                 "source_mapping": {
                                     "start": 9467,
                                     "length": 96,
-                                    "filename_relative": "src/linear-curve/LinearBondingCurve.sol",
-                                    "filename_absolute": "/home/cloudwalker/repos/bonding-curve/src/linear-curve/LinearBondingCurve.sol",
-                                    "filename_short": "src/linear-curve/LinearBondingCurve.sol",
+                                    "filename_relative": "src/bonding-curves/LinearBondingCurve.sol",
+                                    "filename_absolute": "/home/cloudwalker/repos/bonding-curve/src/bonding-curves/LinearBondingCurve.sol",
+                                    "filename_short": "src/bonding-curves/LinearBondingCurve.sol",
                                     "is_dependency": false,
                                     "lines": [208, 209, 210],
                                     "starting_column": 5,
@@ -791,9 +791,9 @@
                                         "source_mapping": {
                                             "start": 817,
                                             "length": 9971,
-                                            "filename_relative": "src/linear-curve/LinearBondingCurve.sol",
-                                            "filename_absolute": "/home/cloudwalker/repos/bonding-curve/src/linear-curve/LinearBondingCurve.sol",
-                                            "filename_short": "src/linear-curve/LinearBondingCurve.sol",
+                                            "filename_relative": "src/bonding-curves/LinearBondingCurve.sol",
+                                            "filename_absolute": "/home/cloudwalker/repos/bonding-curve/src/bonding-curves/LinearBondingCurve.sol",
+                                            "filename_short": "src/bonding-curves/LinearBondingCurve.sol",
                                             "is_dependency": false,
                                             "lines": [
                                                 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32,
@@ -826,9 +826,9 @@
                         }
                     }
                 ],
-                "description": "Parameter LinearBondingCurve.setInitialCost(uint256)._initialCost (src/linear-curve/LinearBondingCurve.sol#208) is not in mixedCase\n",
-                "markdown": "Parameter [LinearBondingCurve.setInitialCost(uint256)._initialCost](src/linear-curve/LinearBondingCurve.sol#L208) is not in mixedCase\n",
-                "first_markdown_element": "src/linear-curve/LinearBondingCurve.sol#L208",
+                "description": "Parameter LinearBondingCurve.setInitialCost(uint256)._initialCost (src/bonding-curves/LinearBondingCurve.sol#208) is not in mixedCase\n",
+                "markdown": "Parameter [LinearBondingCurve.setInitialCost(uint256)._initialCost](src/bonding-curves/LinearBondingCurve.sol#L208) is not in mixedCase\n",
+                "first_markdown_element": "src/bonding-curves/LinearBondingCurve.sol#L208",
                 "id": "8640c3f0e6e89226d782e8f1fa15e3fa59d051f5764374300dc3611c1d34a5a9",
                 "check": "naming-convention",
                 "impact": "Informational",
@@ -842,9 +842,9 @@
                         "source_mapping": {
                             "start": 8996,
                             "length": 23,
-                            "filename_relative": "src/linear-curve/LinearBondingCurve.sol",
-                            "filename_absolute": "/home/cloudwalker/repos/bonding-curve/src/linear-curve/LinearBondingCurve.sol",
-                            "filename_short": "src/linear-curve/LinearBondingCurve.sol",
+                            "filename_relative": "src/bonding-curves/LinearBondingCurve.sol",
+                            "filename_absolute": "/home/cloudwalker/repos/bonding-curve/src/bonding-curves/LinearBondingCurve.sol",
+                            "filename_short": "src/bonding-curves/LinearBondingCurve.sol",
                             "is_dependency": false,
                             "lines": [197],
                             "starting_column": 40,
@@ -857,9 +857,9 @@
                                 "source_mapping": {
                                     "start": 8961,
                                     "length": 124,
-                                    "filename_relative": "src/linear-curve/LinearBondingCurve.sol",
-                                    "filename_absolute": "/home/cloudwalker/repos/bonding-curve/src/linear-curve/LinearBondingCurve.sol",
-                                    "filename_short": "src/linear-curve/LinearBondingCurve.sol",
+                                    "filename_relative": "src/bonding-curves/LinearBondingCurve.sol",
+                                    "filename_absolute": "/home/cloudwalker/repos/bonding-curve/src/bonding-curves/LinearBondingCurve.sol",
+                                    "filename_short": "src/bonding-curves/LinearBondingCurve.sol",
                                     "is_dependency": false,
                                     "lines": [197, 198, 199],
                                     "starting_column": 5,
@@ -872,9 +872,9 @@
                                         "source_mapping": {
                                             "start": 817,
                                             "length": 9971,
-                                            "filename_relative": "src/linear-curve/LinearBondingCurve.sol",
-                                            "filename_absolute": "/home/cloudwalker/repos/bonding-curve/src/linear-curve/LinearBondingCurve.sol",
-                                            "filename_short": "src/linear-curve/LinearBondingCurve.sol",
+                                            "filename_relative": "src/bonding-curves/LinearBondingCurve.sol",
+                                            "filename_absolute": "/home/cloudwalker/repos/bonding-curve/src/bonding-curves/LinearBondingCurve.sol",
+                                            "filename_short": "src/bonding-curves/LinearBondingCurve.sol",
                                             "is_dependency": false,
                                             "lines": [
                                                 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32,
@@ -907,9 +907,9 @@
                         }
                     }
                 ],
-                "description": "Parameter LinearBondingCurve.setProtocolFeeDestination(address)._feeDestination (src/linear-curve/LinearBondingCurve.sol#197) is not in mixedCase\n",
-                "markdown": "Parameter [LinearBondingCurve.setProtocolFeeDestination(address)._feeDestination](src/linear-curve/LinearBondingCurve.sol#L197) is not in mixedCase\n",
-                "first_markdown_element": "src/linear-curve/LinearBondingCurve.sol#L197",
+                "description": "Parameter LinearBondingCurve.setProtocolFeeDestination(address)._feeDestination (src/bonding-curves/LinearBondingCurve.sol#197) is not in mixedCase\n",
+                "markdown": "Parameter [LinearBondingCurve.setProtocolFeeDestination(address)._feeDestination](src/bonding-curves/LinearBondingCurve.sol#L197) is not in mixedCase\n",
+                "first_markdown_element": "src/bonding-curves/LinearBondingCurve.sol#L197",
                 "id": "c7a0df85784cd0597165677ad324fb6e64a821a825191d498daf5b23cb64a46d",
                 "check": "naming-convention",
                 "impact": "Informational",
@@ -917,8 +917,8 @@
             },
             {
                 "elements": [],
-                "description": "The following unused import(s) in src/linear-curve/LinearBondingCurve.sol should be removed:\n\t-import {console} from \"forge-std/console.sol\"; (src/linear-curve/LinearBondingCurve.sol#7)\n",
-                "markdown": "The following unused import(s) in src/linear-curve/LinearBondingCurve.sol should be removed:\n\t-import {console} from \"forge-std/console.sol\"; (src/linear-curve/LinearBondingCurve.sol#7)\n",
+                "description": "The following unused import(s) in src/bonding-curves/LinearBondingCurve.sol should be removed:\n\t-import {console} from \"forge-std/console.sol\"; (src/bonding-curves/LinearBondingCurve.sol#7)\n",
+                "markdown": "The following unused import(s) in src/bonding-curves/LinearBondingCurve.sol should be removed:\n\t-import {console} from \"forge-std/console.sol\"; (src/bonding-curves/LinearBondingCurve.sol#7)\n",
                 "first_markdown_element": "",
                 "id": "002e00173b90c864b1abdf65cf1955537c45dad0b9d61b2e78baaad3b6c6730f",
                 "check": "unused-import",

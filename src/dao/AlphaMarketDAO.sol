@@ -13,7 +13,7 @@ import {
     TimelockController
 } from "@openzeppelin/contracts/governance/extensions/GovernorTimelockControl.sol";
 
-contract AlphaMarket is
+contract AlphaMarketDAO is
     Governor,
     GovernorSettings,
     GovernorCountingSimple,
@@ -22,7 +22,7 @@ contract AlphaMarket is
     GovernorTimelockControl
 {
     constructor(IVotes _token, TimelockController _timelock)
-        Governor("AlphaMarket")
+        Governor("AlphaMarketDAO")
         GovernorSettings(7200, /* 1 day */ 50400, /* 1 week */ 0)
         GovernorVotes(_token)
         GovernorVotesQuorumFraction(4)

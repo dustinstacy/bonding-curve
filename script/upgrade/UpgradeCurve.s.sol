@@ -2,7 +2,7 @@
 pragma solidity ^0.8.19;
 
 import {Script} from "forge-std/Script.sol";
-import {ExponentialBondingCurve} from "src/exponential-curve/ExponentialBondingCurve.sol";
+import {ExponentialBondingCurve} from "src/bonding-curves/ExponentialBondingCurve.sol";
 import {ExponentialBondingCurveUpgradeMock} from "test/mocks/ExponentialBondingCurveUpgradeMock.sol";
 import {ERC1967Proxy} from "@openzeppelin/contracts/proxy/ERC1967/ERC1967Proxy.sol";
 

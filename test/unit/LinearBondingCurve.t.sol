@@ -2,9 +2,9 @@
 pragma solidity ^0.8.26;
 
 import {Test, console} from "forge-std/Test.sol";
-import {LinearBondingCurve} from "src/linear-curve/LinearBondingCurve.sol";
-import {HelperConfig} from "script/HelperConfig.s.sol";
-import {DeployLinearBondingCurve} from "script/DeployLinearBondingCurve.s.sol";
+import {LinearBondingCurve} from "src/bonding-curves/LinearBondingCurve.sol";
+import {HelperConfig} from "script/utils/HelperConfig.s.sol";
+import {DeployLinearBondingCurve} from "script/deploy/DeployLinearBondingCurve.s.sol";
 
 contract LinearBondingCurveTest is Test {
     LinearBondingCurve public linCurve;

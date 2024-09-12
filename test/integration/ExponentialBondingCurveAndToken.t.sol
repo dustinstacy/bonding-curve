@@ -2,21 +2,21 @@
 pragma solidity ^0.8.26;
 
 import {Test, console} from "forge-std/Test.sol";
-import {ExponentialBondingCurve} from "src/exponential-curve/ExponentialBondingCurve.sol";
-import {ExponentialToken} from "src/exponential-curve/ExponentialToken.sol";
-import {HelperConfig} from "script/HelperConfig.s.sol";
-import {DeployExponentialBondingCurve} from "script/DeployExponentialBondingCurve.s.sol";
-import {DeployExponentialToken} from "script/ExponentialInteractions.s.sol";
-import {CodeConstants} from "script/HelperConfig.s.sol";
+import {ExponentialBondingCurve} from "src/bonding-curves/ExponentialBondingCurve.sol";
+import {GroupToken} from "src/group/GroupToken.sol";
+import {HelperConfig} from "script/utils/HelperConfig.s.sol";
+import {DeployExponentialBondingCurve} from "script/deploy/DeployExponentialBondingCurve.s.sol";
+import {DeployGroupToken} from "script/interactions/ExponentialInteractions.s.sol";
+import {CodeConstants} from "script/utils/HelperConfig.s.sol";
 
 contract ExponentialBondingCurveAndTokenTest is Test, CodeConstants {
     ExponentialBondingCurve public expCurve;
-    ExponentialToken public expToken;
+    GroupToken public expToken;
     HelperConfig public helperConfig;
     HelperConfig.NetworkConfig public networkConfig;
     HelperConfig.CurveConfig public curveConfig;
     DeployExponentialBondingCurve public curveDeployer;
-    DeployExponentialToken public tokenDeployer;
+    DeployGroupToken public tokenDeployer;
     address expProxy;
 
     // Token Contract Variables
@@ -51,7 +51,7 @@ contract ExponentialBondingCurveAndTokenTest is Test, CodeConstants {
         (curveConfig, networkConfig) = helperConfig.getConfig();
         owner = networkConfig.admin;
         curveDeployer = new DeployExponentialBondingCurve();
-        tokenDeployer = new DeployExponentialToken();
+        tokenDeployer = new DeployGroupToken();
         (expProxy, expCurve,) = curveDeployer.run();
 
         protocolFeePercent = curveConfig.protocolFeePercent;
@@ -68,7 +68,7 @@ contract ExponentialBondingCurveAndTokenTest is Test, CodeConstants {
         expToken = tokenDeployer.run{value: initialReserve}(name, symbol, expProxy, host);
     }
 
-    function test_ExponentialTokenConstructor() public view {
+    function test_GroupTokenConstructor() public view {
         assertEq(expToken.name(), name);
         assertEq(expToken.symbol(), symbol);
         assertEq(expToken.totalSupply(), 1 ether);
@@ -78,12 +78,12 @@ contract ExponentialBondingCurveAndTokenTest is Test, CodeConstants {
         assertEq(expToken.getBondingCurveProxyAddress(), address(expProxy));
     }
 
-    function test_RevertsWhen_ExponentialTokenMintingWithoutValue() public {
-        vm.expectRevert(ExponentialToken.ExponentialToken__AmountMustBeMoreThanZero.selector);
+    function test_RevertsWhen_GroupTokenMintingWithoutValue() public {
+        vm.expectRevert(GroupToken.GroupToken__AmountMustBeMoreThanZero.selector);
         expToken.mintTokens();
     }
 
-    function test_ExponentialTokenUserMintAndBurnToken() public {
+    function test_GroupTokenUserMintAndBurnToken() public {
         // Set starting values
         supply = expToken.totalSupply();
         reserve = expToken.reserveBalance();

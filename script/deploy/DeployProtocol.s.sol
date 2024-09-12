@@ -3,16 +3,16 @@ pragma solidity ^0.8.26;
 
 import {Script} from "forge-std/Script.sol";
 import {AlphaMarketToken} from "src/dao/AlphaMarketToken.sol";
-import {DeployAlphaMarketToken} from "script/DeployAlphaMarketToken.s.sol";
+import {DeployAlphaMarketToken} from "script/deploy/DeployAlphaMarketToken.s.sol";
 import {TimeLock} from "src/dao/TimeLock.sol";
-import {DeployTimeLock} from "script/DeployTimeLock.s.sol";
-import {AlphaMarket} from "src/dao/AlphaMarket.sol";
-import {DeployAlphaMarket} from "script/DeployAlphaMarket.s.sol";
-import {ExponentialBondingCurve} from "src/exponential-curve/ExponentialBondingCurve.sol";
-import {DeployExponentialBondingCurve} from "script/DeployExponentialBondingCurve.s.sol";
-import {LinearBondingCurve} from "src/linear-curve/LinearBondingCurve.sol";
-import {DeployLinearBondingCurve} from "script/DeployLinearBondingCurve.s.sol";
-import {HelperConfig} from "script/HelperConfig.s.sol";
+import {DeployTimeLock} from "script/deploy/DeployTimeLock.s.sol";
+import {AlphaMarketDAO} from "src/dao/AlphaMarketDAO.sol";
+import {DeployAlphaMarketDAO} from "script/deploy/DeployAlphaMarketDAO.s.sol";
+import {ExponentialBondingCurve} from "src/bonding-curves/ExponentialBondingCurve.sol";
+import {DeployExponentialBondingCurve} from "script/deploy/DeployExponentialBondingCurve.s.sol";
+import {LinearBondingCurve} from "src/bonding-curves/LinearBondingCurve.sol";
+import {DeployLinearBondingCurve} from "script/deploy/DeployLinearBondingCurve.s.sol";
+import {HelperConfig} from "script/utils/HelperConfig.s.sol";
 import {ERC1967Proxy} from "@openzeppelin/contracts/proxy/ERC1967/ERC1967Proxy.sol";
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -21,14 +21,14 @@ import {ERC1967Proxy} from "@openzeppelin/contracts/proxy/ERC1967/ERC1967Proxy.s
 ///////////////////////////////////////////////////////////////////////////////
 
 /// @title DeployExponentialBondingCurve
-/// @notice Script for deploying the AlphaMarket protocol.
+/// @notice Script for deploying the AlphaMarketDAO protocol.
 contract DeployProtocol is Script {
     function run()
         external
         returns (
             AlphaMarketToken token,
             TimeLock lock,
-            AlphaMarket market,
+            AlphaMarketDAO market,
             address expProxy,
             ExponentialBondingCurve expCurve,
             address linProxy,
@@ -39,10 +39,10 @@ contract DeployProtocol is Script {
         (token, lock, market, expProxy, expCurve, linProxy, linCurve, helper) = deployProtocol();
     }
 
-    /// @notice Deploys the AlphaMarket protocol.
+    /// @notice Deploys the AlphaMarketDAO protocol.
     /// @return token The instance of the AlphaMarketToken contract.
     /// @return lock The instance of the TimeLock contract.
-    /// @return market The instance of the AlphaMarket contract.
+    /// @return market The instance of the AlphaMarketDAO contract.
     /// @return expProxy The address of the ExponentialBondingCurve proxy.
     /// @return expCurve The instance of the ExponentialBondingCurve contract.
     /// @return linProxy The address of the LinearBondingCurve proxy.
@@ -53,7 +53,7 @@ contract DeployProtocol is Script {
         returns (
             AlphaMarketToken token,
             TimeLock lock,
-            AlphaMarket market,
+            AlphaMarketDAO market,
             address expProxy,
             ExponentialBondingCurve expCurve,
             address linProxy,
@@ -63,7 +63,7 @@ contract DeployProtocol is Script {
     {
         DeployAlphaMarketToken deployToken = new DeployAlphaMarketToken();
         DeployTimeLock deployLock = new DeployTimeLock();
-        DeployAlphaMarket deployMarket = new DeployAlphaMarket();
+        DeployAlphaMarketDAO deployMarket = new DeployAlphaMarketDAO();
         DeployExponentialBondingCurve deployExpCurve = new DeployExponentialBondingCurve();
         DeployLinearBondingCurve deployLinCurve = new DeployLinearBondingCurve();
 
