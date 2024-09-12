@@ -24,7 +24,7 @@ Website: <a href=''>https://enter-site-here.com</a>
 
 ## Description
 
-The framework consists of several smart contracts working in tandem to manage the issuance, redemption, and pricing of tokens within a curation market platform. At its core, an ERC20 token contract interacts with a bonding curve contract to dynamically set token prices based on supply and reserve balances. Users can mint new tokens by sending Ether, with the number of tokens issued and the associated fees being calculated through the bonding curve. Conversely, tokens can be burned to receive Ether, with redemption values also determined by the bonding curve to ensure liquidity and accurate pricing.
+The framework consists of several smart contracts working in tandem to manage the issuance, redemption, and pricing of tokens within a curation market platform. At its core, an ERC20 token contract interacts with a bonding curve contract to dynamically set token prices based on supply and reserve balances. Users can mint new tokens by sending M-Bitcoin, with the number of tokens issued and the associated fees being calculated through the bonding curve. Conversely, tokens can be burned to receive M-Bitcoin, with redemption values also determined by the bonding curve to ensure liquidity and accurate pricing.
 
 In addition to token management, the system includes a protocol for fee collection, where a portion of transaction fees is shared with the token contract. This setup supports ongoing funding for group initiatives and platform maintenance. Together, these contracts ensure a fluid and responsive token economy, enabling efficient market operations and sustainable growth for the curation market platform.
 
