@@ -14,7 +14,7 @@ contract ExponentialBondingCurve is Initializable, OwnableUpgradeable, UUPSUpgra
     /*///////////////////////////////////////////////////////////////
                             STATE VARIABLES
     ///////////////////////////////////////////////////////////////*/
-    /// @notice The address to send protocol fees to.
+    /// @notice The address should be set to the DAO treasury.
     address public protocolFeeDestination;
 
     /// @notice The percentage of the transaction value to send to the protocol fee destination.

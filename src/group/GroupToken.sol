@@ -5,7 +5,7 @@ import {ERC20Burnable, ERC20} from "@openzeppelin/contracts/token/ERC20/extensio
 import {ExponentialBondingCurve} from "src/bonding-curves/ExponentialBondingCurve.sol";
 import {console} from "forge-std/console.sol";
 
-/// @title ExponentialCurveToken
+/// @title GroupToken
 /// @author Dustin Stacy
 /// @notice This contract implements a simple ERC20 token that can be bought and sold using an exponential bonding curve.
 contract GroupToken is ERC20Burnable {
