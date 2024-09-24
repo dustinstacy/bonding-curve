@@ -12,6 +12,9 @@ contract GroupCampaigns {
     /// @notice Error to indicate that a campaign is over.
     error GroupCampaigns__CampaignOver();
 
+    /// @notice Error to indicate that a campaign is not over.
+    error GroupCampaigns__CampaignNotOver();
+
     /// @notice Error to indicate that no slots are available.
     error GroupCampaigns__NoSlotsAvailable();
 
@@ -21,11 +24,20 @@ contract GroupCampaigns {
     /// @notice Error to indicate that no pending sponsors exist.
     error GroupCampaigns__NoPendingSponsors();
 
+    /// @notice Error to indicate that no sponsors exist.
+    error GroupCampaigns__NoSponsors();
+
     /// @notice Error to indicate the sponsor does not exist.
     error GroupCampaigns__SponsorDoesNotExist();
 
     /// @notice Error to indicate the sponsor funds transfer failed.
     error GroupCampaigns__FailedToSendFundsToSponsor();
+
+    /// @notice Error to indicate the group funds transfer failed.
+    error GroupCampaigns__FailedToSendFundsToGroup();
+
+    /// @notice Error to indicate the protocol fee transfer failed.
+    error GroupCampaigns__FailedToSendProtocolFee();
 
     /// @notice Error to indicate that only the group host can call the function.
     error GroupCampaigns__OnlyGroupHost();
@@ -33,17 +45,8 @@ contract GroupCampaigns {
     /// @notice Error to indicate that the campaign has existing funds.
     error GroupCampaigns__FundingExists();
 
-    /// @notice Error to indicate the protocol fee transfer failed.
-    error GroupCampaigns__FailedToSendProtocolFee();
-
-    /// @notice Error to indicate the group funds transfer failed.
-    error GroupCampaigns__FailedToSendFundsToGroup();
-
     /// @notice Error to indicate that the campaign was not found.
     error GroupCampaigns__CampaignNotFound();
-
-    /// @notice Error to indicate that no sponsors exist.
-    error GroupCampaigns__NoSponsors();
 
     /// @notice Error to indicate that no pending funds exist.
     error GroupCampaigns__NoPendingFunds();
@@ -62,6 +65,7 @@ contract GroupCampaigns {
         uint256 deadline;
         uint32 slotsAvailable;
         uint256 slotPrice;
+        uint256 totalRaised;
         bool active;
     }
 
@@ -138,7 +142,7 @@ contract GroupCampaigns {
         uint256 slotPrice
     ) external {
         Campaign memory newCampaign =
-            Campaign(campaignCount, group, host, title, deadline, slotsAvailable, slotPrice, true);
+            Campaign(campaignCount, group, host, title, deadline, slotsAvailable, slotPrice, 0, true);
 
         campaignById[campaignCount] = newCampaign;
         campaignsByGroup[group].push(newCampaign);
@@ -199,7 +203,7 @@ contract GroupCampaigns {
             }
         }
 
-        if (index > length) {
+        if (index >= length) {
             revert GroupCampaigns__SponsorDoesNotExist();
         }
 
@@ -207,6 +211,7 @@ contract GroupCampaigns {
         campaignSponsorRequests[campaignId][index] = campaignSponsorRequests[campaignId][length - 1];
         campaignSponsorRequests[campaignId].pop();
 
+        campaignById[campaignId].slotsAvailable++;
         campaignPendingFunds[campaignId] -= campaignById[campaignId].slotPrice;
         (bool success,) = sponsor.call{value: campaignById[campaignId].slotPrice}("");
         if (!success) {
@@ -247,7 +252,7 @@ contract GroupCampaigns {
     function completeCampaign(uint256 campaignId) public {
         Campaign storage campaign = campaignById[campaignId];
         if (block.timestamp < campaign.deadline) {
-            // Campaign is not over
+            revert GroupCampaigns__CampaignNotOver();
         }
 
         if (campaignBalances[campaignId] > 0) {
@@ -268,6 +273,7 @@ contract GroupCampaigns {
             }
         }
 
+        campaign.totalRaised += campaignBalances[campaignId];
         campaign.active = false;
     }
 
