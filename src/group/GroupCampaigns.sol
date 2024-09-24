@@ -169,6 +169,10 @@ contract GroupCampaigns {
         }
     }
 
+    function tipCampaign(uint256 campaignId) public payable {
+        campaignBalances[campaignId] += msg.value;
+    }
+
     /*///////////////////////////////////////////////////////////////
                           GETTER FUNCTIONS
     ///////////////////////////////////////////////////////////////*/
