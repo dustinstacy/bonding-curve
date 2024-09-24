@@ -11,6 +11,7 @@ contract GroupCampaigns {
     struct Campaign {
         uint256 id;
         address group;
+        address host;
         string title;
         uint256 deadline;
         uint32 slotsAvailable;
@@ -84,12 +85,14 @@ contract GroupCampaigns {
     /// @param slotPrice The price per slot in the campaign.
     function createCampaign(
         address group,
+        address host,
         string memory title,
         uint256 deadline,
         uint32 slotsAvailable,
         uint256 slotPrice
     ) external {
-        Campaign memory newCampaign = Campaign(campaignCount, group, title, deadline, slotsAvailable, slotPrice, true);
+        Campaign memory newCampaign =
+            Campaign(campaignCount, group, host, title, deadline, slotsAvailable, slotPrice, true);
 
         campaignById[campaignCount] = newCampaign;
         campaignsByGroup[group].push(newCampaign);
@@ -183,15 +186,63 @@ contract GroupCampaigns {
         uint256 slotPrice
     ) external {
         Campaign storage campaign = campaignById[campaignId];
-        require(campaign.group == msg.sender, "Only the group can update the campaign");
-        require(campaign.active, "Cannot update inactive campaign");
-        require(block.timestamp < campaign.deadline, "Cannot update campaign after deadline");
-        require(campaignBalances[campaignId] == 0, "Cannot update campaign with funds");
+        if (campaign.host != msg.sender) {
+            // Only the group host can update the campaign
+        }
+        else if (block.timestamp > campaign.deadline) {
+            // Campaign is over
+        }
+        else if (campaignBalances[campaignId] != 0) {
+            // Cannot update campaign with funds
+        }
 
         campaign.title = title;
         campaign.deadline = deadline;
         campaign.slotsAvailable = slotsAvailable;
         campaign.slotPrice = slotPrice;
+    }
+
+    /// @notice Allows a group host to complete a campaign.
+    /// @param campaignId The ID of the campaign.
+    function completeCampaign(uint256 campaignId) public {
+        Campaign storage campaign = campaignById[campaignId];
+        if (block.timestamp < campaign.deadline) {
+            // Campaign is not over
+        }
+
+        if (campaignBalances[campaignId] > 0) {
+            uint256 remainingBalance = campaignBalances[campaignId];
+            campaignBalances[campaignId] = 0;
+
+            uint256 protocolFeeAmount = remainingBalance * protocolFee / 100;
+            (bool success,) = protocolFeeDestination.call{value: protocolFeeAmount}("");
+            if (!success) {
+                // Failed to send protocol fee
+            }
+
+            remainingBalance -= protocolFeeAmount;
+
+            (bool success2,) = campaign.group.call{value: remainingBalance}("");
+            if (!success2) {
+                // Failed to send funds to group
+            }
+        }
+
+        campaign.active = false;
+    }
+
+    /// @notice Allows a group host to delete a campaign.
+    /// @param campaignId The ID of the campaign.
+    function deleteCampaign(uint256 campaignId) public {
+        Campaign storage campaign = campaignById[campaignId];
+        if (campaign.host != msg.sender) {
+            // Only the group host can delete the campaign
+        }
+        else if (campaignBalances[campaignId] != 0) {
+            // Cannot delete campaign with funds
+        }
+
+        delete campaignById[campaignId];
     }
 
     /*///////////////////////////////////////////////////////////////
