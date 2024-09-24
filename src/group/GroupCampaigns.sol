@@ -169,6 +169,35 @@ contract GroupCampaigns {
         }
     }
 
+    /// @notice Allows a group host to update a campaign.
+    /// @param campaignId The ID of the campaign.
+    /// @param title The title of the campaign.
+    /// @param deadline The deadline for the campaign.
+    /// @param slotsAvailable The number of slots available in the campaign.
+    /// @param slotPrice The price per slot in the campaign.
+    function updateCampaign(
+        uint256 campaignId,
+        string memory title,
+        uint256 deadline,
+        uint32 slotsAvailable,
+        uint256 slotPrice
+    ) external {
+        Campaign storage campaign = campaignById[campaignId];
+        require(campaign.group == msg.sender, "Only the group can update the campaign");
+        require(campaign.active, "Cannot update inactive campaign");
+        require(block.timestamp < campaign.deadline, "Cannot update campaign after deadline");
+        require(campaignBalances[campaignId] == 0, "Cannot update campaign with funds");
+
+        campaign.title = title;
+        campaign.deadline = deadline;
+        campaign.slotsAvailable = slotsAvailable;
+        campaign.slotPrice = slotPrice;
+    }
+
+    /*///////////////////////////////////////////////////////////////
+                          PUBLIC FUNCTIONS
+    ///////////////////////////////////////////////////////////////*/
+
     function tipCampaign(uint256 campaignId) public payable {
         campaignBalances[campaignId] += msg.value;
     }
