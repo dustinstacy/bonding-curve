@@ -6,6 +6,52 @@ pragma solidity ^0.8.26;
 /// @notice This contract implements a campaign management system for groups.
 contract GroupCampaigns {
     /*///////////////////////////////////////////////////////////////
+                             ERRORS
+    ///////////////////////////////////////////////////////////////*/
+
+    /// @notice Error to indicate that a campaign is over.
+    error GroupCampaigns__CampaignOver();
+
+    /// @notice Error to indicate that no slots are available.
+    error GroupCampaigns__NoSlotsAvailable();
+
+    /// @notice Error to indicate that not enough funds were sent.
+    error GroupCampaigns__NotEnoughFunds();
+
+    /// @notice Error to indicate that no pending sponsors exist.
+    error GroupCampaigns__NoPendingSponsors();
+
+    /// @notice Error to indicate the sponsor does not exist.
+    error GroupCampaigns__SponsorDoesNotExist();
+
+    /// @notice Error to indicate the sponsor funds transfer failed.
+    error GroupCampaigns__FailedToSendFundsToSponsor();
+
+    /// @notice Error to indicate that only the group host can call the function.
+    error GroupCampaigns__OnlyGroupHost();
+
+    /// @notice Error to indicate that the campaign has existing funds.
+    error GroupCampaigns__FundingExists();
+
+    /// @notice Error to indicate the protocol fee transfer failed.
+    error GroupCampaigns__FailedToSendProtocolFee();
+
+    /// @notice Error to indicate the group funds transfer failed.
+    error GroupCampaigns__FailedToSendFundsToGroup();
+
+    /// @notice Error to indicate that the campaign was not found.
+    error GroupCampaigns__CampaignNotFound();
+
+    /// @notice Error to indicate that no sponsors exist.
+    error GroupCampaigns__NoSponsors();
+
+    /// @notice Error to indicate that no pending funds exist.
+    error GroupCampaigns__NoPendingFunds();
+
+    /// @notice Error to indicate that no funds exist.
+    error GroupCampaigns__NoFunds();
+
+    /*///////////////////////////////////////////////////////////////
                              STATE VARIABLES
     ///////////////////////////////////////////////////////////////*/
     struct Campaign {
@@ -108,15 +154,12 @@ contract GroupCampaigns {
     function requestToSponsor(uint256 campaignId, address sponsor) public payable {
         Campaign storage campaign = campaignById[campaignId];
         if (block.timestamp > campaign.deadline) {
-            // Campaign is over
-        }
-        else if (campaign.slotsAvailable == 0) {
-            // No slots available
-        }
-        else if (msg.value < campaign.slotPrice) {
-            // Not enough funds
-        }
-        else {
+            revert GroupCampaigns__CampaignOver();
+        } else if (campaign.slotsAvailable == 0) {
+            revert GroupCampaigns__NoSlotsAvailable();
+        } else if (msg.value < campaign.slotPrice) {
+            revert GroupCampaigns__NotEnoughFunds();
+        } else {
             campaign.slotsAvailable--;
             campaignPendingFunds[campaignId] += campaign.slotPrice;
             campaignSponsorRequests[campaignId].push(sponsor);
@@ -128,9 +171,8 @@ contract GroupCampaigns {
     /// @param sponsor The address of the sponsor.
     function acceptSponsor(uint256 campaignId, address sponsor) public {
         if (campaignSponsorRequests[campaignId].length == 0) {
-            // No sponsors to accept
-        }
-        else {
+            revert GroupCampaigns__NoPendingSponsors();
+        } else {
             campaignSponsors[campaignId].push(Sponsor(sponsor, campaignById[campaignId].slotPrice, true));
             campaignBalances[campaignId] += campaignById[campaignId].slotPrice;
             campaignPendingFunds[campaignId] -= campaignById[campaignId].slotPrice;
@@ -143,7 +185,7 @@ contract GroupCampaigns {
     function denySponsor(uint256 campaignId, address sponsor) public {
         uint256 length = campaignSponsorRequests[campaignId].length;
         if (length == 0) {
-            // No sponsors to deny
+            revert GroupCampaigns__NoPendingSponsors();
         }
 
         /// @dev Start with a max value to indicate not found
@@ -158,7 +200,7 @@ contract GroupCampaigns {
         }
 
         if (index > length) {
-            // Sponsor not found
+            revert GroupCampaigns__SponsorDoesNotExist();
         }
 
         // Swap with the last element and then pop
@@ -168,7 +210,7 @@ contract GroupCampaigns {
         campaignPendingFunds[campaignId] -= campaignById[campaignId].slotPrice;
         (bool success,) = sponsor.call{value: campaignById[campaignId].slotPrice}("");
         if (!success) {
-            // Failed to send funds back to sponsor
+            revert GroupCampaigns__FailedToSendFundsToSponsor();
         }
     }
 
@@ -187,13 +229,11 @@ contract GroupCampaigns {
     ) external {
         Campaign storage campaign = campaignById[campaignId];
         if (campaign.host != msg.sender) {
-            // Only the group host can update the campaign
-        }
-        else if (block.timestamp > campaign.deadline) {
-            // Campaign is over
-        }
-        else if (campaignBalances[campaignId] != 0) {
-            // Cannot update campaign with funds
+            revert GroupCampaigns__OnlyGroupHost();
+        } else if (block.timestamp > campaign.deadline) {
+            revert GroupCampaigns__CampaignOver();
+        } else if (campaignBalances[campaignId] != 0) {
+            revert GroupCampaigns__FundingExists();
         }
 
         campaign.title = title;
@@ -217,14 +257,14 @@ contract GroupCampaigns {
             uint256 protocolFeeAmount = remainingBalance * protocolFee / 100;
             (bool success,) = protocolFeeDestination.call{value: protocolFeeAmount}("");
             if (!success) {
-                // Failed to send protocol fee
+                revert GroupCampaigns__FailedToSendProtocolFee();
             }
 
             remainingBalance -= protocolFeeAmount;
 
             (bool success2,) = campaign.group.call{value: remainingBalance}("");
             if (!success2) {
-                // Failed to send funds to group
+                revert GroupCampaigns__FailedToSendFundsToGroup();
             }
         }
 
@@ -236,10 +276,9 @@ contract GroupCampaigns {
     function deleteCampaign(uint256 campaignId) public {
         Campaign storage campaign = campaignById[campaignId];
         if (campaign.host != msg.sender) {
-            // Only the group host can delete the campaign
-        }
-        else if (campaignBalances[campaignId] != 0) {
-            // Cannot delete campaign with funds
+            revert GroupCampaigns__OnlyGroupHost();
+        } else if (campaignBalances[campaignId] != 0) {
+            revert GroupCampaigns__FundingExists();
         }
 
         delete campaignById[campaignId];
@@ -260,36 +299,60 @@ contract GroupCampaigns {
     /// @notice Gets a campaign by its ID.
     /// @param campaignId The ID of the campaign.
     function getCampaignById(uint256 campaignId) public view returns (Campaign memory) {
-        return campaignById[campaignId];
+        if (campaignById[campaignId].id == 0) {
+            revert GroupCampaigns__CampaignNotFound();
+        } else {
+            return campaignById[campaignId];
+        }
     }
 
     /// @notice Gets all campaigns for a group.
     /// @param group The address of the group.
     function getGroupCampaigns(address group) public view returns (Campaign[] memory) {
-        return campaignsByGroup[group];
+        if (campaignsByGroup[group].length == 0) {
+            revert GroupCampaigns__CampaignNotFound();
+        } else {
+            return campaignsByGroup[group];
+        }
     }
 
     /// @notice Gets the sponsor requests for a campaign.
     /// @param campaignId The ID of the campaign.
     function getCampaignSponsorRequests(uint256 campaignId) public view returns (address[] memory) {
-        return campaignSponsorRequests[campaignId];
+        if (campaignSponsorRequests[campaignId].length == 0) {
+            revert GroupCampaigns__NoPendingSponsors();
+        } else {
+            return campaignSponsorRequests[campaignId];
+        }
     }
 
     /// @notice Gets the sponsors for a campaign.
     /// @param campaignId The ID of the campaign.
     function getCampaignSponsors(uint256 campaignId) public view returns (Sponsor[] memory) {
-        return campaignSponsors[campaignId];
+        if (campaignSponsors[campaignId].length == 0) {
+            revert GroupCampaigns__NoSponsors();
+        } else {
+            return campaignSponsors[campaignId];
+        }
     }
 
     /// @notice Gets the pending funds for a campaign.
     /// @param campaignId The ID of the campaign.
     function getCampaignPendingFunds(uint256 campaignId) public view returns (uint256) {
-        return campaignPendingFunds[campaignId];
+        if (campaignPendingFunds[campaignId] == 0) {
+            revert GroupCampaigns__NoPendingFunds();
+        } else {
+            return campaignPendingFunds[campaignId];
+        }
     }
 
     /// @notice Gets the campaign balance.
     /// @param campaignId The ID of the campaign.
     function getCampaignBalance(uint256 campaignId) public view returns (uint256) {
-        return campaignBalances[campaignId];
+        if (campaignBalances[campaignId] == 0) {
+            revert GroupCampaigns__NoFunds();
+        } else {
+            return campaignBalances[campaignId];
+        }
     }
 }
